@@ -1,0 +1,54 @@
+//=======================================================================================================
+/********************************************Notice*****************************************************/
+//Format of the parameter file:
+//         Keys should be in front of corresponding values within the same line, and  symbol ""  is crucial for a string.
+//         Keys are crucial too, don't change the former keys of the input values.
+//=======================================================================================================
+{
+	//server = "CPU";
+	//server = "GPU";
+	item = 12; // FI to .c func,  single configuration.
+	//item = 9; // switch bond length (R) to FI formula output
+	thread = 4;
+	option1 = "N";//bool
+	option2 = 10; // integer 
+	InputFilePath = "./data"; // FI ploynomial formula
+	OutputFilePath = "./output";
+
+	InputFileName = "AB3PIP.txt"; //FI ploynomial formula
+	OutputFileName = "RtoFI.c";
+	
+	funcName = "RtoFI";
+	
+	DataFilePath = "/share/fayelulu/FIanalyzer/data/";
+	DataFileName = "fort.100";
+}
+/*
+
+test 4: contract
+test 5: dispatch
+test 6: test of elementwise
+test 7: simple forward diff of deprecated activation formula;
+test 8: forward diff of deprecated activation formula;
+test 9: forward diff of expression 
+test 10: forward diff of activation and its error compared with numerical differential
+test 11: backward diff of activation and its error compared with forward differential
+test 12: batched test forward differential.
+test 13: batched test for the difference of forward and backward differetial. 
+*/
+
+/*
+test 10 test activation:
+option2
+1: exp(x^2)
+2: exp(-x^2)
+3: (w_0 + w_1 * x + w_2 * x^2 + w_3 * x^3) * exp(-(w_4 * x)^2)
+4: tanh(x)
+5: -x^2
+6: x /sqrt(x^2 + 1)
+7: sin(-x^2)
+8: xln(x^2)
+9: x^8
+10: (x * x) ^ x
+*/
+
