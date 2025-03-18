@@ -2,30 +2,35 @@ BASE = ../
 
 
 ODIR = $(BASE)obj/
-CODE = $(BASE)
-LEX = $(CODE)/lexical/
+CODE = $(BASE)lexical/
 TOOLS = $(BASE)tools/
 TEST = $(BASE)test/
 
-LOFILE = $(LEX)automata.o $(LEX)dictionary.o
-HFILE = $(HEAD)PikaType.h $(HEAD)PikaTemplate.h $(HEAD)Pikachu.h $(HEAD)Symbolic.h
+
+COFILE = $(ODIR)automata.o  $(ODIR)dictionary.o 
+HOFILE = $(CODE)automata.h  $(CODE)dictionary.h
 TestOFile = $(TEST)main.o
 
-#Option = -g
-Option = -O3
+OPTION = -O0 
+#OPTION = -O3
+#EXTRA =-Wall -Wextra -fno-strict-aliasing -fwrapv -fno-aggressive-loop-optimizations -Wconversion -ftrapv
+#CC = icc
+CC = g++
 
+libHyperlex.a:  $(COFILE)
+	ar -rcv $(BASE)lib/libHyperlex.a  $(COFILE)
 
+$(ODIR)automata.o:$(CODE)automata.cpp $(CODE)automata.h
+	$(CC) -o $(ODIR)automata.o -c $(OPTION) $(CODE)automata.cpp
 
-libHyperlex.a: $(LOFILE)
-	ar -rcv $(EXTERN)libHyperlex.a  $(LOFILE) 
+$(ODIR)dictionary.o:$(CODE)dictionary.cpp $(CODE)dictionary.h $(CODE)automata.h
+	$(CC) -o $(ODIR)dictionary.o -c  $(OPTION) $(CODE)dictionary.cpp
 
-$(ODIR)automata.o:$(LEX)automata.cpp $(LEX)automata.h
-	g++ -o $(ODIR)automata.o -c $(Option) $(LEX)automata.cpp
+test.exe: $(COFILE) $(TestOFile)
+	$(CC) -o $(TEST)test.exe $(COFILE) $(TestOFile)
 
-$(ODIR)dictionary.o:$(LEX)dictionary.cpp $(LEX)automata.h $(LEX)dictionary.h
-	g++ -o $(ODIR)dictionary.o -c $(Option) $(LEX)dictionary.cpp
-
-
+$(TEST)main.o: $(HOFILE) $(TEST)main.cpp
+	$(CC) -o $(TEST)main.o -c $(OPTION) $(TEST)main.cpp
 
 
 

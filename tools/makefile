@@ -24,18 +24,6 @@ Option = -O3
 libHyperPes.a:  $(COFILE) $(SOFILE) 
 	ar -rcv $(BASE)libHyperPes.a  $(COFILE) $(SOFILE) 
 
-libHyperlex.a: $(LOFILE)
-	ar -rcv $(EXTERN)libHyperlex.a  $(LOFILE) 
-
-$(ODIR)automata.o:$(LEX)automata.cpp $(LEX)automata.h
-	g++ -o $(ODIR)automata.o -c $(Option) $(LEX)automata.cpp
-
-$(ODIR)dictionary.o:$(LEX)dictionary.cpp $(LEX)automata.h $(LEX)dictionary.h
-	g++ -o $(ODIR)dictionary.o -c $(Option) $(LEX)dictionary.cpp
-
-#$(ODIR)formula.o:$(CODE)formula.cpp $(CODE)pes.h
-#	g++ -o $(ODIR)formula.o -c -O3 $(CODE)formula.cpp
-
 $(ODIR)Pikachu.o:$(CODE)network/Pikachu.cpp $(HFILE)
 	g++ -o $(ODIR)Pikachu.o -c $(Option) $(CODE)network/Pikachu.cpp
 
