@@ -1,7 +1,7 @@
 BASE = ../
 
 ODIR = $(BASE)obj/
-CODE = $(BASE)code/
+CODE = $(BASE)algebra/
 TOOLS = $(BASE)tools/
 TEST = $(BASE)test/
 
@@ -18,7 +18,7 @@ EXTERN = ../extern/lib
 #ARCH = -arch=sm_80
 
 libHyperAlgebra.a: $(COOFILE) 
-	ar -rcv $(BASE)libHyperAlgebra.a  $(COOFILE) 
+	ar -rcv $(BASE)lib/libHyperAlgebra.a  $(COOFILE) 
 
 libHyperAlgebraOld.a: $(COFILE) $(COOFILE) 
 	ar -rcv $(BASE)libHyperAlgebraOld.a  $(COFILE) $(COOFILE) 
