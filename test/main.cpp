@@ -28,7 +28,7 @@ class parameter
 public:
     parameter();
     ~parameter();
-    void build(hyperlex::ParaFile& pf);
+    void build(hyperlex::dictionary& pf);
     std::string FullInputName(void) const;
     std::string FullOutputName(void) const;
     std::string FullDataName(void) const;
@@ -72,15 +72,11 @@ int test_entrance(const char* output_path)
 {
     int item;
     int info;
-    hyperlex::ParaFile pf;
+    hyperlex::dictionary pf;
     size_t sitePF;
     parameter para;
-    pf.initial("./parameter/test_item.txt");
-    sitePF = pf.SearchKey("item", hyperlex::ParaFile::Int);
-    if (sitePF != pf.Amount())
-        item = pf.FirstInt(sitePF);
-    else
-        item = 1;
+    pf.build("./test/test_item.txt");
+    item = (int)pf.search((long int)0, "item");
     std::cout << "item: " << item << std::endl;
     info = 0;
     para.build(pf);
@@ -222,45 +218,36 @@ std::string parameter::FullDataName(void) const
     out = path_add_file_name(path, file);
     return out;
 }
-void parameter::build(hyperlex::ParaFile& pf)
+void parameter::build(hyperlex::dictionary& pf)
 {
     size_t sitePF, i;
     std::string temp;
-    sitePF = pf.SearchKey("thread", hyperlex::ParaFile::Int);
-    if (sitePF != pf.Amount())
-        thread = pf.FirstInt(sitePF);
-    else
-        thread = 1;
+    thread = (size_t)pf.search((long int)1, "thread");
 
-    sitePF = pf.SearchKey("option2", hyperlex::ParaFile::Int);
-    if (sitePF != pf.Amount())
-        option2 = pf.FirstInt(sitePF);
-    else
-        option2 = 0;
+    option2 = (size_t)pf.search((long int)1, "option2");
     
-    temp = pf.GetString("InputFileName", "C10H8.txt");
+    temp = pf.search("InputFileName", "C10H8.txt");
     inputName = CopyMalloc(temp.c_str());
 
-    temp = pf.GetString("OutputFileName", "fi.c");
+    temp = pf.search("OutputFileName", "fi.c");
     outputName = CopyMalloc(temp.c_str());
 
-    temp = pf.GetString("InputFilePath", "/share/fayelulu/FIanalyzer/data/");
+    temp = pf.search("InputFilePath", "/share/fayelulu/FIanalyzer/data/");
     inputPath = CopyMalloc(temp.c_str());
 
-    temp = pf.GetString("OutputFilePath", "/share/fayelulu/FIanalyzer/data/");
+    temp = pf.search("OutputFilePath", "/share/fayelulu/FIanalyzer/data/");
     outputPath = CopyMalloc(temp.c_str());
 
-    temp = pf.GetString("funcName", "RtoFI");
+    temp = pf.search("funcName", "RtoFI");
     funcName = CopyMalloc(temp.c_str());
 
-    temp = pf.GetString("DataFilePath", "/share/fayelulu/FIanalyzer/data/");
+    temp = pf.search("DataFilePath", "/share/fayelulu/FIanalyzer/data/");
     DataFilePath = CopyMalloc(temp.c_str());
 
-    temp = pf.GetString("DataFileName", "fort.100");
+    temp = pf.search("DataFileName", "fort.100");
     DataFileName = CopyMalloc(temp.c_str());
 
-    temp = pf.GetString("option1", "Y");
-    option1= true_false_judge(temp.c_str());
+    option1 = pf.search(true, "option1");
 
 }
 void parameter::Demo(FILE* fp)const

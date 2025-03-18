@@ -48,7 +48,7 @@ $(ODIR)expression.o:$(SYMBOL)expression.cpp $(HFILE)
 $(ODIR)manifold.o:$(SYMBOL)manifold.cpp $(HFILE)
 	g++ -o $(ODIR)manifold.o -c $(Option) $(SYMBOL)manifold.cpp
 
-test.exe: $(COFILE) $(TestOFile) $(SOFILE) libHyperPes.a $(ODIR)libHyperlex.a 
+test.exe: $(COFILE) $(TestOFile) $(SOFILE) libHyperPes.a
 	g++ -o $(TEST)test.exe $(TestOFile) -L$(BASE) -lHyperPes  -L$(EXTERN)  $(Extern)
 
 $(TEST)main.o: $(HFILE) $(TEST)main.cpp $(TEST)extern.h
