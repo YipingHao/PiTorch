@@ -231,6 +231,23 @@ namespace HyperAlgebra
 		int R;
 		double reciprocal;
 };
+
+	class MersenneTwisters
+	{
+	public:
+		MersenneTwisters();
+		~MersenneTwisters();
+		void SetSeed(unsigned long long seed);
+		unsigned long long  rand(void);
+		double real(void);
+		double RealCloseCLose(void);
+		double RealOpenOpen(void);
+		size_t select(size_t N);//[0, N)
+	private:
+		unsigned long long mt[312];
+		int mti;
+		void twist(void);
+	};
 }
 #endif // !HYPER_CUDA_HHHHHH___
 
