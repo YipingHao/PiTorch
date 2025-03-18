@@ -1,1 +1,6 @@
 .vs/
+/obj/*.o
+/extern/obj/*.o
+/extern/lib/*.a
+
+
