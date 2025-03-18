@@ -1,4 +1,4 @@
-#include"Pikachu.h"
+#include"../header/Pikachu.h"
 #ifndef _uintMax_
 #define _uintMax_ 0xffffffffffffffff
 #endif

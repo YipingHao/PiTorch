@@ -1,4 +1,4 @@
-#include"Pikachu.h"
+#include"../header/Pikachu.h"
 using namespace Pikachu;
 #include<cmath>
 #ifndef _uintMax_

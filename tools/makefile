@@ -51,7 +51,7 @@ $(ODIR)manifold.o:$(SYMBOL)manifold.cpp $(HFILE)
 test.exe: $(COFILE) $(TestOFile) $(SOFILE) libHyperPes.a $(ODIR)libHyperlex.a 
 	g++ -o $(TEST)test.exe $(TestOFile) -L$(BASE) -lHyperPes  -L$(EXTERN)  $(Extern)
 
-$(TEST)main.o: $(HFILE) $(TEST)main.cpp
+$(TEST)main.o: $(HFILE) $(TEST)main.cpp $(TEST)extern.h
 	g++ -o $(TEST)main.o -c $(Option) $(TEST)main.cpp
 
 
