@@ -1,70 +1,58 @@
 BASE = ../
 
-
 ODIR = $(BASE)obj/
-CODE = $(BASE)src/
-SYMBOL = $(CODE)/Symbolic/
-HEAD = $(CODE)/header/
-LEX = $(CODE)/lexical/
+CODE = $(BASE)code/
 TOOLS = $(BASE)tools/
 TEST = $(BASE)test/
-EXTERN = $(BASE)extern/lib/
 
-COFILE = $(ODIR)Pikachu.o $(ODIR)PikaType.o $(ODIR)Nodes.o $(ODIR)tensor.o 
-SOFILE = $(ODIR)symbolic.o $(ODIR)SymbolicIR.o $(ODIR)expression.o $(ODIR)manifold.o
-LOFILE = $(LEX)automata.o $(LEX)dictionary.o
-HFILE = $(HEAD)PikaType.h $(HEAD)PikaTemplate.h $(HEAD)Pikachu.h $(HEAD)Symbolic.h
-Extern = -lHyperlex -lHyperAlgebra
+MKL = /work1/soft/intel2015/composer_xe_2015.2.164/mkl/lib/intel64
+
+HFILE = $(CODE)linear_algebra.h $(CODE)HyperAlgebra.h $(CODE)random.h
+COFILE = $(ODIR)linear_algebra.o $(ODIR)mutex_bar.o $(ODIR)vecmat.o $(ODIR)random.o
+COOFILE = $(ODIR)HyperAlgebraCore.o $(ODIR)AlgebraMKL.o $(ODIR)HyperAlgebraRandom.o
 TestOFile = $(TEST)main.o
 
-#Option = -g
-Option = -O3
+EXTERNLIB = -lHyperAcc
+EXTERN = ../extern/lib
+
+#ARCH = -arch=sm_80
+
+libHyperAlgebra.a: $(COOFILE) 
+	ar -rcv $(BASE)libHyperAlgebra.a  $(COOFILE) 
+
+libHyperAlgebraOld.a: $(COFILE) $(COOFILE) 
+	ar -rcv $(BASE)libHyperAlgebraOld.a  $(COFILE) $(COOFILE) 
 
 
-libHyperPes.a:  $(COFILE) $(SOFILE) 
-	ar -rcv $(BASE)libHyperPes.a  $(COFILE) $(SOFILE) 
 
-libHyperlex.a: $(LOFILE)
-	ar -rcv $(EXTERN)libHyperlex.a  $(LOFILE) 
+$(ODIR)linear_algebra.o:$(CODE)linear_algebra.cpp $(HFILE)
+	g++ -o $(ODIR)linear_algebra.o -c -O3  $(CODE)linear_algebra.cpp
 
-$(ODIR)automata.o:$(LEX)automata.cpp $(LEX)automata.h
-	g++ -o $(ODIR)automata.o -c $(Option) $(LEX)automata.cpp
+$(ODIR)HyperAlgebraCore.o:$(CODE)HyperAlgebraCore.cpp $(HFILE)
+	g++ -o $(ODIR)HyperAlgebraCore.o  -c -O3 $(CODE)HyperAlgebraCore.cpp
 
-$(ODIR)dictionary.o:$(LEX)dictionary.cpp $(LEX)automata.h $(LEX)dictionary.h
-	g++ -o $(ODIR)dictionary.o -c $(Option) $(LEX)dictionary.cpp
+$(ODIR)AlgebraMKL.o:$(CODE)AlgebraMKL.cpp $(HFILE)
+	g++ -o $(ODIR)AlgebraMKL.o  -c -O3 $(CODE)AlgebraMKL.cpp
 
-#$(ODIR)formula.o:$(CODE)formula.cpp $(CODE)pes.h
-#	g++ -o $(ODIR)formula.o -c -O3 $(CODE)formula.cpp
+$(ODIR)HyperAlgebraRandom.o:$(CODE)HyperAlgebraRandom.cpp $(HFILE)
+	g++ -o $(ODIR)HyperAlgebraRandom.o  -c -O3 $(CODE)HyperAlgebraRandom.cpp
 
-$(ODIR)Pikachu.o:$(CODE)network/Pikachu.cpp $(HFILE)
-	g++ -o $(ODIR)Pikachu.o -c $(Option) $(CODE)network/Pikachu.cpp
 
-$(ODIR)PikaType.o:$(CODE)tensors/PikaType.cpp $(HFILE)
-	g++ -o $(ODIR)PikaType.o -c $(Option) $(CODE)tensors/PikaType.cpp
 
-$(ODIR)Nodes.o:$(CODE)network/Nodes.cpp $(HFILE)
-	g++ -o $(ODIR)Nodes.o -c $(Option) $(CODE)network/Nodes.cpp
+$(ODIR)mutex_bar.o:$(CODE)mutex_bar.cpp $(HFILE)
+	g++ -o $(ODIR)mutex_bar.o  -c -O3 $(CODE)mutex_bar.cpp
 
-$(ODIR)tensor.o:$(CODE)tensors/tensor.cpp $(HFILE)
-	g++ -o $(ODIR)tensor.o -c $(Option) $(CODE)tensors/tensor.cpp
+$(ODIR)random.o:$(CODE)random.cpp $(HFILE)
+	g++ -o $(ODIR)random.o -c -O3 $(CODE)random.cpp
 
-$(ODIR)symbolic.o:$(SYMBOL)symbolic.cpp $(HFILE)
-	g++ -o $(ODIR)symbolic.o -c $(Option) $(SYMBOL)symbolic.cpp
+$(ODIR)vecmat.o:$(CODE)vecmat.cpp $(HFILE)
+	g++ -o $(ODIR)vecmat.o  -c -O3 $(CODE)vecmat.cpp
 
-$(ODIR)SymbolicIR.o:$(SYMBOL)SymbolicIR.cpp $(HFILE)
-	g++ -o $(ODIR)SymbolicIR.o -c $(Option) $(SYMBOL)SymbolicIR.cpp
-
-$(ODIR)expression.o:$(SYMBOL)expression.cpp $(HFILE)
-	g++ -o $(ODIR)expression.o -c $(Option) $(SYMBOL)expression.cpp
-
-$(ODIR)manifold.o:$(SYMBOL)manifold.cpp $(HFILE)
-	g++ -o $(ODIR)manifold.o -c $(Option) $(SYMBOL)manifold.cpp
-
-test.exe: $(COFILE) $(TestOFile) $(SOFILE) libHyperPes.a $(ODIR)libHyperlex.a 
-	g++ -o $(TEST)test.exe $(TestOFile) -L$(BASE) -lHyperPes  -L$(EXTERN)  $(Extern)
+test.exe:$(COFILE) $(COOFILE) $(TestOFile)  
+	g++ -o $(TEST)test.exe $(COFILE) $(COOFILE) $(TestOFile) -lm -lpthread -L $(MKL) -lmkl_rt -L$(EXTERN) $(EXTERNLIB)
 
 $(TEST)main.o: $(HFILE) $(TEST)main.cpp
-	g++ -o $(TEST)main.o -c $(Option) $(TEST)main.cpp
+	g++ -o $(TEST)main.o -c -O3 $(TEST)main.cpp
 
 
 
