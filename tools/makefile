@@ -5,15 +5,15 @@ ODIR = $(BASE)obj/
 CODE = $(BASE)src/
 SYMBOL = $(CODE)/Symbolic/
 HEAD = $(CODE)/header/
-LEX = $(CODE)/lexical/
+LEX = $(CODE)/parser/
 TOOLS = $(BASE)tools/
 TEST = $(BASE)test/
 EXTERN = $(BASE)extern/lib/
 
 COFILE = $(ODIR)Pikachu.o $(ODIR)PikaType.o $(ODIR)Nodes.o $(ODIR)tensor.o 
 SOFILE = $(ODIR)symbolic.o $(ODIR)SymbolicIR.o $(ODIR)expression.o $(ODIR)manifold.o
-LOFILE = $(LEX)automata.o $(LEX)dictionary.o
-HFILE = $(HEAD)PikaType.h $(HEAD)PikaTemplate.h $(HEAD)Pikachu.h $(HEAD)Symbolic.h
+POFILE = $(LEX)Pexp.o 
+HFILE = $(HEAD)PikaType.h $(HEAD)PikaTemplate.h $(HEAD)Pikachu.h $(HEAD)Symbolic.h $(HEAD)parser.h
 Extern = -lHyperlex -lHyperAlgebra
 TestOFile = $(TEST)main.o
 
@@ -21,8 +21,8 @@ TestOFile = $(TEST)main.o
 Option = -O3
 
 
-libHyperPes.a:  $(COFILE) $(SOFILE) 
-	ar -rcv $(BASE)libHyperPes.a  $(COFILE) $(SOFILE) 
+libHyperPes.a:  $(COFILE) $(SOFILE) $(POFILE)
+	ar -rcv $(BASE)libHyperPes.a  $(COFILE) $(SOFILE) $(POFILE)
 
 $(ODIR)Pikachu.o:$(CODE)network/Pikachu.cpp $(HFILE)
 	g++ -o $(ODIR)Pikachu.o -c $(Option) $(CODE)network/Pikachu.cpp
@@ -47,6 +47,9 @@ $(ODIR)expression.o:$(SYMBOL)expression.cpp $(HFILE)
 
 $(ODIR)manifold.o:$(SYMBOL)manifold.cpp $(HFILE)
 	g++ -o $(ODIR)manifold.o -c $(Option) $(SYMBOL)manifold.cpp
+
+$(ODIR)Pexp.o:$(LEX)Pexp.cpp $(HFILE)
+	g++ -o $(ODIR)Pexp.o -c $(Option) $(LEX)Pexp.cpp
 
 test.exe: $(COFILE) $(TestOFile) $(SOFILE) libHyperPes.a
 	g++ -o $(TEST)test.exe $(TestOFile) -L$(BASE) -lHyperPes  -L$(EXTERN)  $(Extern)

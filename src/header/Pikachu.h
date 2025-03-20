@@ -283,6 +283,9 @@ namespace Pikachu
 }
 
 
+#include"parser.h"
+
+
 
 #endif
 

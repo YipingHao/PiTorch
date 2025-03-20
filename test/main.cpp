@@ -22,6 +22,26 @@ int main()
     return error;
 }
 
+class CFile
+{
+public:
+    CFile();
+    ~CFile();
+    void close(void);
+    void Open(const char* name, const char* mode);
+    void OpenRead(const char* s);//SH_read_from_file__(const char* s);
+    void OpenWriteAtRear(const char* s);//fp_write_at_rear(const char* s);
+    void OpenWritePlus(const char* s);//fp_write_plus
+    std::string FusePathAndName(const std::string& path, const std::string& name);//path_add_file_name
+    std::string FusePathAndName(const char* path, const std::string& name);//path_add_file_name
+    std::string ChangeSuffix(const std::string& file, const char* new_one);//string suffix_change(const string& file, const char* new_one);
+    
+    FILE* fp;
+private:
+
+};
+
+
 
 class parameter
 {
@@ -75,7 +95,7 @@ int test_entrance(const char* output_path)
     hyperlex::dictionary pf;
     size_t sitePF;
     parameter para;
-    pf.build("./test/test_item.txt");
+    pf.build("./test/parameter.txt");
     item = (int)pf.search((long int)0, "item");
     std::cout << "item: " << item << std::endl;
     info = 0;
@@ -1461,6 +1481,32 @@ int static test12(const parameter& para)
 }
 int static test13(const parameter& para)
 {
+    CFile output, input;
+    hyperlex::BufferChar bc;
+    size_t i, j;
+    size_t row, col;
+    vector<double> temp;
+    output.OpenWritePlus("./data/mat_3_3");
+    fprintf(output.fp, "\n");
+    for (i = 0; i < 3; i++)
+    {
+        for (j = 0; j < 3; j++)
+        {
+            fprintf(output.fp, " %+25.16E ", (double)(i * 3 + j) * 0.25);
+        }
+        fprintf(output.fp, "\n");
+    }
+    output.close();
+    input.OpenRead("./data/mat_3_3");
+    matrixGet(input.fp, temp, row, col);
+    for (i = 0; i < row; i++)
+    {
+        for (j = 0; j < col; j++)
+        {
+            printf(" %+25.16E ", temp[i * 3 + j]);
+        }
+        printf("\n");
+    }
     return 0;
 }
 int static test14(const parameter& para)
@@ -1525,4 +1571,88 @@ bool static true_false_judge(const char* c_t_f)
         if (if_letter_judge(c_t_f[i]))
             return c_t_f[i] == 'y' || c_t_f[i] == 'Y' || c_t_f[i] == 't' || c_t_f[i] == 'T';
     return false;
+}
+
+CFile::CFile()
+{
+    fp = NULL;
+}
+CFile::~CFile()
+{
+    close();
+}
+void CFile::close(void)
+{
+    if (fp != NULL)
+    {
+        fclose(fp);
+        fp = NULL;
+    }
+}
+void CFile::Open(const char* name, const char* mode)
+{
+    int error;
+    errno = 0;
+#ifdef  _WIN64
+    error = fopen_s(&fp, name, mode);
+    if (error != 0)
+    {
+        fprintf(stderr, "WARNING: FAILURE OPEN:%s, errno_t:%d\n", name, error);
+        fp = NULL;
+    }
+#else
+    fp = fopen(name, mode);
+    if (fp == NULL)
+        fprintf(stderr, "WARNING: FAILURE OPEN:%s, Error no.%d: %s\n", name, errno, strerror(errno));
+#endif
+    //ExitWarning((fp == NULL), stderr);
+    return;
+}
+void CFile::OpenRead(const char* name)
+{
+    Open(name, "r");
+}
+void CFile::OpenWriteAtRear(const char* name)
+{
+    Open(name, "a+");
+}
+void CFile::OpenWritePlus(const char* name)
+{
+    Open(name, "w+");
+}
+std::string CFile::FusePathAndName(const std::string& path, const std::string& name)
+{
+    std::string fusion;
+    if (path[path.length() - 1] == '/')
+        fusion = path + name;
+    else
+        fusion = path + '/' + name;
+    return fusion;
+}
+std::string CFile::FusePathAndName(const char* path, const std::string& name)
+{
+    std::string PPP;
+    PPP = path;
+    return FusePathAndName(PPP, name);
+}
+std::string CFile::ChangeSuffix(const std::string& file, const char* new_one)
+{
+    size_t i, j;
+    std::string name;
+    name = "";
+    for (i = file.length(); i != 0; i--)
+        if (file[i - 1] == '.') break;
+    if (i == 0)
+    {
+        name = file;
+        name += '.';
+    }
+    else
+    {
+        for (j = 0; j < i; j++)
+            name += file[j];
+    }
+    if (new_one[0] == '.') name += (new_one + 1);
+    else name += new_one;
+    return name;
 }

@@ -738,12 +738,12 @@ namespace Pikachu
 		{
 			fprintf(fp, "InDegree: %zu, InCapacity: %zu, ", InDegree, InCapacity);
 			fprintf(fp, "OutDegree: %zu, OutCapacity: %zu\n", OutDegree, OutCapacity);
-			if (InDegree != 0) fprintf(fp, "In[%zu] = %zu", 0, In[0]);
+			if (InDegree != 0) fprintf(fp, "In[%zu] = %zu", (size_t)0, In[0]);
 			for (i = 1; i < InDegree; i++)
 				fprintf(fp, ", In[%zu] = %zu", i, In[i]);
 			fprintf(fp, "\n");
 
-			if (OutDegree != 0) fprintf(fp, "Out[%zu] = %zu", 0, Out[0]);
+			if (OutDegree != 0) fprintf(fp, "Out[%zu] = %zu", (size_t)0, Out[0]);
 			for (i = 1; i < OutDegree; i++)
 				fprintf(fp, ", Out[%zu] = %zu", i, Out[i]);
 			fprintf(fp, "\n");

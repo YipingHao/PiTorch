@@ -1223,19 +1223,19 @@ void contract::Demo(FILE* fp)
 	fprintf(fp, "Out: [");
 	for (i = 0; i < Out.count(); i++)
 	{
-		fprintf(fp, "(%zu, %zu, %zu)", Out[i].label, Out[i].src1, (int)Out[i].src2);
+		fprintf(fp, "(%zu, %zu, %zu)", Out[i].label, Out[i].src1, (size_t)Out[i].src2);
 	}
 	fprintf(fp, "]\n");
 	fprintf(fp, "Left: [");
 	for (i = 0; i < Left.count(); i++)
 	{
-		fprintf(fp, "(%zu, %zu, %zu)", Left[i].label, Left[i].src1, (int)Left[i].src2);
+		fprintf(fp, "(%zu, %zu, %zu)", Left[i].label, Left[i].src1, (size_t)Left[i].src2);
 	}
 	fprintf(fp, "]\n");
 	fprintf(fp, "Right: [");
 	for (i = 0; i < Right.count(); i++)
 	{
-		fprintf(fp, "(%zu, %zu, %zu)", Right[i].label, Right[i].src1, (int)Right[i].src2);
+		fprintf(fp, "(%zu, %zu, %zu)", Right[i].label, Right[i].src1, (size_t)Right[i].src2);
 	}
 	fprintf(fp, "]\n");
 

@@ -448,6 +448,23 @@ char Morpheme::GetChar(size_t site) const
 	if (input[0] != '\'') return input[0];
 	else return CharGet(error, input, lex[site].length, head);
 }
+double Morpheme::GetReal(size_t site) const
+{
+	int state;
+	size_t Head;
+	size_t Rear;
+	Head = lex[site].begin;
+	Rear = Head + lex[site].length;
+	return RealGet(state, storage.ptr(), Rear, Head);
+}
+long int Morpheme::GetInt(size_t site) const
+{
+	size_t Head;
+	size_t Rear;
+	Head = lex[site].begin;
+	Rear = Head + lex[site].length;
+	return IntGet(storage.ptr(), Rear, Head);
+}
 void Morpheme::UnitMove(size_t from, size_t to)
 {
 	lex[to] = lex[from];
@@ -1766,9 +1783,9 @@ void InputPanel::ErrorDemo(FILE* fp) const
 		for (i = 0; i < NontTerminal.count() && i < GrammarG.count(); i++)
 			fprintf(fp, "symbol[%zu]: %s, %s\n", i, NontTerminal[i], GrammarG[i]->name);
 		for (j = i; j < NontTerminal.count(); j++)
-			fprintf(fp, "symbol[%zu]: %s, None\n", i, NontTerminal[i]);
+			fprintf(fp, "symbol[%zu]: %s, None\n", j, NontTerminal[j]);
 		for (j = i; j < GrammarG.count(); j++)
-			fprintf(fp, "symbol[%zu]: None, %s\n", i, GrammarG[i]->name);
+			fprintf(fp, "symbol[%zu]: None, %s\n", j, GrammarG[j]->name);
 		break;
 	case InputPanel::WorngRuleBody:
 		fprintf(fp, "WorngRuleBody: symbol 'all' can not appear in rule body as a non-ternimal symbol.\n");

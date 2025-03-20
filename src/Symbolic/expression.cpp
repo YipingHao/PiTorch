@@ -2296,6 +2296,7 @@ bool expression::Simplify09(void)
         }
 
     }
+    return changed_;
 }
 bool expression::Simplify10(void)
 {
