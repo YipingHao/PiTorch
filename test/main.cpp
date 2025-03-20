@@ -1593,8 +1593,8 @@ void CFile::close(void)
 void CFile::Open(const char* name, const char* mode)
 {
     int error;
-    errno = 0;
 #ifdef  _WIN64
+    errno = 0;
     error = fopen_s(&fp, name, mode);
     if (error != 0)
     {
