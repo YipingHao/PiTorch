@@ -17,6 +17,9 @@ HFILE = $(HEAD)PikaType.h $(HEAD)PikaTemplate.h $(HEAD)Pikachu.h $(HEAD)Symbolic
 Extern = -lHyperlex -lHyperAlgebra
 TestOFile = $(TEST)main.o
 
+#CC = icc
+CC = g++
+
 #Option = -g
 Option = -O3
 
@@ -25,37 +28,37 @@ libHyperPes.a:  $(COFILE) $(SOFILE) $(POFILE)
 	ar -rcv $(BASE)libHyperPes.a  $(COFILE) $(SOFILE) $(POFILE)
 
 $(ODIR)Pikachu.o:$(CODE)network/Pikachu.cpp $(HFILE)
-	g++ -o $(ODIR)Pikachu.o -c $(Option) $(CODE)network/Pikachu.cpp
+	$(CC) -o $(ODIR)Pikachu.o -c $(Option) $(CODE)network/Pikachu.cpp
 
 $(ODIR)PikaType.o:$(CODE)tensors/PikaType.cpp $(HFILE)
-	g++ -o $(ODIR)PikaType.o -c $(Option) $(CODE)tensors/PikaType.cpp
+	$(CC) -o $(ODIR)PikaType.o -c $(Option) $(CODE)tensors/PikaType.cpp
 
 $(ODIR)Nodes.o:$(CODE)network/Nodes.cpp $(HFILE)
-	g++ -o $(ODIR)Nodes.o -c $(Option) $(CODE)network/Nodes.cpp
+	$(CC) -o $(ODIR)Nodes.o -c $(Option) $(CODE)network/Nodes.cpp
 
 $(ODIR)tensor.o:$(CODE)tensors/tensor.cpp $(HFILE)
-	g++ -o $(ODIR)tensor.o -c $(Option) $(CODE)tensors/tensor.cpp
+	$(CC) -o $(ODIR)tensor.o -c $(Option) $(CODE)tensors/tensor.cpp
 
 $(ODIR)symbolic.o:$(SYMBOL)symbolic.cpp $(HFILE)
-	g++ -o $(ODIR)symbolic.o -c $(Option) $(SYMBOL)symbolic.cpp
+	$(CC) -o $(ODIR)symbolic.o -c $(Option) $(SYMBOL)symbolic.cpp
 
 $(ODIR)SymbolicIR.o:$(SYMBOL)SymbolicIR.cpp $(HFILE)
-	g++ -o $(ODIR)SymbolicIR.o -c $(Option) $(SYMBOL)SymbolicIR.cpp
+	$(CC) -o $(ODIR)SymbolicIR.o -c $(Option) $(SYMBOL)SymbolicIR.cpp
 
 $(ODIR)expression.o:$(SYMBOL)expression.cpp $(HFILE)
-	g++ -o $(ODIR)expression.o -c $(Option) $(SYMBOL)expression.cpp
+	$(CC) -o $(ODIR)expression.o -c $(Option) $(SYMBOL)expression.cpp
 
 $(ODIR)manifold.o:$(SYMBOL)manifold.cpp $(HFILE)
-	g++ -o $(ODIR)manifold.o -c $(Option) $(SYMBOL)manifold.cpp
+	$(CC) -o $(ODIR)manifold.o -c $(Option) $(SYMBOL)manifold.cpp
 
 $(ODIR)Pexp.o:$(LEX)Pexp.cpp $(HFILE)
-	g++ -o $(ODIR)Pexp.o -c $(Option) $(LEX)Pexp.cpp
+	$(CC) -o $(ODIR)Pexp.o -c $(Option) $(LEX)Pexp.cpp
 
 test.exe: $(COFILE) $(TestOFile) $(SOFILE) libHyperPes.a
-	g++ -o $(TEST)test.exe $(TestOFile) -L$(BASE) -lHyperPes  -L$(EXTERN)  $(Extern)
+	$(CC) -o $(TEST)test.exe $(TestOFile) -L$(BASE) -lHyperPes  -L$(EXTERN)  $(Extern)
 
 $(TEST)main.o: $(HFILE) $(TEST)main.cpp $(TEST)extern.h
-	g++ -o $(TEST)main.o -c $(Option) $(TEST)main.cpp
+	$(CC) -o $(TEST)main.o -c $(Option) $(TEST)main.cpp
 
 
 

@@ -1604,7 +1604,8 @@ void CFile::Open(const char* name, const char* mode)
 #else
     fp = fopen(name, mode);
     if (fp == NULL)
-        fprintf(stderr, "WARNING: FAILURE OPEN:%s, Error no.%d: %s\n", name, errno, strerror(errno));
+        fprintf(stderr, "WARNING: FAILURE OPEN:%s\n", name);
+    //fprintf(stderr, "WARNING: FAILURE OPEN:%s, Error no.%d: %s\n", name, errno, strerror(errno));
 #endif
     //ExitWarning((fp == NULL), stderr);
     return;
