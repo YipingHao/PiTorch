@@ -95,7 +95,9 @@ int test_entrance(const char* output_path)
     hyperlex::dictionary pf;
     size_t sitePF;
     parameter para;
-    pf.build("./test/parameter.txt");
+    CFile FF;
+    FF.Open("./test/parameter.txt");
+    pf.build(FF.fp);
     pf.print(stdout);
     item = (int)pf.search((long int)0, "item");
     std::cout << "item: " << item << std::endl;
