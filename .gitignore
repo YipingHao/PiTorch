@@ -2,5 +2,7 @@
 /obj/*.o
 /extern/obj/*.o
 /extern/lib/*.a
-
-
+*.exe
+/test/*.o
+*.so
+*.a
