@@ -2732,26 +2732,26 @@ void Expres::differetial(size_t X1, size_t X2, bool Input)
         case _LeafX_:
             New = new vortex<node>(here->src1 == X1 && here->src2 == X2 && Input);
             formula.append(New);
-            label[now] = New;
+            label[i] = New;
             break;
         case _LeafPara_:
             New = new vortex<node>(here->src1 == X1 && here->src2 == X2 && !Input);
             formula.append(New);
-            label[now] = New;
+            label[i] = New;
             break;
         case  _LeafConst_:
             New = new vortex<node>(0);
             formula.append(New);
-            label[now] = New;
+            label[i] = New;
             break;
         case _Operation_:
-            //label[now] = OperationForwardDifferential(label, now, here);
+            //label[i] = OperationForwardDifferential(label, now, here);
             break;
         case _Funct_:
-            //label[now] = FunctionForwardDifferential(label, now, here);
+            //label[i] = FunctionForwardDifferential(label, now, here);
             break;
         case _Funct2_:
-            //label[now] = Function2ForwardDifferential(label, now, here);
+            //label[i] = Function2ForwardDifferential(label, now, here);
             break;
         default:
             break;

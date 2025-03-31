@@ -1,8 +1,10 @@
 .vs/
-/obj/*.o
-/extern/obj/*.o
-/extern/lib/*.a
+obj/*.o
+extern/obj/*.o
+extern/lib/*.a
 *.exe
-/test/*.o
+test/*.o
+test/*.exe
 *.so
 *.a
+
