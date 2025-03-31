@@ -276,7 +276,7 @@ namespace Pikachu
 			bool operator == (operation Op) const;
 			bool operator == (function Op) const;
 			node();
-			node(long long int ele);
+			node(long int ele);
 			node(operation Op);
 			node(function func_);
 			node(function2 func_);
@@ -295,12 +295,31 @@ namespace Pikachu
 		void demo(FILE* fp)const;
 
 		void differetial(size_t X1, size_t X2, bool Input);
+		void ParameterBackward(size_t No);
+		void backward(bool ExternOutput, size_t NewInputDim, size_t No, vector<vortex<node>*>& label, vector<vortex<node>*>& sequence);
 	protected:
 		graph<node> formula;
 		vector<vortex<node>*> output;
 		vector<size_t> InputDim;
 		size_t ParameterCount;
 
+		//====================================================
+		vortex<node>* NewNode(operation Op);
+		vortex<node>* NewNode(vortex<node>* L, vortex<node>* R, operation Op);
+		vortex<node>* NewNode(function func_);
+		vortex<node>* NewNode(vortex<node>* L, function func_);
+		vortex<node>* NewNode(function2 func_);
+		vortex<node>* NewNode(vortex<node>* L, vortex<node>* R, function2 func_);
+		vortex<node>* OpForwardDiff(vector<vortex<node>*>& label, vortex<node>* here);
+		vortex<node>* FunctForwardDiff(vector<vortex<node>*>& label, vortex<node>* here);
+		vortex<node>* Funct2ForwardDiff(vector<vortex<node>*>& label, vortex<node>* here);
+		void ClearOutput(void);
+		void BackAccumulate(vector<vortex<node>*>& label, size_t target, vortex<node>* source);
+		void OperationBackDiff(vector<vortex<node>*>& label, size_t now, vortex<node>* here);
+		void FunctBackAccumulate(vector<vortex<node>*>& label, size_t now, vortex<node>* source, int Code);
+		void FunctBackDiff(vector<vortex<node>*>& label, size_t now, vortex<node>* here);
+		void Funct2BackDiff(vector<vortex<node>*>& label, size_t now, vortex<node>* here);
+		//====================================================
 		void OutputShift(vortex<node>* src, vortex<node>* dst);
 		void example01(void);
 		//========================Expression simplification

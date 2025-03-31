@@ -1491,8 +1491,8 @@ void expression::FunctionBackwardDifferential(vector<size_t>& label, size_t now,
 
         New = new node(_minus_);
         xPrime = formula.MoveAppend(New);
-        formula.append(site, xPrime);
-        FunctionBackwardAccumulate(label, now, origin_, _mul_);
+        formula.append(site, xPrime);//??????
+        FunctionBackwardAccumulate(label, now, xPrime, _mul_);
         break;
     case _exp_:
         FunctionBackwardAccumulate(label, now, now, _mul_);
@@ -2406,7 +2406,7 @@ Expres::node::node(void)
     src2 = 0;
     Output = false;
 }
-Expres::node::node(long long int ele)
+Expres::node::node(long int ele)
 {
     Type = _LeafConst_;
     Fc.SetValue(ele);
@@ -2712,10 +2712,8 @@ void Expres::differetial(size_t X1, size_t X2, bool Input)
     }
 
     formula.BFTbackward(valid, queue);
-
     formula.TopoSortBFS(sequence);
-
-   // formula.SortingShrink(valid, sequence);
+    formula.Shrink(valid, sequence);
 
 
 
@@ -2745,32 +2743,437 @@ void Expres::differetial(size_t X1, size_t X2, bool Input)
             label[i] = New;
             break;
         case _Operation_:
-            //label[i] = OperationForwardDifferential(label, now, here);
+            label[i] = OpForwardDiff(label, here);
             break;
         case _Funct_:
-            //label[i] = FunctionForwardDifferential(label, now, here);
+            label[i] = FunctForwardDiff(label, here);
             break;
         case _Funct2_:
-            //label[i] = Function2ForwardDifferential(label, now, here);
+            label[i] = Funct2ForwardDiff(label, here);
             break;
         default:
             break;
         }
     }
-#ifdef Debug03_02
-    for (i = 0; i < label.count(); i++)
-    {
-        std::cout << "label[" << i << "] = " << label[i] << std::endl;
-    }
-#endif
     for (i = 0; i < output.count(); i++)
     {
-        formula[output[i]].content->Output = false;
-        output[i] = label[output[i]];
-        formula[output[i]].content->Output = true;
+        formula[output[i]->site()]->Output = false;
+        output[i] = label[output[i]->site()];
+        formula[output[i]->site()]->Output = true;
     }
     //output = label[sequence[length - 1]];
 }
+void Expres::ParameterBackward(size_t No)
+{
+    vector<vortex<node>*> label, sequence;
+    size_t i, length, now;
+    vortex<node>* here;
+    backward(true, output.count(), No, label, sequence);
+    length = sequence.count();
+    ClearOutput();
+    output.recount(ParameterCount);
+    for (i = 0; i < length; i++)
+    {
+        here = sequence[i];
+        now = here->site();
+
+        switch (here->Type)
+        {
+        case _LeafX_:
+            break;
+        case _LeafPara_:
+            output[here->src2] = label[now];
+            if (label[now] != NULL) formula[label[now]->site()]->Output = true;
+            break;
+        }
+    }
+}
+void Expres::backward(bool ExternOutput, size_t NewInputDim, size_t No, vector<vortex<Expres::node>*>& label, vector<vortex<Expres::node>*>& sequence)
+{
+    //vector<size_t> label, sequence;
+    buffer<vortex<node>*> queue;
+    size_t i, length, now, site;
+    vortex<node>* here, * New;
+    vector<bool> valid;
+    queue.append(output[No]);
+    formula.BFTbackward(valid, queue);
+    //formula.path(label, queue, input, output);
+    formula.TopoSortBFSBack(sequence);
+
+
+
+    length = sequence.count();
+    label.recount(length);
+    label.value(NULL);
+
+    if (ExternOutput)
+    {
+        New = new vortex<node>();
+        New->Type = _LeafX_;
+        New->src1 = InputDim.count();
+        New->src2 = No;
+    }
+    else
+    {
+        New = new vortex<node>(1);
+    }
+    if (NewInputDim != 0) InputDim.append(NewInputDim);
+    formula.append(New);
+    label[output[No]->site()] = New;
+
+
+    //InputGroupCount += 1;
+
+    for (i = 0; i < length; i++)
+    {
+        here = sequence[i];
+        now = here->site();
+
+        switch (here->Type)
+        {
+        case _LeafX_:
+        case _LeafPara_:
+        case  _LeafConst_:
+            break;
+        case _Operation_:
+            OperationBackDiff(label, now, here);
+            break;
+        case _Funct_:
+            FunctBackAccumulate(label, now, here);
+            break;
+        case _Funct2_:
+            Funct2BackDiff(label, now, here);
+            break;
+        default:
+            break;
+        }
+    }
+}
+vortex<Expres::node>* Expres::NewNode(operation Op)
+{
+    vortex<Expres::node>* New;
+    New = new vortex<Expres::node>(Op);
+    formula.append(New);
+    return New;
+}
+vortex<Expres::node>* Expres::NewNode(vortex<Expres::node>* L, vortex<Expres::node>* R, operation Op)
+{
+    vortex<Expres::node>* New;
+    New = new vortex<Expres::node>(Op);
+    formula.append(New);
+    formula.ArcAdd(L, R, New);
+    return New;
+}
+vortex<Expres::node>* Expres::NewNode(function func_)
+{
+    vortex<Expres::node>* New;
+    New = new vortex<Expres::node>(func_);
+    formula.append(New);
+    return New;
+}
+vortex<Expres::node>* Expres::NewNode(vortex<Expres::node>* L, function func_)
+{
+    vortex<Expres::node>* New;
+    New = new vortex<Expres::node>(func_);
+    formula.append(New);
+    formula.ArcAdd(L, New);
+    return New;
+}
+vortex<Expres::node>* Expres::NewNode(function2 func_)
+{
+    vortex<Expres::node>* New;
+    New = new vortex<Expres::node>(func_);
+    formula.append(New);
+    return New;
+}
+vortex<Expres::node>* Expres::NewNode(vortex<Expres::node>* L, vortex<Expres::node>* R, function2 func_)
+{
+    vortex<Expres::node>* New;
+    New = new vortex<Expres::node>(func_);
+    formula.append(New);
+    formula.ArcAdd(L, R, New);
+    return New;
+}
+vortex<Expres::node>* Expres::OpForwardDiff(vector<vortex<Expres::node>*>& label, vortex<Expres::node>* here)
+{
+    vortex<Expres::node>* site;
+    vortex<Expres::node>* left_, * right_;
+    vortex<Expres::node>* div_, * mid_;
+    size_t LeftSrc_, RightSrc_;
+    LeftSrc_ = here->In(0)->site();
+    RightSrc_ = here->In(1)->site();
+    switch ((operation)here->Code)
+    {
+    case _add_:
+    case _sub_:
+        site = NewNode(label[LeftSrc_], label[RightSrc_], (operation)here->Code);
+        break;
+    case _mul_:
+        left_ = NewNode(label[LeftSrc_], here->In(1), _mul_);
+        right_ = NewNode(here->In(0), label[RightSrc_], _mul_);
+        site = NewNode(left_, right_, _add_);
+        break;
+    case _div_:
+        left_ = NewNode(label[LeftSrc_], here->In(1), _mul_);//x^\prime * y
+        right_ = NewNode(here->In(0), label[RightSrc_], _mul_);//x * y^\prime
+        mid_ = NewNode(left_, right_, _sub_);
+        div_ = NewNode(here->In(1), here->In(1), _mul_);
+        site = NewNode(mid_, div_, _div_);
+        break;
+    }
+    return site;
+}
+vortex<Expres::node>* Expres::FunctForwardDiff(vector<vortex<Expres::node>*>& label, vortex<Expres::node>* here)
+{
+    vortex<Expres::node>* site;
+    vortex<Expres::node>* origin_, * xPrime, * const_;
+    size_t Src_, RSrc_;
+    Src_ = here->In(0)->site();
+    switch ((function)here->Code)
+    {
+    case _sin_:
+        origin_ = NewNode(here->In(0), _cos_);
+        site = NewNode(label[Src_], origin_, _mul_);
+        break;
+    case _cos_:
+        origin_ = NewNode(here->In(0), _sin_);
+        xPrime = NewNode(label[Src_], origin_, _mul_);
+        site = NewNode(xPrime, _minus_);
+        break;
+    case _exp_:
+        site = NewNode(label[Src_], here, _mul_);
+        break;
+    case _ln_:
+        site = NewNode(label[Src_], here->In(0), _div_);//f=xy
+        break;
+    case _sqrt_://origin_
+        const_ = new vortex<node>((long int)2);//f=xy
+        formula.append(const_);//x
+        xPrime = NewNode(const_, here, _mul_);
+        site = NewNode(label[Src_], xPrime, _div_);
+        break;
+    case _minus_:
+        site = NewNode(label[Src_], _minus_);
+        break;
+    default:
+        break;
+    }
+    return site;
+}
+vortex<Expres::node>* Expres::Funct2ForwardDiff(vector<vortex<Expres::node>*>& label, vortex<Expres::node>* here)
+{
+    vortex<node>* New;
+    vortex<node>* site;
+    vortex<node>* origin_, * xPrime, * const_, * yPrime;
+    vortex<node>* originR_, *originL_;
+    size_t Src_, RSrc_;
+    vortex<node>* temp1, * temp2;
+    Src_ = here->In(0)->site();
+    RSrc_ = here->In(1)->site();
+    switch ((function2)here->Code)
+    {
+    case _pow_:// R^{prime}ln(L)L^R+L^{prime}R L^{R-1}
+        //1
+        const_ = new vortex<node>((long int)1);
+        formula.append(New);
+        xPrime = NewNode(here->In(1), const_, _sub_);//R-1
+        temp1 = NewNode(here->In(0), xPrime, _pow_);//L^{R-1}
+        temp2 = NewNode(here->In(1), temp1, _mul_);//R L^{R-1}
+        originR_ = NewNode(label[Src_], temp2, _mul_);//L^{prime} R L^{R-1}
+        //========================================
+        origin_ = NewNode(here->In(0), _ln_);// ln(L);
+        yPrime = NewNode(label[RSrc_], origin_, _mul_); // R^{prime}ln(L)
+        originL_ = NewNode(yPrime, here, _mul_);// L^R R^{prime}ln(L)
+        //========================================
+        site = NewNode(originL_, originR_, _add_);
+
+
+        //New = new vortex<node>(_mul_);//R L^{R-1}
+        //temp2 = formula.append(New);//x
+        //formula.ArcAdd(RSrc_, temp1, temp2);
+
+        //New = new vortex<node>(_mul_);//L^{prime} R L^{R-1}
+        //originR_ = formula.append(New);
+        //formula.ArcAdd(label[Src_], temp2, originR_);
+        //========================================
+        //New = new vortex<node>(_ln_);//f=xy
+        //origin_ = formula.append(New);//x
+        //formula.ArcAdd(Src_, origin_);
+
+        //New = new vortex<node>(_mul_);//f=xy
+        //xPrime = formula.append(New);//x
+        //formula.ArcAdd(label[RSrc_], origin_, xPrime);
+
+        //New = new vortex<node>(_mul_);
+        //originL_ = formula.append(New);
+        //formula.ArcAdd(xPrime, now, originL_);
+        //========================================
+       // New = new vortex<node>(_add_);//f=xy
+        //site = formula.append(New);//x
+        //formula.ArcAdd(originL_, originR_, site);
+        break;
+    }
+
+    return site;
+}
+
+void Expres::ClearOutput(void)
+{
+    size_t i;
+    for (i = 0; i < output.count(); i++)
+    {
+        if (output[i] != NULL)
+        {
+            formula[output[i]->site()]->Output = false;
+        }
+    }
+    output.clear();
+}
+
+void Expres::BackAccumulate(vector<vortex<node>*>& label, size_t target, vortex<node>* source)
+{
+    vortex<node>* New;
+    if (label[target] == NULL) label[target] = source;
+    else
+    {
+        New = NewNode(label[target], source, _add_);
+        label[target] = New;
+    }
+}
+void Expres::OperationBackDiff(vector<vortex<node>*>& label, size_t now, vortex<Expres::node>* here)
+{
+    vortex<node>* New;
+    vortex<node>* site;
+    vortex<node>* left_, * right_;
+    vortex<node>* div_, * mid_;
+    size_t LeftSrc_, RightSrc_;
+    LeftSrc_ = here->In(0)->site();
+    RightSrc_ = here->In(1)->site();
+    switch ((operation)here->Code)
+    {
+    case _add_:
+        BackAccumulate(label, LeftSrc_, label[now]);
+        BackAccumulate(label, RightSrc_, label[now]);
+        break;
+    case _sub_:
+        BackAccumulate(label, LeftSrc_, label[now]);
+        New = NewNode(label[now], _minus_);
+        BackAccumulate(label, RightSrc_, New);
+        break;
+    case _mul_:
+        left_ = NewNode(label[now], here->In(1), _mul_);//f=xy
+        BackAccumulate(label, LeftSrc_, left_);
+        right_ = NewNode(here->In(0), label[now], _mul_);
+        BackAccumulate(label, RightSrc_, right_);
+        break;
+    case _div_:
+        left_ = NewNode(label[now], here->In(1), _div_);//f=xy
+        BackAccumulate(label, LeftSrc_, left_);
+
+        right_ = NewNode(here->In(1), here->In(1), _mul_);// R ^ 2
+        div_ = NewNode(right_, _minus_);// -R ^ 2
+        mid_ = NewNode(label[now], here->In(0), _mul_);// \frac{\partial O}{\partial Y}L
+        site = NewNode(mid_, div_, _div_);// \frac{\partial O}{\partial Y}L / ( -R ^ 2)
+        BackAccumulate(label, RightSrc_, site);
+        break;
+    }
+}
+void Expres::FunctBackAccumulate(vector<vortex<node>*>& label, size_t now, vortex<Expres::node>* source, int Code)
+{
+    vortex<node>* xPrime, * temp;
+    size_t target;
+    target = formula[now]->In(0)->site();
+
+    xPrime = NewNode(label[now], source, (operation)Code);
+
+    if (label[target] == NULL) label[target] = xPrime;
+    else
+    {
+        temp = NewNode(label[target], xPrime, _add_);
+        label[target] = temp;
+    }
+}
+void Expres::FunctBackDiff(vector<vortex<node>*>& label, size_t now, vortex<Expres::node>* here)
+{
+    vortex<node>* New;
+    vortex<node>* site;
+    vortex<node>* origin_;
+    vortex<node>* xPrime;
+    vortex<node>* const_;
+    vortex<node>* originR_;
+    vortex<node>* originL_;
+    vortex<node>* Src_;// RSrc_;
+    //size_t temp1, temp2;
+    Src_ = here->In(0);
+
+    switch ((function)here->Code)
+    {
+    case _sin_:
+        origin_ = NewNode(Src_, _cos_);
+        FunctBackAccumulate(label, now, origin_, _mul_);
+        break;
+    case _cos_:
+        site = NewNode(Src_, _cos_);
+        origin_ = NewNode(site, _minus_);
+        FunctBackAccumulate(label, now, origin_, _mul_);
+        break;
+    case _exp_:
+        FunctBackAccumulate(label, now, here, _mul_);
+        break;
+    case _ln_:// \frac{\partial O}{\partial f}  /x
+        FunctBackAccumulate(label, now, Src_, _div_);
+        break;
+    case _sqrt_://origin_
+        const_ = new vortex<node>((long int)2);//f=xy
+        xPrime = NewNode(const_, here, _mul_);//x
+        FunctBackAccumulate(label, now, xPrime, _div_);
+        break;
+    case _minus_:
+        site = NewNode(label[now], _minus_);
+        BackAccumulate(label, Src_->site(), site);
+        break;
+    default:
+        break;
+    }
+    return;
+}
+void Expres::Funct2BackDiff(vector<vortex<node>*>& label, size_t now, vortex<Expres::node>* here)
+{
+    vortex<node>* origin_;
+    vortex<node>* xPrime;
+    vortex<node>* yPrime;
+    vortex<node>* const_;
+    vortex<node>* originL_;
+    vortex<node>* Src_;
+    vortex<node>* RSrc_;
+    vortex<node>* temp1;
+    vortex<node>* temp2;
+    Src_ = here->In(0);
+    RSrc_ = here->In(1);
+    switch ((function)here->Code)
+    {
+    case _pow_:// R^{prime}ln(L)L^R+L^{prime}L^{R-1}
+        //1
+        const_ = new vortex<node>((long int)1);
+
+        xPrime = NewNode(RSrc_, const_, _sub_);//R-1
+        temp1 = NewNode(Src_, xPrime, _pow_);//L^{R-1}
+        temp2 = NewNode(RSrc_, temp1, _mul_);//R L^{R-1}
+
+        FunctBackAccumulate(label, now, temp2, _mul_);
+        //========================================
+        origin_ = NewNode(Src_, _ln_);//ln L
+        yPrime = NewNode(here, origin_, _mul_);//L^{R} ln(L)
+        originL_ = NewNode(yPrime, label[now], _mul_);//L^{R} ln(L)
+        //========================================
+        BackAccumulate(label, RSrc_->site(), originL_);
+        break;
+    default:
+        break;
+    }
+    return;
+}
+
 
 //========================Expression simplification
 void Expres::example01(void)
@@ -2890,7 +3293,7 @@ bool Expres::Simplify01(void)
     }
     return changed_;
 }
-void Expres::OutputShift(vortex<node>* src, vortex<node>* dst)
+void Expres::OutputShift(vortex<Expres::node>* src, vortex<Expres::node>* dst)
 {
     size_t i;
     if (src->Output)
@@ -2901,7 +3304,7 @@ void Expres::OutputShift(vortex<node>* src, vortex<node>* dst)
         dst->Output = true;
     }
 }
-void Expres::LiftLeft(vortex<node>* target)
+void Expres::LiftLeft(vortex<Expres::node>* target)
 {
     vortex<node>* down;
     if (target->InDegree() < 1)
@@ -2911,7 +3314,7 @@ void Expres::LiftLeft(vortex<node>* target)
     OutputShift(target, down);
     formula.ruin(target->site());
 }
-void Expres::LiftRight(vortex<node>* target)
+void Expres::LiftRight(vortex<Expres::node>* target)
 {
     vortex<node>* down;
     if (target->InDegree() < 2)

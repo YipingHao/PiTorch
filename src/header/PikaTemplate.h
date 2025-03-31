@@ -356,6 +356,7 @@ namespace Pikachu
 		void lift(vortex<V>* dst, vortex<V>* target, vortex<V>* src);
 		// dst:up, target:middle, src:down
 		void ruin(size_t i);
+		void operator << (vortex<V>* in);
 		void append(vortex<V>* in);
 		void append(graph<V>& in);
 		void compress(void);
@@ -366,6 +367,7 @@ namespace Pikachu
 		void TopoSortBFSBack(vector<vortex<V>*>& sequence);
 
 		void BFTbackward(vector<bool>& label, buffer<vortex<V>*>&queue);
+		void Shrink(const vector<bool>& label, vector<vortex<V>*>& sequence) const;
 	};
 	
 
@@ -960,6 +962,10 @@ namespace Pikachu
 		}
 		src->label_site = site;
 	}
+	template <class V> void graph<V>::operator<<(vortex<V>* src)
+	{
+		append(src);
+	}
 	template <class V> void graph<V>::append(graph<V>& src)
 	{
 		size_t i;
@@ -1195,6 +1201,20 @@ namespace Pikachu
 				}
 			}
 		}
+	}
+	template <class V> void graph<V>::Shrink(const vector<bool>& label, vector<vortex<V>*>& sequence) const
+	{
+		size_t new_count, now, i;
+		new_count = 0;
+		for (i = 0; i < sequence.count(); i++)
+		{
+			if (label[sequence[i]->site()])
+			{
+				sequence[new_count] = sequence[i];
+				new_count += 1;
+			}
+		}
+		sequence.recount(new_count);
 	}
 
 	template <class V> void graph<V>::lift(vortex<V>* target, vortex<V>* src)
