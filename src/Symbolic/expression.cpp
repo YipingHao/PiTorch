@@ -1961,8 +1961,8 @@ bool expression::Simplify06(void)
         Right_ = formula[i].In[1];
         left_ = formula.In(i, 0).content;
         right_ = formula.In(i, 1).content;
-        minusDegree = ((left_->Type == _Operation_ && (function)(left_->Code) == _minus_) ? 1 : 0);
-        minusDegree += ((right_->Type == _Operation_ && (function)(right_->Code) == _minus_) ? 1 : 0);
+        minusDegree = ((left_->Type == _Funct_ && (function)(left_->Code) == _minus_) ? 1 : 0);
+        minusDegree += ((right_->Type == _Funct_ && (function)(right_->Code) == _minus_) ? 1 : 0);
         switch ((operation)here->Code)
         {
         case _add_:
@@ -2381,3 +2381,1043 @@ bool expression::Simplify10(void)
 
 
 
+Expres::Expres()
+{
+    //ParameterCount = 0;
+    //InputGroupCount = 0;
+    ParameterCount = 0;
+}
+Expres::~Expres()
+{
+
+}
+bool Expres::node::operator == (operation Op) const
+{
+    return  Type == _Operation_ && Code == (int)Op;
+}
+bool Expres::node::operator == (function Op) const
+{
+    return  Type == _Funct_ && Code == (int)Op;
+}
+Expres::node::node(void)
+{
+    Code = 0;
+    src1 = 0;
+    src2 = 0;
+    Output = false;
+}
+Expres::node::node(long long int ele)
+{
+    Type = _LeafConst_;
+    Fc.SetValue(ele);
+    src1 = 0;
+    src2 = 0;
+    Output = false;
+}
+Expres::node::node(operation opera_)
+{
+    Type = _Operation_;
+    Code = (int)opera_;
+    src1 = 0;
+    src2 = 0;
+    Output = false;
+}
+Expres::node::node(function func_)
+{
+    Type = _Funct_;
+    Code = (int)func_;
+    src1 = 0;
+    src2 = 0;
+    Output = false;
+}
+Expres::node::node(function2 func_)
+{
+    Type = _Funct2_;
+    Code = (int)func_;
+    src1 = 0;
+    src2 = 0;
+    Output = false;
+}
+Expres::node::node(type T, size_t S1, size_t S2)
+{
+    Type = T;
+    Code = 0;
+    src1 = S1;
+    src2 = S2;
+    Output = false;
+}
+
+Expres::node* Expres::node::copy(void)const
+{
+    node* New;
+    New = new node();
+    New->Type = Type;
+    New->Code = Code;
+    New->Output = Output;
+    New->src1 = src1;
+    New->src2 = src2;
+    New->Fc.SetValue(Fc);
+    return New;
+}
+void Expres::node::copy(const node& source)
+{
+    Type = source.Type;
+    Code = source.Code;
+    Output = source.Output;
+    src1 = source.src1;
+    src2 = source.src2;
+    Fc.SetValue(source.Fc);
+    return ;
+}
+void Expres::node::Demo(int label, bufferC& output, bool single, bool braket) const
+{
+    switch (Type)
+    {
+    case Pikachu::_LeafX_:
+        if (single)
+        {
+            output += "x";
+        }
+        else
+        {
+            output += "x[";
+            output += (long int)(src1);
+            output += ", ";
+            output += (long int)(src2);
+            output += "]";
+        }
+        break;
+    case Pikachu::_LeafConst_:
+        Fc.print(output);
+        break;
+    case Pikachu::_LeafPara_:
+        if (single)
+        {
+            output += "w_";
+            output += (long int)(src2);
+        }
+        else
+        {
+            output += "w[";
+            output += (long int)(src1);
+            output += ", ";
+            output += (long int)(src2);
+            output += "]";
+        }
+
+        break;
+    case Pikachu::_Funct_:
+        if ((function)Code != _minus_)
+        {
+            if (label == 1) output += ")";
+            else 
+            {
+                output += FunctionName((function)Code);
+                output += "(";
+            }
+        }
+        else
+        {
+            if (label == 0) 
+            { 
+                if (braket) output += "(-";
+                else output += "-";
+            }
+            else
+            {
+                if(braket) output += ")";
+            }
+        }
+        break;
+    case Pikachu::_Operation_:
+        if (label == 0) { if (braket) output += "("; }
+        else if (label == 2) { if (braket) output += ")"; }
+        else  output += OperationName((operation)Code);
+        break;
+    case Pikachu::_Funct2_:
+        if (label == 1)
+        {
+            output += ", ";
+        }
+        else if (label == 2)
+        {
+            output += ")";
+        }
+        else
+        {
+            output += Function2Name((function2)Code);
+            output += "(";
+        }
+        break;
+    }
+}
+void Expres::node::demo(FILE* fp) const
+{
+    PikaString output;
+    switch (Type)
+    {
+    case Pikachu::_LeafX_:
+        output += "x";
+        break;
+    case Pikachu::_LeafConst_:
+        Fc.print(output);
+        break;
+    case Pikachu::_LeafPara_:
+        output += "w_";
+        Fc.print(output);
+        break;
+    case Pikachu::_Funct_:
+        output += FunctionName((function)Code);
+        break;
+    case Pikachu::_Operation_:
+        output += OperationName((operation)Code);
+        break;
+    case Pikachu::_Funct2_:
+        output += Function2Name((function2)Code);
+        break;
+    }
+    fprintf(fp, "%s.\n", output.array());
+}
+
+void Expres::clear(void)
+{
+    formula.clear();
+    output.clear();
+    InputDim.clear();
+    ParameterCount = 0;
+}
+void Expres::copy(const Expres& source)
+{
+    size_t i;
+    formula.copy(source.formula);
+    //std::cout << "Parameter.recount(source.Parameter.count()); " << std::endl;
+    output.recount(source.output.count());
+    for (i = 0; i < source.output.count(); i++)
+    {
+        output[i] = formula[source.output[i]->site()];
+    }
+    formula.compress();
+    InputDim.recount(source.InputDim.count());
+    for (i = 0; i < source.InputDim.count(); i++)
+        InputDim[i] = source.InputDim[i];
+    ParameterCount = source.ParameterCount;
+}
+bool Expres::Simplify(void)
+{
+    bool changed_;
+    size_t round_;
+    round_ = 0;
+    do
+    {
+        round_ += 1;
+        changed_ = false;
+        changed_ = changed_ || Simplify02();
+        changed_ = changed_ || Simplify01();
+        changed_ = changed_ || Simplify03();
+
+#ifdef Debug03_03
+        std::cout << "round_" << round_ << std::endl;
+#endif // Debug03_03
+
+    } while (changed_);
+    changed_ = changed_ || Simplify05();
+    if (round_ > 1)
+    {
+
+    }
+    return round_ > 1;
+}
+void Expres::Example(size_t No) 
+{
+    clear();
+    if (No == 1)example01();
+    //else if (No == 2)example02();
+   // else if (No == 3)example03();
+    //else if (No == 4)example04();
+    //else if (No == 5)example05();
+    //else if (No == 6)example06();
+    //else if (No == 7)example07();
+    //else if (No == 8)example08();
+    //else if (No == 9)example09();
+    //else example10();
+}
+
+void Expres::demo(bufferC& out, bool single, size_t No)const
+{
+    vector<size_t> label, stack;
+    size_t now, count;
+    vortex<node>* Here;
+    iteratorS<vortex<node>> iter;
+    iter.append(output[No]);
+    output[No]->label_3 = false;
+    while (iter.still())
+    {
+        Here = iter.target();
+        if (Here->Type == _Funct_ )
+        {
+            Here->In(0)->label_3 = ((function)Here->Code == _minus_);
+        }
+        else if (Here->Type == _Funct2_)
+        {
+            Here->In(0)->label_3 = false;
+            Here->In(1)->label_3 = false;
+        }
+        else if (Here->Type == _Operation_)
+        {
+            Here->In(0)->label_3 = true;
+            Here->In(1)->label_3 = true;
+            if (*Here == _add_ || *Here == _sub_)
+            {
+                Here->In(0)->label_3 = false;
+                if (*(Here->In(1)) == _mul_ || *(Here->In(1)) == _div_)
+                    Here->In(1)->label_3 = false;
+            }
+            else if(*(Here->In(0)) == _mul_ || *(Here->In(0)) == _div_)
+                Here->In(0)->label_3 = false;
+        }
+        Here->Demo(iter.state(), out, single, Here->label_3);
+        vortex<node>::BackNext(iter);
+    }
+}
+void Expres::demo(FILE* fp)const
+{
+    size_t i;
+    for (i = 0; i < formula.count(); i++)
+    {
+        if (formula[i] != NULL)
+        {
+            fprintf(fp, "formula[%zu]: valid.\n", i);
+            formula[i]->demo(fp);
+            //formula[i]->Demo(fp);
+            fprintf(fp, "\n");
+        }
+        else
+        {
+            fprintf(fp, "formula[%zu]: invalid.\n", i);
+        }
+    }
+}
+//========================Expression simplification
+void Expres::example01(void)
+{
+    vortex<node>* New;
+    vortex<node>* temp;
+    vortex<node>* X;
+    size_t site;
+    size_t input_;
+
+    X = new vortex<node>(_LeafX_, 0, 0);
+    formula.append(X);
+
+    New = new vortex<node>(_mul_);
+    formula.append(New);
+    
+    formula.ArcAdd(X, X, New);
+
+    temp = new vortex<node>(_exp_);
+    output.append(temp);
+    formula.append(temp);
+    temp->Output = true;
+
+    formula.ArcAdd(New, temp);
+
+    InputDim.recount(1);
+    InputDim[0] = 1;
+    //InputGroupCount = 1;
+    ParameterCount = 0;
+}
+//========================Expression simplification
+bool Expres::Simplify01(void)
+{
+    size_t i;
+    vortex<node>* here;
+    vortex<node>* left_, * right_;
+    bool changed_;
+    changed_ = false;
+    for (i = 0; i < formula.count(); i++)
+    {
+        here = formula[i];
+        if (here == NULL) continue;
+        
+        if (here->Type != _Operation_) continue;
+        left_ = here->In(0);
+        right_ = here->In(1);
+        switch ((operation)here->Code)
+        {
+        case _add_:
+            if (left_->Type == _LeafConst_ && left_->Fc.isZero())
+            {
+                changed_ = true;
+                LiftRight(here);
+            }
+            else if (right_->Type == _LeafConst_ && right_->Fc.isZero())
+            {
+                changed_ = true;
+                LiftLeft(here);
+            }
+            break;
+        case _sub_:
+            if (left_->Type == _LeafConst_ && left_->Fc.isZero())
+            {
+                changed_ = true;
+                formula.ArcDelete(left_, here);
+                //formula.ArcDelete(formula[i].In[0], i);
+                here->Type = _Funct_;
+                here->Code = _minus_;
+            }
+            else if (right_->Type == _LeafConst_ && right_->Fc.isZero())
+            {
+                changed_ = true;
+                LiftLeft(here);
+            }
+            break;
+        case _mul_:
+            if (left_->Type == _LeafConst_)
+            {
+                if (left_->Fc.isZero())
+                {
+                    LiftLeft(here);
+                    changed_ = true;
+                }
+                else if (left_->Fc.isOne())
+                {
+                    LiftRight(here);
+                    changed_ = true;
+                }
+            }
+            else if (right_->Type == _LeafConst_)
+            {
+                if (right_->Fc.isZero())
+                {
+                    LiftRight(here);
+                    changed_ = true;
+                }
+                else if (right_->Fc.isOne())
+                {
+                    LiftLeft(here);
+                    changed_ = true;
+                }
+            }
+            break;
+        case _div_:
+            if (left_->Type == _LeafConst_ && left_->Fc.isZero())
+            {
+                changed_ = true;
+                LiftLeft(here);
+            }
+            else if (right_->Type == _LeafConst_ && right_->Fc.isOne())
+            {
+                LiftLeft(here);
+                changed_ = true;
+            }
+            break;
+        }
+    }
+    return changed_;
+}
+void Expres::OutputShift(vortex<node>* src, vortex<node>* dst)
+{
+    size_t i;
+    if (src->Output)
+    {
+        src->Output = false;
+        for (i = 0; i < output.count(); i++)
+            if (output[i] == src) output[i] = dst;
+        dst->Output = true;
+    }
+}
+void Expres::LiftLeft(vortex<node>* target)
+{
+    vortex<node>* down;
+    if (target->InDegree() < 1)
+        throw PikaError("Expres::LiftLeft", "target->InDegree() < 1)", target->InDegree());
+    down = target->In(0);
+    formula.lift(target, down);
+    OutputShift(target, down);
+    formula.ruin(target->site());
+}
+void Expres::LiftRight(vortex<node>* target)
+{
+    vortex<node>* down;
+    if (target->InDegree() < 2)
+        throw PikaError("Expres::LiftRight", "target->InDegree() < 2", target->InDegree());
+    down = target->In(1);
+    formula.lift(target, down);
+    OutputShift(target, down);
+    formula.ruin(target->site());
+}
+bool Expres::Simplify02(void)
+{
+    size_t i;
+    vortex<node>* here;
+    vortex<node>* left_, * right_;
+    bool changed_;
+    changed_ = false;
+    for (i = 0; i < formula.count(); i++)
+    {
+        here = formula[i];
+        if (here == NULL) continue;
+        if (here->Type != _Operation_) continue;
+        left_ = here->In(0);
+        right_ = here->In(1);
+        if (left_->Type == _LeafConst_ && right_->Type == _LeafConst_)
+        {
+            here->Type = _LeafConst_;
+            switch ((operation)here->Code)
+            {
+            case _add_:
+                here->Fc = left_->Fc + right_->Fc;
+                break;
+            case _sub_:
+                here->Fc = left_->Fc - right_->Fc;
+                break;
+            case _mul_:
+                here->Fc = left_->Fc * right_->Fc;
+                break;
+            case _div_:
+                here->Fc = left_->Fc / right_->Fc;
+                break;
+            }
+            formula.ArcDelete(left_, here);
+            formula.ArcDelete(right_, here);
+            //formula.ArcDelete(formula[i].In[0], i);
+            //formula.ArcDelete(formula[i].In[1], i);
+            changed_ = true;
+        }
+
+    }
+    for (i = 0; i < formula.count(); i++)
+    {
+        here = formula[i];
+        if (here == NULL) continue;
+        if (here->Type != _Funct_) continue;
+        left_ = here->In(0);
+        if (left_->Type != _LeafConst_) continue;
+        here->Type = _LeafConst_;
+        here->Fc = left_->Fc;
+        switch ((function)here->Code)
+        {
+        case Pikachu::_sin_:
+            here->Fc.sin();
+            break;
+        case Pikachu::_cos_:
+            here->Fc.cos();
+            break;
+        case Pikachu::_exp_:
+            here->Fc.exp();
+            break;
+        case Pikachu::_ln_:
+            here->Fc.ln();
+            break;
+        case Pikachu::_sqrt_:
+            here->Fc.sqrt();
+            break;
+        case Pikachu::_minus_:
+            here->Fc.opposite();
+            break;
+        }
+        formula.ArcDelete(left_, here);
+        changed_ = true;
+    }
+    return changed_;
+}
+bool Expres::Simplify03(void)
+{
+    size_t i, j, k;
+    vortex<node>* here, * now;
+    bool judge;
+    bool changed_;
+    changed_ = false;
+    for (i = 0; i < formula.count(); i++)
+    {
+        here = formula[i];
+        if (here == NULL) continue;
+        for (j = i + 1; j < formula.count(); j++)
+        {
+            now = formula[j];
+            if (now == NULL) continue;
+            if (here->Type != now->Type) continue;
+            judge = false;
+            if (here->Type == _LeafConst_)
+                judge = (here->Fc == now->Fc);
+            else if (here->Type == _LeafX_)
+                judge = ((here->src1 == now->src1) && (here->src2 == now->src2));
+            else if (here->Type == _LeafPara_)
+                judge = ((here->src1 == now->src1) && (here->src2 == now->src2));
+            changed_ = judge || changed_;
+            if (judge)
+            {
+                formula.lift(now, here);
+                OutputShift(now, here);
+                formula.ruin(j);
+                //formula.VertexDelete(j);
+            }
+        }
+    }
+    return changed_;
+}
+bool Expres::Simplify04(void) 
+{
+    size_t i, j, k;
+    vortex<node>* here, * now;
+    bool judge;
+    bool changed_;
+    changed_ = false;
+    for (i = 0; i < formula.count(); i++)
+    {
+        here = formula[i];
+        if (here == NULL) continue;
+        for (j = i + 1; j < formula.count(); j++)
+        {
+            now = formula[j];
+            if (now == NULL) continue;
+            if (here->Type != now->Type || here->Code != now->Code) continue;
+            judge = false;
+            if (here->Type == _Operation_)
+            {
+                judge = judge || (here->In(0) == now->In(0) && here->In(1) == now->In(1));
+                if ((operation)here->Code == _add_ || (operation)here->Code == _mul_)
+                    judge = judge || (here->In(0) == now->In(1) && here->In(1) == now->In(0));
+            }
+            else if (here->Type == _Funct_)
+                judge = (here->In(0) == now->In(0));
+            changed_ = judge || changed_;
+            if (judge)
+            {
+                formula.lift(now, here);
+                //formula.lift(j, i);//middle down
+                OutputShift(now, here);
+                formula.ruin(j);
+            }
+        }
+    }
+    return changed_;
+}
+bool Expres::Simplify05(void) 
+{
+    vector<bool> label;
+    buffer<vortex<node>*> queue;
+    size_t i, count;
+    count = 0;
+    for (i = 0; i < output.count(); i++)
+    {
+        if (output[i] != NULL) queue.append(output[i]);
+    }
+    formula.BFTbackward(label, queue);
+    for (i = 0; i < label.count(); i++)
+    {
+        if (formula[i] == NULL) continue;
+        if (!label[i])
+        {
+            count += 1;
+            formula.ruin(i);
+        }
+    }
+    return count != 0;
+}
+bool Expres::Simplify06(void) 
+{
+    size_t i;
+    vortex<node>* here;
+    vortex<node>* left_, * right_;
+    int minusDegree;
+    bool changed_;
+    bool RightMinus;
+    changed_ = false;
+    for (i = 0; i < formula.count(); i++)
+    {
+        here = formula[i];
+        if (here == NULL) continue;
+        if (here->Type != _Operation_) continue;
+        left_ = here->In(0);
+        right_ = here->In(1);
+        minusDegree = ((*left_ ==  _minus_) ? 1 : 0);
+        RightMinus = (*right_ == _minus_);
+        minusDegree += RightMinus ? 1 : 0;
+        switch ((operation)here->Code)
+        {
+        case _add_:
+            if (minusDegree == 2)
+            {
+
+            }
+            else if (minusDegree == 1)
+            {
+                if (RightMinus)
+                {
+                    changed_ = true;
+                    formula.lift(here, right_, right_->In(0));
+                    here->Code = _sub_;
+                }
+            }
+            break;
+        case _sub_:
+            if (minusDegree == 2)
+            {
+
+            }
+            else if (minusDegree == 1)
+            {
+                if (RightMinus)
+                {
+                    changed_ = true;
+                    formula.lift(here, right_, right_->In(0));
+                    here->Code = _add_;
+                }
+            }
+            break;
+        case _mul_:
+        case _div_:
+            if (minusDegree == 2)
+            {
+                changed_ = true;
+                formula.lift(here, left_, left_->In(0));
+                formula.lift(here, right_, right_->In(0));
+            }
+            else if (minusDegree == 1)
+            {
+
+            }
+            break;
+        }
+    }
+    for (i = 0; i < formula.count(); i++)
+    {
+        here = formula[i];
+        if (here == NULL) continue;
+        if (here->Type != _Funct_) continue;
+        left_ = here->In(0);
+        switch ((function)here->Code)
+        {
+        case Pikachu::_sin_:
+        case Pikachu::_cos_:
+        case Pikachu::_exp_:
+        case Pikachu::_ln_:
+        case Pikachu::_sqrt_:
+            break;
+        case Pikachu::_minus_:
+            if (*left_ == _minus_)
+            {
+                formula.lift(here, left_->In(0));
+                OutputShift(here, left_->In(0));
+                changed_ = true;
+            }
+            break;
+        }
+    }
+    return changed_;
+}
+bool Expres::Simplify07(void) 
+{
+    size_t i;
+    vortex<node>* here;
+    vortex<node>* left_, * right_;
+    vortex<node>* New, *two_;
+    bool changed_;
+    changed_ = false;
+    for (i = 0; i < formula.count(); i++)
+    {
+        here = formula[i];
+        if (here == NULL) continue;
+        if (here->Type != _Operation_) continue;
+        left_ = here->In(0);
+        right_ = here->In(1);
+        switch ((operation)here->Code)
+        {
+        case _add_:
+            if (left_ == right_)
+            {
+                two_ = new vortex<node>(2);
+                formula.append(two_);
+
+                New = new vortex<node>(_mul_);
+                formula.append(New);
+                formula.ArcAdd(two_, left_, New);
+
+                SimplifyMove(here, New);
+                changed_ = true;
+            }
+            break;
+        case _sub_:
+            if (left_ == right_)
+            {
+                New = new vortex<node>(0);
+                formula.append(New);
+                SimplifyMove(here, New);
+                changed_ = true;
+            }
+            break;
+        case _mul_:
+            break;
+        case _div_:
+            if (left_ == right_)
+            {
+                New = new vortex<node>(1);
+                formula.append(New);
+                SimplifyMove(here, New);
+                changed_ = true;
+            }
+            break;
+        }
+    }
+    return changed_;
+}
+bool Expres::Simplify08(void)
+{
+    size_t i;
+    vortex<node>* here;
+    vortex<node>* left_, * right_;
+    vortex<node>* temp1_, * temp_, * New;
+    bool changed_, judge;
+    size_t j, LL, RR;
+    changed_ = false;
+    for (i = 0; i < formula.count(); i++)
+    {
+        here = formula[i];
+        if (here == NULL) continue;
+        if (here->Type != _Operation_) continue;
+        left_ = here->In(0);
+        right_ = here->In(1);
+        if (!(*left_ == _mul_)) continue;
+        if (!(*right_ == _mul_)) continue;
+        switch ((operation)here->Code)
+        {
+        case _add_:
+        case _sub_:
+            for (j = 0; j < 4; j++)
+            {
+                LL = j / 2;
+                RR = j % 2;
+                if (left_->In(LL) == right_->In(RR))
+                {
+                    temp_ = new vortex<node>((operation)here->Code);
+                    formula.append(temp_);
+                    formula.ArcAdd(left_->In((size_t)(!LL)), right_->In((size_t)(!RR)), temp_);
+
+                    New = new vortex<node>(_mul_);
+                    formula.append(New);
+                    formula.ArcAdd(left_->In(LL), temp_, New);
+
+                    SimplifyMove(here, New);
+
+                    changed_ = true;
+                    break;
+                }
+            }
+            break;
+        case _mul_:
+        case _div_:
+            for (j = 0; j < 4; j++)
+            {
+                LL = j / 2;
+                RR = j % 2;
+                judge = left_->In(LL)->Type == _LeafConst_;
+                judge = right_->In(RR)->Type == _LeafConst_;
+                if (judge)
+                {
+                    temp_ = new vortex<node>((operation)here->Code);
+                    formula.append(temp_);
+                    formula.ArcAdd(left_->In((size_t)(!LL)), right_->In((size_t)(!RR)), temp_);
+
+                    temp1_ = new vortex<node>((operation)here->Code);
+                    formula.append(temp1_);
+                    formula.ArcAdd(left_->In(LL), right_->In(RR), temp1_);
+
+                    New = new vortex<node>(_mul_);
+                    formula.append(New);
+                    formula.ArcAdd(temp1_, temp_, New);
+
+                    SimplifyMove(here, New);
+                    changed_ = true;
+                    break;
+                }
+            }
+            break;
+        }
+        if ((operation)here->Code == _div_)
+        {
+            //std::cout << "Here: " << i << std::endl;
+            for (j = 0; j < 4; j++)
+            {
+                LL = j / 2;
+                RR = j % 2;
+                if (left_->In(LL) == right_->In(RR))
+                {
+                    New = new vortex<node>(_div_);
+                    formula.ArcAdd(left_->In((size_t)(!LL)), right_->In((size_t)(!RR)), New);
+                    SimplifyMove(here, New);
+                    changed_ = true;
+                    break;
+                }
+            }
+        }
+    }
+
+
+    return changed_;
+}
+bool Expres::Simplify09(void)
+{
+    size_t i;
+    size_t site_;
+    vortex<node>* here;
+    vortex<node>* left_, * right_;
+    vortex<node>* New, *OpLL, *OpRR;
+    int inDegree;
+    bool changed_, judge;
+    bool plus[4], boolT1, boolT2;
+    bool add_sub[3]; //true: add, false :sub [0]: left, [1], right, [2]: middle
+    vortex<node>* offset[4];
+    size_t j, LL, RR;
+    changed_ = false;
+    for (i = 0; i < formula.count(); i++)
+    {
+        here = formula[i];
+        if (here == NULL) continue;
+        if (here->Type != _Operation_) continue;
+        left_ = here->In(0);
+        right_ = here->In(1);
+        if ((operation)here->Code != _add_ && (operation)here->Code != _sub_) continue;
+        if (left_->Type != _Operation_ || right_->Type != _Operation_) continue;
+        if ((operation)left_->Code != _add_ && (operation)left_->Code != _sub_) continue;
+        if ((operation)right_->Code != _add_ && (operation)right_->Code != _sub_) continue;
+        //if (formula[Left_].InDegree != 1 || formula[Right_].InDegree != 1) continue;
+        plus[0] = true;
+        plus[1] = left_->Code == (int)_add_;
+        plus[2] = here->Code == (int)_add_;
+        plus[3] = here->Code == right_->Code;
+        for (j = 0; j < 4; j++)
+        {
+            LL = j / 2;
+            RR = j % 2;
+            boolT2 = (left_->In(LL)->Type == _LeafConst_);
+            boolT2 = boolT2 && (right_->In(RR)->Type == _LeafConst_);
+            boolT2 = boolT2 || (left_->In(LL) == right_->In(RR));
+            if (boolT2)
+            {
+                boolT1 = plus[LL] || plus[RR + 2];//at least one of those is plus;
+                //2 * (!boolT1)£º into [2]£¬[3] if all are minus, otherwise  into [0]£¬[1];
+                //if plus[LL] is true, if must be put into left,([0], [2]) 
+                offset[!(plus[LL]) + 2 * (!boolT1)] = left_->In(LL);
+                offset[(plus[LL]) + 2 * (!boolT1)] = right_->In(RR);
+                add_sub[!boolT1] = (plus[LL] == plus[RR + 2]);
+                /* if LL and RR all are minus, !boolT1 is true, into [1] (the right part)
+                plus[LL] \ plus[RR + 2]) |  0    1
+                0                        | add  sub
+                1                        | sub  add
+                */
+                offset[!(plus[!LL]) + 2 * boolT1] = left_->In((size_t)(!LL));
+                offset[(plus[!LL]) + 2 * boolT1] = right_->In((size_t)(!RR));
+                add_sub[boolT1] = (plus[!LL] == plus[!RR + 2]);
+                /* if if LL and RR all are minus, !LL and !RR can't be minus. boolT1 is false, into [0] (the left part)
+                plus[!LL] \ plus[!RR + 2]) |  0    1
+                0                          | add  sub
+                1                          | sub  add
+                */
+                add_sub[2] = boolT1 ? (plus[!LL] || plus[!RR + 2]) : (plus[LL] || plus[RR + 2]);
+                //if at least one of LL and RR is plus; boolT1 is true, !LL and !RR are in the right,
+                // if one of them are plus, the middle can't be sub
+
+                OpLL = new vortex<node>(add_sub[0] ? _add_ : _sub_);
+                formula.append(OpLL);
+                formula.ArcAdd(offset[0], offset[1], OpLL);
+
+                OpRR = new vortex<node>(add_sub[1] ? _add_ : _sub_);
+                formula.append(OpRR);
+                formula.ArcAdd(offset[2], offset[3], OpRR);
+
+                New = new vortex<node>(add_sub[2] ? _add_ : _sub_);
+                formula.append(New);
+                formula.ArcAdd(OpLL, OpRR, New);
+
+                SimplifyMove(here, New);
+                changed_ = true;
+                break;
+            }
+        }
+
+    }
+    return changed_;
+}
+void Expres::SimplifyMove(vortex<node>* target, vortex<node>* NewOne)
+{
+    formula.lift(target, NewOne);
+    OutputShift(target, NewOne);
+    formula.ruin(target->site());
+}
+bool Expres::Simplify10(void)
+{
+    size_t i;
+    vortex<node>* const_,* final_;
+    vortex<node>* here;
+    vortex<node>* left_, * right_, * first_, * second_;
+    vortex<node>* New, *up_, *LL, *RR;
+    int inDegree;
+    bool changed_, judge;
+    size_t j;
+    changed_ = false;
+    for (i = 0; i < formula.count(); i++)
+    {
+        here = formula[i];
+        if (here == NULL) continue;
+        if (!(*here == _mul_)) continue;
+        left_ = here->In(0);
+        right_ = here->In(1);
+        if (left_->Type != _Operation_ && right_->Type != _Operation_) continue;
+        if ((operation)right_->Code == _div_ && right_->In(1) == left_)
+        {
+            SimplifyMove(here, right_->In(0));
+            changed_ = true;
+        }
+        if ((operation)left_->Code == _div_ && left_->In(1) == right_)
+        {
+            SimplifyMove(here, left_->In(0));
+            changed_ = true;
+        }
+        judge = false;
+        if (left_->Type == _LeafConst_ && (operation)right_->Code == _mul_)
+        {
+            LL = right_->In(0);
+            RR = right_->In(1);
+            up_ = left_;
+            judge = true;
+        }
+        else if (right_->Type == _LeafConst_ && (operation)left_->Code == _mul_)
+        {
+            LL = left_->In(0);
+            RR = left_->In(1);
+            up_ = right_;
+            judge = true;
+        }
+        if (judge)
+        {
+            judge = false;
+            if (LL->Type == _LeafConst_)
+            {
+                first_ = LL;
+                second_ = RR;
+                judge = true;
+            }
+            else if (RR->Type == _LeafConst_)
+            {
+                first_ = RR;
+                second_ = LL;
+                judge = true;
+            }
+            if (judge)
+            {
+                const_ = new vortex<node>(_mul_);
+                formula.append(const_);
+                formula.ArcAdd(up_, first_, const_);
+                final_ = new vortex<node>(_mul_);
+                formula.append(final_);
+                formula.ArcAdd(const_, second_, final_);
+                SimplifyMove(here, final_);
+                changed_ = true;
+            }
+
+        }
+    }
+    return changed_;
+}
+//========================

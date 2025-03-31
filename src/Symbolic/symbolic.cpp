@@ -286,7 +286,12 @@ void FuncConst::print(PikaString& output)const
     else if (IfInt) output += IntConst;
     else output += RealConst;
 }
-
+void FuncConst::print(hyperlex::BufferChar& output)const
+{
+    if (IfNan) output += "nan";
+    else if (IfInt) output += (long int)IntConst;
+    else output += RealConst;
+}
 FuncConst FuncConst::compute(FuncConst& left, FuncConst& right, operation Opera)
 {
     FuncConst result;

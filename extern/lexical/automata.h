@@ -85,6 +85,8 @@ namespace hyperlex
 		tree();
 		~tree();
 		void clear(void);
+		void append(tree<T>* rear);
+		void AppendChilds(tree<T>* ruined);
 		void build(vector<tree<T>*>& input);
 		void build(vector<tree<T>*>& input, size_t offset);
 		void PostOrderTraversal(vector<tree<T>*>& output);
@@ -112,7 +114,7 @@ namespace hyperlex
 			
 		};
 	private:
-		array<tree<T>*> childs;
+		vector<tree<T>*> childs;
 		T content;
 		tree<T>* parent;
 		size_t No;
@@ -391,6 +393,7 @@ namespace hyperlex
 		char GetChar(size_t site) const;
 		double GetReal(size_t site) const;
 		long int GetInt(size_t site) const;
+		char* GetString(size_t site) const;
 		bool& valid(size_t site);
 
 		template<typename T> int Build(const char* reg);
@@ -423,10 +426,12 @@ namespace hyperlex
 		~GrammarTree();
 		struct TreeInfor
 		{
+			bool implicit;
 			bool rules;
 			size_t site;
 			size_t label;
 			void* infor;
+			TreeInfor(void);
 			// rules:false, this is a leaf node, and its a node corresponding to
 			// a lexical terminal symbol then site is a location of the lexical unit 
 			// in the lexical sheet
@@ -439,8 +444,10 @@ namespace hyperlex
 		template<typename T> int build(const Morpheme& input);
 
 		tree<TreeInfor>* GT;
+		//error_record00 =  ture error infor from ACTION, otherwise from the sheet GOTO
 		//error_record01 = lexical unit number;
 		//error_record02 = (size_t)top content of stack;
+		bool error_record00;
 		size_t error_record01;
 		size_t error_record02;
 	protected:
@@ -533,6 +540,7 @@ namespace hyperlex
 		{
 			const char* name;
 			vector<long int> formula;
+			bool implicit;
 			Rules();
 			~Rules();
 			void SetName(const char* input);
@@ -545,6 +553,7 @@ namespace hyperlex
 			vector<Rules*> rules;
 			size_t count;
 			size_t offset;
+			bool implicit;
 			Group();
 			~Group();
 			void SetName(const char* input);
@@ -563,6 +572,7 @@ namespace hyperlex
 			missingIdinRegdef,
 			ErrorinputLEXICAL,
 			ErrorinputGrammar,
+			regGroupMissing,
 			buildUndone,
 		};
 		friend class NFA;
@@ -598,6 +608,7 @@ namespace hyperlex
 		void demoL(FILE* fp) const;
 		void demoG(FILE* fp) const;
 		void printGName(FILE* output, FILE* infor, const char* nameG)const;
+		void printImplicit(FILE* output, FILE* infor, const char* nameG)const;
 		/*
 		* input analysis;
 		*/
@@ -619,10 +630,15 @@ namespace hyperlex
 		void addAllGroup02(void);
 		int GrammarGroup(size_t& GroupSite, const Morpheme& eme, GLTree* Tree);
 		int RulesAppend(size_t GroupSite, GLTree* Name, const Morpheme& eme, GLTree* Tree);
+		long int UnitToSymbol(GLTree* Tree, const Morpheme& eme);
+		long int WildcardToSymbol(long int symbol, const Morpheme& eme, bool plus);
 		void addTerminal(void);
 		long int SymbolAdd(const char* symbol);
+		long int UnitRegGroupAdd(const char* symbol);
 		int NonTerminalSort(void);
+		void ImplicitAdd(void);
 	};
+
 }
 
 // lexical analysis
@@ -794,6 +810,7 @@ namespace hyperlex
 		BufferChar result;
 		BufferChar intermediate;
 		int accept;
+		int error = 0;
 		char now;
 		input << fp;
 		while (RunBuild<T>(accept, result, input, intermediate))
@@ -803,12 +820,13 @@ namespace hyperlex
 			{
 				input.dequeue(now);
 				result.append(now);
-				append(result, 0, T::GroupGet(0));
+				append(result, -1, -1);
+				error = -1;
 			}
 		}
 		AppendEnd(0);
 		SetLine();
-		return 0;
+		return error;
 	}
 	template<typename T> int Morpheme::Build(const char* reg)
 	{
@@ -816,6 +834,7 @@ namespace hyperlex
 		BufferChar result;
 		BufferChar intermediate;
 		int accept;
+		int error = 0;
 		char now;
 		input = reg;
 		while (RunBuild<T>(accept, result, input, intermediate))
@@ -825,12 +844,13 @@ namespace hyperlex
 			{
 				input.dequeue(now);
 				result.append(now);
-				append(result, 0, T::GroupGet(0));
+				append(result, -1, -1);
+				error = -1;
 			}
 		}
 		AppendEnd(0);
 		SetLine();
-		return 0;
+		return error;
 	}
 	template<typename T> bool Morpheme::RunBuild(int& accept, BufferChar& result, BufferChar& input, BufferChar& intermediate)
 	{
@@ -918,7 +938,7 @@ namespace hyperlex
 	{
 		vector<int> stack;
 		vector<tree<TreeInfor>*> TempTree;
-		tree<TreeInfor>* TreeNow;
+		tree<TreeInfor>* TreeNow, * TreeChild;
 		bool DoNext;
 		size_t length, head, i, begin_;// , inputCount_;
 		int symbol, top, temp, information;
@@ -949,6 +969,7 @@ namespace hyperlex
 				clear();
 				begin_ = TempTree.count() - 1;
 				TreeNow = new tree<TreeInfor>;
+				TreeNow->root().implicit = false;
 				TreeNow->root().rules = true;
 				TreeNow->root().site = 0;
 				TreeNow->root().infor = NULL;
@@ -958,6 +979,7 @@ namespace hyperlex
 				//TempTree.pop(GT);
 				break;
 			case T::error:
+				error_record00 = true;
 				error_record01 = head;
 				error_record02 = (size_t)top;
 				error = temp;
@@ -968,6 +990,7 @@ namespace hyperlex
 				//printf("<%8zu, %4d: %4d , %s>\n", head, input[head].category, input[head].accept, input.GetWord(head));
 				stack.append(information);
 				TreeNow = new tree<TreeInfor>;
+				TreeNow->root().implicit = false;
 				TreeNow->root().rules = false;
 				TreeNow->root().site = head;
 				TreeNow->root().infor = NULL;
@@ -981,14 +1004,19 @@ namespace hyperlex
 				begin_ = TempTree.count() - length;
 
 				TreeNow = new tree<TreeInfor>;
+				TreeNow->root().implicit = (bool)T::Implicit[(size_t)information];
 				TreeNow->root().rules = true;
 				TreeNow->root().site = information;
 				TreeNow->root().infor = NULL;
-				TreeNow->build(TempTree, begin_);
+				//TreeNow->build(TempTree, begin_);
 				
 				for (i = 0; i < length; i++)
 				{
 					stack.pop();
+					TreeChild = TempTree[begin_ + i];
+					if (TreeChild->root().implicit)
+						TreeNow->AppendChilds(TreeChild);
+					else TreeNow->append(TreeChild);
 					TempTree[begin_ + i] = NULL;
 				}
 				TempTree.recount(begin_);
@@ -1003,6 +1031,7 @@ namespace hyperlex
 				}
 				else
 				{
+					error_record00 = false;
 					error_record01 = head;
 					error_record02 = (size_t)top;
 					error = GoFull;
@@ -1052,6 +1081,7 @@ namespace hyperlex
 			size_t symbol;
 			size_t length;
 			size_t begin;
+			size_t LengthWithoutVoid;
 		};
 		enum ErrorCode
 		{
@@ -1093,7 +1123,6 @@ namespace hyperlex
 	private:
 		
 		void FirstBiuld(void);
-		bool IfaRuleEpsilon(size_t site) const;
 		bool IfEpsilon(long long int site) const;
 		bool FirstOr(long long int symbol, bool* to) const;
 		bool Or(const bool* from, bool* to) const;
@@ -1254,6 +1283,8 @@ namespace hyperlex
 
 		ErrorType ET;
 		ErrorInfor EI;
+
+		void build_singleErrorAdd(void);
 
 		bool gotoAdd(size_t i, size_t j, type Action, int State);
 		bool actionAdd(size_t i, size_t j, type Action, int State);
@@ -1531,7 +1562,7 @@ namespace hyperlex
 		PostOrderTraversal(deleted);
 		for (i = 1; i < deleted.count(); i++)
 			delete deleted[i - 1];
-		childs.Free();
+		childs.recapacity(0);
 	}
 	template <class T> void tree<T>::PostOrderTraversal(vector<tree<T>*>& output)
 	{
@@ -1540,7 +1571,7 @@ namespace hyperlex
 		tree<T>* here;
 		bool label;
 		size_t i;
-		for (i = childs.length(); i != 0; i--)
+		for (i = childs.count(); i != 0; i--)
 		{
 			StackSite.append(childs[i - 1]);
 			StackState.append(false);
@@ -1555,7 +1586,7 @@ namespace hyperlex
 				StackSite.append(here);
 				StackState.append(true);
 
-				for (i = here->childs.length(); i != 0; i--)
+				for (i = here->childs.count(); i != 0; i--)
 				{
 					StackSite.append(here->childs[i - 1]);
 					StackState.append(false);
@@ -1564,10 +1595,30 @@ namespace hyperlex
 		}
 		output.append((tree<T>*)this);
 	}
+	template <class T> void tree<T>::append(tree<T>* rear)
+	{
+		childs.append(rear);
+		rear->parent = this;
+		rear->No = childs.count() - 1;
+	}
+	template <class T> void tree<T>::AppendChilds(tree<T>* ruined)
+	{
+		size_t i;
+		tree<T>* rear;
+		for (i = 0; i < ruined->ChildCount(); i++)
+		{
+			rear = ruined->child(i);
+			childs.append(rear);
+			rear->parent = this;
+			rear->No = childs.count() - 1;
+		}
+		ruined->childs.clear();
+		delete ruined;
+	}
 	template <class T> void tree<T>::build(vector<tree<T>*>& input)
 	{
 		size_t i;
-		childs.Realloc(input.count());
+		childs.recount(input.count());
 		for (i = 0; i < input.count(); i++)
 		{
 			childs[i] = input[i];
@@ -1580,10 +1631,10 @@ namespace hyperlex
 		size_t i;
 		if (input.count() <= offset)
 		{
-			childs.Realloc(0);
+			childs.recount(0);
 			return;
 		}
-		childs.Realloc(input.count() - offset);
+		childs.recount(input.count() - offset);
 		for (i = 0; i < input.count() - offset; i++)
 		{
 			childs[i] = input[i + offset];
@@ -1602,7 +1653,7 @@ namespace hyperlex
 
 	template <class T> size_t tree<T>::ChildCount(void) const
 	{
-		return childs.length();
+		return childs.count();
 	}
 	template <class T> tree<T>* tree<T>::child(size_t No) const
 	{
@@ -1640,7 +1691,7 @@ namespace hyperlex
 				stack.append(parent);
 				here = parent.target;
 				now.state = 0;
-				for (i = here->childs.length(); i != 0; i--)
+				for (i = here->childs.count(); i != 0; i--)
 				{
 					now.target = here->childs[i - 1];
 					stack.append(now);

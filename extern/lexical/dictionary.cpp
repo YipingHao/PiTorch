@@ -623,6 +623,7 @@ struct DictPraser
     static const int RulesToSymbol[19];
     static const int RulesLength[19];
     static const char* const RulesName[19];
+    static const int Implicit[19];
 };
 
 
@@ -1457,6 +1458,28 @@ const char* const DictPraser::RulesName[19] = { \
 "UNIT->true ",\
 "UNIT->false ",\
 "UNIT->DICTIONARY " };
+//==============================
+const int DictPraser::Implicit[19] = { \
+0, \
+0, \
+0, \
+0, \
+0, \
+0, \
+0, \
+0, \
+0, \
+0, \
+0, \
+0, \
+0, \
+0, \
+0, \
+0, \
+0, \
+0, \
+0 };
+
 //==============================
 int complex::next(int state, const char c)
 {

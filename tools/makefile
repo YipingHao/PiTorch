@@ -17,8 +17,8 @@ HFILE = $(HEAD)PikaType.h $(HEAD)PikaTemplate.h $(HEAD)Pikachu.h $(HEAD)Symbolic
 Extern = -lHyperlex -lHyperAlgebra
 TestOFile = $(TEST)main.o
 
-#CC = icc
-CC = g++
+#CC = icc -std=c++11
+CC = g++ -std=c++11
 
 #Option = -g
 Option = -O3

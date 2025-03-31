@@ -1,5 +1,6 @@
 #ifndef SymbolicH8u34herh834tyu845trjdfsh834th8345dfgjk2489
 #define SymbolicH8u34herh834tyu845trjdfsh834th8345dfgjk2489
+#include"../../extern/lexical/dictionary.h"
 namespace Pikachu
 {
 	enum type
@@ -69,7 +70,7 @@ namespace Pikachu
 		void pow(const FuncConst& exponential);
 
 		void print(PikaString& output)const;
-
+		void print(hyperlex::BufferChar& output)const;
 		FuncConst compute(FuncConst& left, FuncConst& right, operation Opera);
 		void ComputeSet(FuncConst& left, FuncConst& right, operation Opera);
 		FuncConst compute(FuncConst& left, function Func);
@@ -256,6 +257,66 @@ namespace Pikachu
 		void ForwardMiniOpCore(vector<size_t>& label, vector<size_t>& output_, VISA1& instru, vector<size_t>& FreeReg, size_t now, node* here)const;
 		//======================== tools
 		void ClearOutput(void);
+	};
+
+	class Expres
+	{
+	public:
+		typedef hyperlex::BufferChar bufferC;
+		struct node
+		{
+			type Type;
+			int Code;
+			bool Output;
+			FuncConst Fc;
+			size_t src1;
+			size_t src2;
+			node* copy(void) const;
+			void copy(const node &source);
+			bool operator == (operation Op) const;
+			bool operator == (function Op) const;
+			node();
+			node(long long int ele);
+			node(operation Op);
+			node(function func_);
+			node(function2 func_);
+			node(type T, size_t S1, size_t S2);
+			void Demo(int label, bufferC& output, bool single, bool braket) const;
+			void demo(FILE* fp) const;
+		};
+		Expres();
+		~Expres();
+		void clear(void);
+		void copy(const Expres& source);
+		bool Simplify(void);
+		void Example(size_t No);
+		
+		void demo(bufferC& out, bool single, size_t No)const;
+		void demo(FILE* fp)const;
+
+	protected:
+		graph<node> formula;
+		vector<vortex<node>*> output;
+		vector<size_t> InputDim;
+		size_t ParameterCount;
+
+		void OutputShift(vortex<node>* src, vortex<node>* dst);
+		void example01(void);
+		//========================Expression simplification
+		bool Simplify01(void);
+		void LiftLeft(vortex<node>* target);
+		void LiftRight(vortex<node>* target);
+		bool Simplify02(void);
+		bool Simplify03(void);
+		bool Simplify04(void);
+		bool Simplify05(void);
+		bool Simplify06(void);
+		bool Simplify07(void);
+		bool Simplify08(void);
+		bool Simplify09(void);
+		void SimplifyMove(vortex<node>* target, vortex<node>* NewOne);
+		bool Simplify10(void);
+		//========================
 	};
 
 	class activation : public expression
