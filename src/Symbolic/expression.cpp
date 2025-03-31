@@ -2698,6 +2698,81 @@ void Expres::demo(FILE* fp)const
     }
 }
 //========================Expression simplification
+void Expres::differetial(size_t X1, size_t X2, bool Input)
+{
+    vector<vortex<node>*> sequence, label;
+    buffer<vortex<node>*> queue;
+    vector<bool> valid;
+    size_t i, length, site;
+    vortex<node>* here, * New;
+
+    for (i = 0; i < output.count(); i++)
+    {
+        if (output[i] != NULL) queue.append(output[i]);
+    }
+
+    formula.BFTbackward(valid, queue);
+
+    formula.TopoSortBFS(sequence);
+
+   // formula.SortingShrink(valid, sequence);
+
+
+
+    length = sequence.count();
+    label.recount(formula.count());
+    label.value(NULL);
+    for (i = 0; i < length; i++)
+    {
+        here = sequence[i];
+        //here = formula[now];
+
+        switch (here->Type)
+        {
+        case _LeafX_:
+            New = new vortex<node>(here->src1 == X1 && here->src2 == X2 && Input);
+            formula.append(New);
+            label[now] = New;
+            break;
+        case _LeafPara_:
+            New = new vortex<node>(here->src1 == X1 && here->src2 == X2 && !Input);
+            formula.append(New);
+            label[now] = New;
+            break;
+        case  _LeafConst_:
+            New = new vortex<node>(0);
+            formula.append(New);
+            label[now] = New;
+            break;
+        case _Operation_:
+            //label[now] = OperationForwardDifferential(label, now, here);
+            break;
+        case _Funct_:
+            //label[now] = FunctionForwardDifferential(label, now, here);
+            break;
+        case _Funct2_:
+            //label[now] = Function2ForwardDifferential(label, now, here);
+            break;
+        default:
+            break;
+        }
+    }
+#ifdef Debug03_02
+    for (i = 0; i < label.count(); i++)
+    {
+        std::cout << "label[" << i << "] = " << label[i] << std::endl;
+    }
+#endif
+    for (i = 0; i < output.count(); i++)
+    {
+        formula[output[i]].content->Output = false;
+        output[i] = label[output[i]];
+        formula[output[i]].content->Output = true;
+    }
+    //output = label[sequence[length - 1]];
+}
+
+//========================Expression simplification
 void Expres::example01(void)
 {
     vortex<node>* New;

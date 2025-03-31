@@ -294,6 +294,7 @@ namespace Pikachu
 		void demo(bufferC& out, bool single, size_t No)const;
 		void demo(FILE* fp)const;
 
+		void differetial(size_t X1, size_t X2, bool Input);
 	protected:
 		graph<node> formula;
 		vector<vortex<node>*> output;
