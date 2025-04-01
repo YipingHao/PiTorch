@@ -2712,7 +2712,9 @@ void Expres::differetial(size_t X1, size_t X2, bool Input)
     }
     printf("?????\n");
     formula.BFTbackward(valid, queue);
+    printf("BFTbackward\n");
     formula.TopoSortBFS(sequence);
+    printf("TopoSortBFS\n");
     formula.Shrink(valid, sequence);
     printf("?????\n");
 
