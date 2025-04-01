@@ -2710,24 +2710,24 @@ void Expres::differetial(size_t X1, size_t X2, bool Input)
     {
         if (output[i] != NULL) queue.append(output[i]);
     }
-    printf("?????\n");
+    //printf("?????\n");
     formula.BFTbackward(valid, queue);
-    printf("BFTbackward\n");
+    //printf("BFTbackward\n");
     formula.TopoSortBFS(sequence);
-    printf("TopoSortBFS\n");
+    //printf("TopoSortBFS\n");
     formula.Shrink(valid, sequence);
-    printf("?????\n");
+    //printf("?????\n");
 
 
     length = sequence.count();
     label.recount(formula.count());
     label.value(NULL);
-    printf("?????\n");
+    //printf("?????\n");
     for (i = 0; i < length; i++)
     {
         here = sequence[i];
         //here = formula[now];
-        printf("\t%zu\n", i);
+        //printf("\t%zu\n", i);
         switch (here->Type)
         {
         case _LeafX_:
@@ -2765,7 +2765,7 @@ void Expres::differetial(size_t X1, size_t X2, bool Input)
         output[i] = label[output[i]->site()];
         formula[output[i]->site()]->Output = true;
     }
-    printf("?????\n");
+    //printf("?????\n");
 
     //output = label[sequence[length - 1]];
 }
