@@ -1043,16 +1043,15 @@ namespace Pikachu
 		vortex<V>* now;
 		vortex<V>* next;
 		compress();
-		for (i = 0; i < content.count(); i++)
-		{
-			now = content[i];
-			now->temp = now->in.count();
-		}
 		sequence.clear();
 		for (i = 0; i < content.count(); i++)
 		{
 			now = content[i];
-			if (now->temp == 0) stack.append(now);
+			if (now != NULL)
+			{
+				now->temp = now->in.count();
+				if (now->temp == 0) stack.append(now);
+			}
 		}
 		while (stack.pop(head) != 0)
 		{
@@ -1088,17 +1087,17 @@ namespace Pikachu
 			{
 				now->temp = now->in.count();
 				if (now->temp == 0) stack.append(now);
-				printf("now->site()%zu\n", now->site());
+				//printf("now->site()%zu\n", now->site());
 			}
 		}
 		while (stack.dequeue(head))
 		{
 			sequence.append(head);
-			printf("head->site()%zu\n", head->site());
+			//printf("head->site()%zu\n", head->site());
 			for (i = 0; i < head->out.count(); i++)
 			{
 				next = head->out[i];
-				printf("\t [%zu] next->site()%zu\n", i, next->site());
+				//printf("\t [%zu] next->site()%zu\n", i, next->site());
 				if (next->temp == 0)
 				{
 					throw PikaError("TopoSortDFS", "label[next] == 0", next->site());
@@ -1118,17 +1117,22 @@ namespace Pikachu
 		vortex<V>* head;
 		vortex<V>* next;
 		vortex<V>* now;
-		compress();
-		for (i = 0; i < content.count(); i++)
-		{
-			now = content[i];
-			now->temp = now->out.count();
-		}
+		//compress();
 		sequence.clear();
 		for (i = 0; i < content.count(); i++)
 		{
 			now = content[i];
-			if (now->temp == 0) stack.append(now);
+			if (now != NULL)
+			{
+				now->temp = now->out.count();
+				if (now->temp == 0) stack.append(now);
+			}
+		}
+		
+		for (i = 0; i < content.count(); i++)
+		{
+			now = content[i];
+			
 		}
 		while (stack.pop(head) != 0)
 		{
@@ -1155,18 +1159,18 @@ namespace Pikachu
 		vortex<V>* head;
 		vortex<V>* now;
 		vortex<V>*next;
-		compress();
-		for (i = 0; i < content.count(); i++)
-		{
-			now = content[i];
-			now->temp = now->out.count();
-		}
+		//compress();
 		sequence.clear();
 		for (i = 0; i < content.count(); i++)
 		{
 			now = content[i];
-			if (now->temp == 0) stack.append(now);
+			if (now != NULL)
+			{
+				now->temp = now->out.count();
+				if (now->temp == 0) stack.append(now);
+			}
 		}
+		
 		while (stack.dequeue(head) != 0)
 		{
 			sequence.append(head);
