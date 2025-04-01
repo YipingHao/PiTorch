@@ -1206,13 +1206,14 @@ namespace Pikachu
 	}
 	template <class V> void graph<V>::Shrink(const vector<bool>& label, vector<vortex<V>*>& sequence) const
 	{
-		size_t new_count, now, i;
+		size_t new_count, i;
 		new_count = 0;
 		for (i = 0; i < sequence.count(); i++)
 		{
 			if (label[sequence[i]->site()])
 			{
 				sequence[new_count] = sequence[i];
+				sequence[new_count]->label_site = new_count;
 				new_count += 1;
 			}
 		}
