@@ -6,6 +6,7 @@
 #ifndef _uintMax_
 #define _uintMax_ 0xffffffffffffffff
 #endif
+#include"../../extern/lexical/dictionary.h"
 namespace Pikachu
 {
 	class PikaError
@@ -567,6 +568,7 @@ namespace Pikachu
 		{
 			content[i - 1] = content[i];
 		}
+		Count -= 1;
 	}
 	template <class T> size_t vector<T>::SearchAppend(const T& element)
 	{

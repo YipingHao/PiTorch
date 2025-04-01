@@ -1,6 +1,6 @@
 #ifndef SymbolicH8u34herh834tyu845trjdfsh834th8345dfgjk2489
 #define SymbolicH8u34herh834tyu845trjdfsh834th8345dfgjk2489
-#include"../../extern/lexical/dictionary.h"
+
 namespace Pikachu
 {
 	enum type
