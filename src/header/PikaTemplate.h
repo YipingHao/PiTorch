@@ -912,8 +912,8 @@ namespace Pikachu
 			{
 				now = new vortex<V>;
 				now->copy(*srcV);
-				append(now);
 				content[i] = now;
+				now->site = i;
 			}
 			else content[i] = NULL;
 		}
