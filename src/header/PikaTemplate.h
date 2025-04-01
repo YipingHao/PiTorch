@@ -1043,6 +1043,7 @@ namespace Pikachu
 		vector<vortex<V>*> stack;
 		size_t i;
 		vortex<V>* now;
+		vortex<V>* head;
 		vortex<V>* next;
 		vector<size_t> label;
 		label.recount(content.count());
@@ -1122,6 +1123,7 @@ namespace Pikachu
 	{
 		vector<vortex<V>*> stack;
 		size_t i;
+		vortex<V>* head;
 		vortex<V>* next;
 		vortex<V>* now;
 		vector<size_t> label;
@@ -1166,6 +1168,7 @@ namespace Pikachu
 	{
 		buffer<vortex<V>*> stack;
 		size_t i;
+		vortex<V>* head;
 		vortex<V>* now;
 		vortex<V>*next;
 		vector<size_t> label;
