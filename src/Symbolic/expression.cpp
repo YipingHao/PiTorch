@@ -2703,7 +2703,7 @@ void Expres::differetial(size_t X1, size_t X2, bool Input)
     vector<vortex<node>*> sequence, label;
     buffer<vortex<node>*> queue;
     vector<bool> valid;
-    size_t i, length;
+    size_t i, length, site;
     vortex<node>* here, * New;
 
     for (i = 0; i < output.count(); i++)
@@ -2727,31 +2727,37 @@ void Expres::differetial(size_t X1, size_t X2, bool Input)
     {
         here = sequence[i];
         printf("\t%zu\n", here->site());
+    }
+    for (i = 0; i < length; i++)
+    {
+        here = sequence[i];
+        site = here->site();
+        printf("\t%zu\n", here->site());
         switch (here->Type)
         {
         case _LeafX_:
             New = new vortex<node>(here->src1 == X1 && here->src2 == X2 && Input);
             formula.append(New);
-            label[i] = New;
+            label[site] = New;
             break;
         case _LeafPara_:
             New = new vortex<node>(here->src1 == X1 && here->src2 == X2 && !Input);
             formula.append(New);
-            label[i] = New;
+            label[site] = New;
             break;
         case  _LeafConst_:
             New = new vortex<node>(0);
             formula.append(New);
-            label[i] = New;
+            label[site] = New;
             break;
         case _Operation_:
-            label[i] = OpForwardDiff(label, here);
+            label[site] = OpForwardDiff(label, here);
             break;
         case _Funct_:
-            label[i] = FunctForwardDiff(label, here);
+            label[site] = FunctForwardDiff(label, here);
             break;
         case _Funct2_:
-            label[i] = Funct2ForwardDiff(label, here);
+            label[site] = Funct2ForwardDiff(label, here);
             break;
         default:
             break;
