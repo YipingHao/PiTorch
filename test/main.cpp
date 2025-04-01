@@ -1536,22 +1536,20 @@ int static test14(const parameter& para)
         
         Diff.copy(Exp);
         Diff.demo(BC, true, 0);
-        
         std::cout << BC.ptr() << std::endl; BC.clear();
+
         Diff.differetial(0, 0, true);
         std::cout << "Diff.differetial(0, 0, true);" << std::endl;
         Diff.demo(stdout);
         Diff.demo(BC, true, 0);
         std::cout << BC.ptr() << std::endl; BC.clear();
 
-        std::cout << BC.ptr() << std::endl; BC.clear();
         Diff.differetial(0, 0, true);
         std::cout << "Diff.differetial(0, 0, true);" << std::endl;
         Diff.demo(stdout);
         Diff.demo(BC, true, 0);
         std::cout << BC.ptr() << std::endl; BC.clear();
 
-        std::cout << BC.ptr() << std::endl; BC.clear();
         Diff.differetial(0, 0, true);
         std::cout << "Diff.differetial(0, 0, true);" << std::endl;
         Diff.demo(stdout);
