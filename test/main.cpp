@@ -1563,6 +1563,9 @@ int static test14(const parameter& para)
         //Diff.demo(stdout);
         Diff.demo(BC, true, 0);
         std::cout << BC.ptr() << std::endl; BC.clear();
+        Diff.Simplify();
+        Diff.demo(BC, true, 0);
+        std::cout << BC.ptr() << std::endl; BC.clear();
     }
     catch (Pikachu::PikaError& E)
     {
