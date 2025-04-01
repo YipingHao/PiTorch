@@ -362,13 +362,16 @@ namespace Pikachu
 		void append(graph<V>& in);
 		void compress(void);
 
-		void TopoSortDFS(vector<vortex<V>*>& sequence);
-		void TopoSortBFS(vector<vortex<V>*>& sequence);
-		void TopoSortDFSBack(vector<vortex<V>*>& sequence);
-		void TopoSortBFSBack(vector<vortex<V>*>& sequence);
+		void TopoSortDFS(vector<vortex<V>*>& sequence)const;
+		void TopoSortBFS(vector<vortex<V>*>& sequence)const;
+		void TopoSortDFSBack(vector<vortex<V>*>& sequence)const;
+		void TopoSortBFSBack(vector<vortex<V>*>& sequence)const;
 
-		void BFTbackward(vector<bool>& label, buffer<vortex<V>*>&queue);
+		void BFTbackward(vector<bool>& label, buffer<vortex<V>*>&queue)const;
 		void Shrink(const vector<bool>& label, vector<vortex<V>*>& sequence) const;
+		
+		void OutputGive(vector<size_t>& label) const;
+		void OutputCut(vector<size_t>& label, size_t target)const;
 	};
 	
 
@@ -1035,22 +1038,24 @@ namespace Pikachu
 		dst->in.append(srcR);
 	}
 
-	template <class V> void graph<V>::TopoSortDFS(vector<vortex<V>*>& sequence)
+	template <class V> void graph<V>::TopoSortDFS(vector<vortex<V>*>& sequence)const
 	{
 		vector<vortex<V>*> stack;
 		size_t i;
-		vortex<V>* head;
 		vortex<V>* now;
 		vortex<V>* next;
-		compress();
+		vector<size_t> label;
+		label.recount(content.count());
 		sequence.clear();
+		//compress();
 		for (i = 0; i < content.count(); i++)
 		{
 			now = content[i];
+			label[i] = 0;
 			if (now != NULL)
 			{
-				now->temp = now->in.count();
-				if (now->temp == 0) stack.append(now);
+				label[i] = now->in.count();
+				if (label[i] == 0) stack.append(now);
 			}
 		}
 		while (stack.pop(head) != 0)
@@ -1059,34 +1064,37 @@ namespace Pikachu
 			for (i = 0; i < head->out.count(); i++)
 			{
 				next = head->out[i];
-				if (next->temp == 0)
+				if (label[next->site()] == 0)
 				{
 					throw PikaError("TopoSortDFS", "label[next] == 0", next->site());
 				}
-				next->temp -= 1;
-				if (next->temp == 0)
+				label[next->site()] -= 1;
+				if (label[next->site()] == 0)
 				{
 					stack.append(next);
 				}
 			}
 		}
 	}
-	template <class V> void graph<V>::TopoSortBFS(vector<vortex<V>*>& sequence)
+	template <class V> void graph<V>::TopoSortBFS(vector<vortex<V>*>& sequence)const
 	{
 		buffer<vortex<V>*> stack;
 		size_t i;
 		vortex<V>* head;
 		vortex<V>* now;
 		vortex<V>* next;
+		vector<size_t> label;
+		label.recount(content.count());
 		//compress();
 		sequence.clear();
 		for (i = 0; i < content.count(); i++)
 		{
 			now = content[i];
+			label[i] = 0;
 			if (now != NULL)
 			{
-				now->temp = now->in.count();
-				if (now->temp == 0) stack.append(now);
+				label[i] = now->in.count();
+				if (label[i] == 0) stack.append(now);
 				//printf("now->site()%zu\n", now->site());
 			}
 		}
@@ -1098,34 +1106,36 @@ namespace Pikachu
 			{
 				next = head->out[i];
 				//printf("\t [%zu] next->site()%zu\n", i, next->site());
-				if (next->temp == 0)
+				if (label[next->site()] == 0)
 				{
 					throw PikaError("TopoSortDFS", "label[next] == 0", next->site());
 				}
-				next->temp -= 1;
-				if (next->temp == 0)
+				label[next->site()] -= 1;
+				if (label[next->site()] == 0)
 				{
 					stack.append(next);
 				}
 			}
 		}
 	}
-	template <class V> void graph<V>::TopoSortDFSBack(vector<vortex<V>*>& sequence)
+	template <class V> void graph<V>::TopoSortDFSBack(vector<vortex<V>*>& sequence)const
 	{
 		vector<vortex<V>*> stack;
 		size_t i;
-		vortex<V>* head;
 		vortex<V>* next;
 		vortex<V>* now;
+		vector<size_t> label;
+		label.recount(content.count());
 		//compress();
 		sequence.clear();
 		for (i = 0; i < content.count(); i++)
 		{
 			now = content[i];
+			label[i] = 0;
 			if (now != NULL)
 			{
-				now->temp = now->out.count();
-				if (now->temp == 0) stack.append(now);
+				label[i] = now->out.count();
+				if (label[i] == 0) stack.append(now);
 			}
 		}
 		
@@ -1140,34 +1150,36 @@ namespace Pikachu
 			for (i = 0; i < head->in.count(); i++)
 			{
 				next = head->in[i];
-				if (next->temp == 0)
+				if (label[next->site()] == 0)
 				{
 					throw PikaError("TopoSortDFS", "label[next] == 0", next->site());
 				}
-				next->temp -= 1;
-				if (next->temp == 0)
+				label[next->site()] -= 1;
+				if (label[next->site()] == 0)
 				{
 					stack.append(next);
 				}
 			}
 		}
 	}
-	template <class V> void graph<V>::TopoSortBFSBack(vector<vortex<V>*>& sequence)
+	template <class V> void graph<V>::TopoSortBFSBack(vector<vortex<V>*>& sequence)const
 	{
 		buffer<vortex<V>*> stack;
 		size_t i;
-		vortex<V>* head;
 		vortex<V>* now;
 		vortex<V>*next;
+		vector<size_t> label;
+		label.recount(content.count());
 		//compress();
 		sequence.clear();
 		for (i = 0; i < content.count(); i++)
 		{
 			now = content[i];
+			label[i] = 0;
 			if (now != NULL)
 			{
-				now->temp = now->out.count();
-				if (now->temp == 0) stack.append(now);
+				label[i] = now->out.count();
+				if (label[i] == 0) stack.append(now);
 			}
 		}
 		
@@ -1177,12 +1189,12 @@ namespace Pikachu
 			for (i = 0; i < head->in.count(); i++)
 			{
 				next = head->in[i];
-				if (next->temp == 0)
+				if (label[next->site()] == 0)
 				{
 					throw PikaError("TopoSortDFS", "label[next] == 0", next->site());
 				}
-				next->temp -= 1;
-				if (next->temp == 0)
+				label[next->site()] -= 1;
+				if (label[next->site()] == 0)
 				{
 					stack.append(next);
 				}
@@ -1190,7 +1202,7 @@ namespace Pikachu
 		}
 	}
 
-	template <class V> void graph<V>::BFTbackward(vector<bool> & label, buffer<vortex<V>*>& queue)
+	template <class V> void graph<V>::BFTbackward(vector<bool> & label, buffer<vortex<V>*>& queue)const
 	{
 		size_t i;
 		vortex<V>* head;
@@ -1268,6 +1280,27 @@ namespace Pikachu
 		catch (const PikaError& E)
 		{
 			throw PikaError(E, "graph2<V>::lift");
+		}
+	}
+	
+	template <class V> void graph<V>::OutputGive(vector<size_t>& label) const
+	{
+		size_t i;
+		label.recount(content.count());
+		for (i = 0; i < content.length(); i++)
+		{
+			if (content[i]!=NULL) label[i] = content[i]->OutDegree();
+			else label[i] = 0;
+		}
+	}
+	template <class V> void graph<V>::OutputCut(vector<size_t>& label, size_t target) const
+	{
+		size_t i;
+		vortex<V>* now;
+		now = content[target];
+		for (i = 0; i < now->InDegree(); i++)
+		{
+			label[now->In(i)->site()] -= 1;
 		}
 	}
 

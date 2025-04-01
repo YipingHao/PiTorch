@@ -284,6 +284,7 @@ namespace Pikachu
 			void Demo(int label, bufferC& output, bool single, bool braket) const;
 			void demo(FILE* fp) const;
 		};
+		typedef vortex<node> Ele;
 		Expres();
 		~Expres();
 		void clear(void);
@@ -297,12 +298,22 @@ namespace Pikachu
 		void differetial(size_t X1, size_t X2, bool Input);
 		void ParameterBackward(size_t No);
 		void backward(bool ExternOutput, size_t NewInputDim, size_t No, vector<vortex<node>*>& label, vector<vortex<node>*>& sequence);
+	
+		void PrintForwardMiniOp(VISA1& instru, vector<size_t>& FreeReg)const;
+		void PrintForwardMiniReg(VISA1& instru, vector<size_t>& FreeReg)const;
+
+		inline size_t OutputAmount(void)const { return output.count(); }
+		inline size_t ParameterAmount(void)const { return ParameterCount; }
+		inline size_t InputGroup(void)const { return InputDim.count(); }
+	
 	protected:
 		graph<node> formula;
 		vector<vortex<node>*> output;
 		vector<size_t> InputDim;
 		size_t ParameterCount;
 
+		void PrintForwardInitial(vector<Ele*>& sequence, buffer<Ele*>& queue, vector<size_t>& output_)const;
+		void ForwardMiniOpCore(vector<size_t>& label, vector<size_t>& output_, VISA1& instru, vector<size_t>& FreeReg, size_t now, Ele* here)const;
 		//====================================================
 		vortex<node>* NewNode(operation Op);
 		vortex<node>* NewNode(vortex<node>* L, vortex<node>* R, operation Op);

@@ -2697,6 +2697,196 @@ void Expres::demo(FILE* fp)const
         }
     }
 }
+
+void Expres::PrintForwardMiniOp(VISA1& instru, vector<size_t>& FreeReg)const
+{
+    vector<size_t> label;
+    vector<Ele*> sequence;
+    buffer<Ele*> queue;
+    vector<size_t> output_;
+
+    size_t i, now, j;
+    Ele* here;
+
+    PrintForwardInitial(sequence, queue, output_);
+    label.recount(formula.count());
+    label.value(0);
+
+    for (i = 0; i < sequence.count(); i++)
+    {
+        here = sequence[i];
+        now = here->site();
+        ForwardMiniOpCore(label, output_, instru, FreeReg, now, here);
+        if (here->Output)
+        {
+            for (j = 0; j < output.count(); j++)
+            {
+                if (output[j] == here)
+                {
+                    instru.append(VISA1::_st_, 0, j, label[now], 0);
+                }
+            }
+            if (output_[now] == 0) FreeReg.append(label[now]);
+        }
+
+    }
+}
+void Expres::PrintForwardMiniReg(VISA1& instru, vector<size_t>& FreeReg)const
+{
+    vector<size_t> label;
+    vector<Ele*> sequence;
+    buffer<Ele*> queue;
+    vector<size_t> output_;
+    //vector<size_t> FreeReg;
+    size_t i, now, j;
+    Ele* here;
+    size_t left_, right_;
+    Ele* L_, * R_;
+    size_t src1, src2;
+    PrintForwardInitial(sequence, queue, output_);
+
+
+    label.recount(formula.count());
+    label.value(0);
+
+    for (i = 0; i < sequence.count(); i++)
+    {
+        here = sequence[i];
+        now = here->site();
+        switch (here->Type)
+        {
+        case _LeafX_:
+        case _LeafPara_:
+        case _LeafConst_:
+            break;
+        case _Operation_:
+        {
+            L_ = here->In(0);
+            R_ = here->In(1);
+            left_ = L_->site();
+            right_ = R_->site();
+            
+            src1 = instru.append(L_->Type, FreeReg, L_->src1, L_->src2, L_->Fc, label[left_]);
+            if (left_ != right_)
+                src2 = instru.append(R_->Type, FreeReg, R_->src1, R_->src2, R_->Fc, label[right_]);
+            else src2 = src1;
+            formula.OutputCut(output_, now);
+            if (output_[left_] == 0 || isLeaf(L_->Type))  FreeReg.append(src1);
+            if ((output_[right_] == 0 || isLeaf(R_->Type)) && src2 != src1)  FreeReg.append(src2);
+            label[now] = instru.append(VISA1::_op_, here->Code, FreeReg, src1, src2);
+            break;
+        }
+        case _Funct_:
+            L_ = here->In(0);
+            left_ = L_->site();
+
+            src1 = instru.append(L_->Type, FreeReg, L_->src1, L_->src2, L_->Fc, label[left_]);
+            src2 = 0;
+            formula.OutputCut(output_, now);
+            if (output_[left_] == 0 || isLeaf(L_->Type))  FreeReg.append(label[left_]);
+            //if ((function)here->Code == _pow_)
+            //    if ((output_[right_] == 0 || isLeaf(R_->Type)) && src2 != src1) FreeReg.append(label[right_]);
+            label[now] = instru.append(VISA1::_func_, here->Code, FreeReg, src1, src2);
+            break;
+        case _Funct2_:
+            L_ = here->In(0);
+            left_ = L_->site();
+            src1 = instru.append(L_->Type, FreeReg, L_->src1, L_->src2, L_->Fc, label[left_]);
+            R_ = here->In(1);
+            right_ = R_->site();
+            if (left_ != right_)
+                src2 = instru.append(R_->Type, FreeReg, R_->src1, R_->src2, R_->Fc, label[right_]);
+            else src2 = src1;
+            formula.OutputCut(output_, now);
+            if (output_[left_] == 0 || isLeaf(L_->Type))  FreeReg.append(label[left_]);
+            if ((output_[right_] == 0 || isLeaf(R_->Type)) && src2 != src1) FreeReg.append(label[right_]);
+            label[now] = instru.append(VISA1::_func2_, here->Code, FreeReg, src1, src2);
+            break;
+        default:
+            break;
+        }
+        if (here->Output)
+        {
+            for (j = 0; j < output.count(); j++)
+            {
+                if (output[j] == here)
+                {
+                    instru.append(VISA1::_st_, 0, j, label[now], 0);
+                }
+            }
+            if (output_[now] == 0) FreeReg.append(label[now]);
+        }
+
+    }
+}
+
+
+void Expres::PrintForwardInitial(vector<Ele*>& sequence, buffer<Ele*>& queue, vector<size_t>& output_)const
+{
+    size_t i;
+    vector<bool> label;
+    for (i = 0; i < output.count(); i++)
+    {
+        if (output[i] != NULL) queue.append(output[i]);
+    }
+    formula.BFTbackward(label, queue);
+    formula.TopoSortDFS(sequence);
+    formula.Shrink(label, sequence);
+
+    formula.OutputGive(output_);
+}
+void Expres::ForwardMiniOpCore(vector<size_t>& label, vector<size_t>& output_, VISA1& instru, vector<size_t>& FreeReg, size_t now, Ele* here)const
+{
+    size_t left_, right_;
+    size_t src1, src2;
+    switch (here->Type)
+    {
+    case _LeafX_:
+        label[now] = instru.append(VISA1::_ld_, (int)here->Type, FreeReg, here->src1, here->src2);
+        formula.OutputCut(output_, now);
+        break;
+    case _LeafPara_:
+        label[now] = instru.append(VISA1::_ld_, (int)here->Type, FreeReg, here->src1, here->src2);
+        formula.OutputCut(output_, now);
+        break;
+    case  _LeafConst_:
+        label[now] = instru.append(FreeReg, here->Fc);
+        formula.OutputCut(output_, now);
+        break;
+    case _Operation_:
+        left_ = here->In(0)->site();
+        right_ = here->In(1)->site();
+        src1 = label[left_];
+        src2 = label[right_];
+        formula.OutputCut(output_, now);
+        if (output_[left_] == 0)  FreeReg.append(label[left_]);
+        if (output_[right_] == 0 && src2 != src1)  FreeReg.append(label[right_]);
+        label[now] = instru.append(VISA1::_op_, here->Code, FreeReg, src1, src2);
+        break;
+    case _Funct_:
+        left_ = here->In(0)->site();
+        src1 = label[left_];
+        src2 = 0;
+        formula.OutputCut(output_, now);
+        if (output_[left_] == 0)  FreeReg.append(label[left_]);
+        label[now] = instru.append(VISA1::_func_, here->Code, FreeReg, src1, src2);
+        break;
+    case _Funct2_:
+        left_ = here->In(0)->site();
+        src1 = label[left_];
+        right_ = here->In(1)->site();
+        src2 = label[right_];
+        formula.OutputCut(output_, now);
+        if (output_[left_] == 0)  FreeReg.append(label[left_]);
+        if (output_[right_] == 0 && src2 != src1)  FreeReg.append(label[right_]);
+        label[now] = instru.append(VISA1::_func2_, here->Code, FreeReg, src1, src2);
+        break;
+    default:
+        break;
+    }
+}
+
+
 //========================Expression simplification
 void Expres::differetial(size_t X1, size_t X2, bool Input)
 {
@@ -2859,6 +3049,7 @@ void Expres::backward(bool ExternOutput, size_t NewInputDim, size_t No, vector<v
         }
     }
 }
+//========================Expression simplification
 vortex<Expres::node>* Expres::NewNode(operation Op)
 {
     vortex<Expres::node>* New;
