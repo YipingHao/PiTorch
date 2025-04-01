@@ -175,11 +175,11 @@ int test_entrance(const char* output_path)
             break;
         }
     }
-    catch (PikaError& E)
+    catch (Pikachu::PikaError& E)
     {
         std::cout << "test_entrance: " << item << std::endl;
         E.show(stderr);
-        throw PikaError("test_entrance", "???", item);
+        throw Pikachu::PikaError("test_entrance", "???", item);
     }
     
     std::cout << "test end: " << info << std::endl;
