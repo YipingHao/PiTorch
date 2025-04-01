@@ -1088,14 +1088,17 @@ namespace Pikachu
 			{
 				now->temp = now->in.count();
 				if (now->temp == 0) stack.append(now);
+				printf("now->site()%zu\n", now->site());
 			}
 		}
 		while (stack.dequeue(head))
 		{
 			sequence.append(head);
+			printf("head->site()%zu\n", head->site());
 			for (i = 0; i < head->out.count(); i++)
 			{
 				next = head->out[i];
+				printf("\t [%zu] next->site()%zu\n", i, next->site());
 				if (next->temp == 0)
 				{
 					throw PikaError("TopoSortDFS", "label[next] == 0", next->site());
