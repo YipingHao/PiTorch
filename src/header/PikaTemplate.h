@@ -1340,7 +1340,10 @@ namespace Pikachu
 			if (in[T] == label) break;
 		}
 		if (T == in.count())
+		{
+			printf("T == out.count()\n");
 			throw PikaError(error, "SearchIn: T == InDegree", T);
+		}
 		return T;
 	}
 	template<class V> size_t vortex<V>::SearchOut(vortex<V>* label, const char* error) const
@@ -1351,7 +1354,11 @@ namespace Pikachu
 			if (out[T] == label) break;
 		}
 		if (T == out.count())
+		{
+			printf("T == out.count()\n");
 			throw PikaError(error, "SearchOut: T == OutDegree", T);
+		}
+			
 		return T;
 	}
 	template <class V> void vortex<V>::ShrinkIn(size_t site)
