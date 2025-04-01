@@ -1514,6 +1514,12 @@ int static test13(const parameter& para)
 }
 int static test14(const parameter& para)
 {
+    Expres Exp;
+    hyperlex::BufferChar BC;
+    Exp.Example(0);
+    Exp.demo(stdout);
+    Exp.demo(BC, true, 0);
+    std::cout << BC.ptr() << std::endl;
     return 0;
 }
 int static test15(const parameter& para)

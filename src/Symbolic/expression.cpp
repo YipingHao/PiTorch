@@ -2639,7 +2639,7 @@ void Expres::Example(size_t No)
     //else if (No == 7)example07();
     //else if (No == 8)example08();
     //else if (No == 9)example09();
-    //else example10();
+    else example01();
 }
 
 void Expres::demo(bufferC& out, bool single, size_t No)const
