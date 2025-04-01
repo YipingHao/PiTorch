@@ -1527,11 +1527,21 @@ int static test14(const parameter& para)
     try
     {
         Expres Exp;
+        Expres Diff;
         hyperlex::BufferChar BC;
         Exp.Example(0);
         Exp.demo(stdout);
         Exp.demo(BC, true, 0);
-        std::cout << BC.ptr() << std::endl;
+        std::cout << BC.ptr() << std::endl; BC.clear();
+        
+        Diff.copy(Exp);
+        Diff.demo(BC, true, 0);
+        
+        std::cout << BC.ptr() << std::endl; BC.clear();
+        Diff.differetial(0, 0, true);
+        Diff.demo(stdout);
+        Diff.demo(BC, true, 0);
+        std::cout << BC.ptr() << std::endl; BC.clear();
     }
     catch (Pikachu::PikaError& E)
     {
