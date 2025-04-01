@@ -1079,19 +1079,18 @@ namespace Pikachu
 		vortex<V>* head;
 		vortex<V>* now;
 		vortex<V>* next;
-		compress();
-		for (i = 0; i < content.count(); i++)
-		{
-			now = content[i];
-			now->temp = now->in.count();
-		}
+		//compress();
 		sequence.clear();
 		for (i = 0; i < content.count(); i++)
 		{
 			now = content[i];
-			if (now->temp == 0) stack.append(now);
+			if (now != NULL)
+			{
+				now->temp = now->in.count();
+				if (now->temp == 0) stack.append(now);
+			}
 		}
-		while (stack.dequeue(head) != 0)
+		while (stack.dequeue(head))
 		{
 			sequence.append(head);
 			for (i = 0; i < head->out.count(); i++)
@@ -1213,7 +1212,7 @@ namespace Pikachu
 			if (label[sequence[i]->site()])
 			{
 				sequence[new_count] = sequence[i];
-				sequence[new_count]->label_site = new_count;
+				//sequence[new_count]->label_site = new_count;
 				new_count += 1;
 			}
 		}
