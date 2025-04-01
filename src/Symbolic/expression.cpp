@@ -2409,7 +2409,7 @@ Expres::node::node(void)
 Expres::node::node(long int ele)
 {
     Type = _LeafConst_;
-    Fc.SetValue(ele);
+    Fc.SetValue((long long int)ele);
     src1 = 0;
     src2 = 0;
     Output = false;
@@ -2839,7 +2839,7 @@ void Expres::backward(bool ExternOutput, size_t NewInputDim, size_t No, vector<v
             OperationBackDiff(label, now, here);
             break;
         case _Funct_:
-            FunctBackAccumulate(label, now, here);
+            FunctBackDiff(label, now, here);
             break;
         case _Funct2_:
             Funct2BackDiff(label, now, here);

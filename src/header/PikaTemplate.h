@@ -1084,7 +1084,7 @@ namespace Pikachu
 			now->temp = now->in.count();
 		}
 		sequence.clear();
-		for (i = 0; i < content.length(); i++)
+		for (i = 0; i < content.count(); i++)
 		{
 			now = content[i];
 			if (now->temp == 0) stack.append(now);
@@ -1097,7 +1097,7 @@ namespace Pikachu
 				next = head->out[i];
 				if (next->temp == 0)
 				{
-					throw PikaError("TopoSortDFS", "label[next] == 0", next);
+					throw PikaError("TopoSortDFS", "label[next] == 0", next->site());
 				}
 				next->temp -= 1;
 				if (next->temp == 0)
@@ -1121,7 +1121,7 @@ namespace Pikachu
 			now->temp = now->out.count();
 		}
 		sequence.clear();
-		for (i = 0; i < content.length(); i++)
+		for (i = 0; i < content.count(); i++)
 		{
 			now = content[i];
 			if (now->temp == 0) stack.append(now);
@@ -1134,7 +1134,7 @@ namespace Pikachu
 				next = head->in[i];
 				if (next->temp == 0)
 				{
-					throw PikaError("TopoSortDFS", "label[next] == 0", next);
+					throw PikaError("TopoSortDFS", "label[next] == 0", next->site());
 				}
 				next->temp -= 1;
 				if (next->temp == 0)
