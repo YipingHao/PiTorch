@@ -2714,17 +2714,18 @@ void Expres::differetial(size_t X1, size_t X2, bool Input)
     formula.BFTbackward(valid, queue);
     formula.TopoSortBFS(sequence);
     formula.Shrink(valid, sequence);
-
+    printf("?????\n");
 
 
     length = sequence.count();
     label.recount(formula.count());
     label.value(NULL);
+    printf("?????\n");
     for (i = 0; i < length; i++)
     {
         here = sequence[i];
         //here = formula[now];
-
+        printf("\t%zu\n", i);
         switch (here->Type)
         {
         case _LeafX_:
@@ -2755,12 +2756,15 @@ void Expres::differetial(size_t X1, size_t X2, bool Input)
             break;
         }
     }
+
     for (i = 0; i < output.count(); i++)
     {
         formula[output[i]->site()]->Output = false;
         output[i] = label[output[i]->site()];
         formula[output[i]->site()]->Output = true;
     }
+    printf("?????\n");
+
     //output = label[sequence[length - 1]];
 }
 void Expres::ParameterBackward(size_t No)
