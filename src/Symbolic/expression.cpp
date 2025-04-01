@@ -2703,30 +2703,29 @@ void Expres::differetial(size_t X1, size_t X2, bool Input)
     vector<vortex<node>*> sequence, label;
     buffer<vortex<node>*> queue;
     vector<bool> valid;
-    size_t i, length, site;
+    size_t i, length;
     vortex<node>* here, * New;
 
     for (i = 0; i < output.count(); i++)
     {
         if (output[i] != NULL) queue.append(output[i]);
     }
-    //printf("?????\n");
+    printf("?????\n");
     formula.BFTbackward(valid, queue);
-    //printf("BFTbackward\n");
+    printf("BFTbackward\n");
     formula.TopoSortBFS(sequence);
-    //printf("TopoSortBFS\n");
+    printf("TopoSortBFS\n");
     formula.Shrink(valid, sequence);
-    //printf("?????\n");
+    printf("?????\n");
 
 
     length = sequence.count();
     label.recount(formula.count());
     label.value(NULL);
-    //printf("?????\n");
+    printf("?????\n");
     for (i = 0; i < length; i++)
     {
         here = sequence[i];
-        //here = formula[now];
         //printf("\t%zu\n", i);
         switch (here->Type)
         {
@@ -2765,9 +2764,8 @@ void Expres::differetial(size_t X1, size_t X2, bool Input)
         output[i] = label[output[i]->site()];
         formula[output[i]->site()]->Output = true;
     }
-    //printf("?????\n");
+    printf("?????\n");
 
-    //output = label[sequence[length - 1]];
 }
 void Expres::ParameterBackward(size_t No)
 {
