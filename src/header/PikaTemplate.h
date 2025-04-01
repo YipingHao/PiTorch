@@ -1290,7 +1290,7 @@ namespace Pikachu
 	{
 		size_t i;
 		label.recount(content.count());
-		for (i = 0; i < content.length(); i++)
+		for (i = 0; i < content.count(); i++)
 		{
 			if (content[i]!=NULL) label[i] = content[i]->OutDegree();
 			else label[i] = 0;
