@@ -1341,7 +1341,7 @@ namespace Pikachu
 		}
 		if (T == in.count())
 		{
-			printf("T == out.count()\n");
+			printf("SearchIn::T == out.count()\n");
 			throw PikaError(error, "SearchIn: T == InDegree", T);
 		}
 		return T;
@@ -1355,7 +1355,7 @@ namespace Pikachu
 		}
 		if (T == out.count())
 		{
-			printf("T == out.count()\n");
+			printf("SearchOut:: T == out.count()\n");
 			throw PikaError(error, "SearchOut: T == OutDegree", T);
 		}
 			

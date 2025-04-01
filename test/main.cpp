@@ -105,73 +105,83 @@ int test_entrance(const char* output_path)
     para.build(pf);
     std::cout << "======================== parameter Demo ========================" << std::endl;
     para.Demo(stdout);
-    switch (item)
+    try
     {
-    case 1:
-        info = test01(para);
-        break;
-    case 2:
-        info = test02(para);
-        break;
-    case 3:
-        info = test03(para);
-        break;
-    case 4:
-        std::cout << "Test contraction; " << std::endl;
-        info = test04(para);
-        break;
-    case 5:
-        std::cout << "Test dispatch; " << std::endl;
-        info = test05(para);
-        break;
-    case 6:
-        std::cout << "test elementwise; " << std::endl;
-        info = test06(para);
-        break;
-    case 7:
-        std::cout << "Test symbolic 01; " << std::endl;
-        info = test07(para);
-        break;
-    case 8:
-        std::cout << "Test activation; " << std::endl;
-        info = test08(para);
-        break;
-    case 9:
-        std::cout << "test expression; " << std::endl;
-        info = test09(para);
-        break;
-    case 10:
-        std::cout << "Test activation 2; " << std::endl;
-        info = test10(para);
-        break;
-    case 11:
-        std::cout << "Test backward; " << std::endl;
-        info = test11(para);
-        break;
-    case 12:
-        std::cout << "test_forward_all " << std::endl;
-        info = test12(para);
-        break;
-    case 13:
-        std::cout << "Test grammer LR0 LR1 from input file; " << std::endl;
-        info = test13(para);
-        break;
-    case 14:
-        std::cout << "Test template; " << std::endl;
-        info = test14(para);
-        break;
-    case 15:
-        std::cout << "Test grammer LR0 from input file; " << std::endl;
-        info = test15(para);
-        break;
-    case 16:
-        std::cout << "Test grammer LR1 from input file; " << std::endl;
-        info = test16(para);
-        break;
-    default:
-        info = test01(para);
-        break;
+        switch (item)
+        {
+        case 1:
+            info = test01(para);
+            break;
+        case 2:
+            info = test02(para);
+            break;
+        case 3:
+            info = test03(para);
+            break;
+        case 4:
+            std::cout << "Test contraction; " << std::endl;
+            info = test04(para);
+            break;
+        case 5:
+            std::cout << "Test dispatch; " << std::endl;
+            info = test05(para);
+            break;
+        case 6:
+            std::cout << "test elementwise; " << std::endl;
+            info = test06(para);
+            break;
+        case 7:
+            std::cout << "Test symbolic 01; " << std::endl;
+            info = test07(para);
+            break;
+        case 8:
+            std::cout << "Test activation; " << std::endl;
+            info = test08(para);
+            break;
+        case 9:
+            std::cout << "test expression; " << std::endl;
+            info = test09(para);
+            break;
+        case 10:
+            std::cout << "Test activation 2; " << std::endl;
+            info = test10(para);
+            break;
+        case 11:
+            std::cout << "Test backward; " << std::endl;
+            info = test11(para);
+            break;
+        case 12:
+            std::cout << "test_forward_all " << std::endl;
+            info = test12(para);
+            break;
+        case 13:
+            std::cout << "Test grammer LR0 LR1 from input file; " << std::endl;
+            info = test13(para);
+            break;
+        case 14:
+            std::cout << "Test template; " << std::endl;
+            info = test14(para);
+            break;
+        case 15:
+            std::cout << "Test grammer LR0 from input file; " << std::endl;
+            info = test15(para);
+            break;
+        case 16:
+            std::cout << "Test grammer LR1 from input file; " << std::endl;
+            info = test16(para);
+            break;
+        default:
+            info = test01(para);
+            break;
+        }
     }
+    catch (PikaError& E)
+    {
+        std::cout << "test_entrance: " << item << std::endl;
+        E.show(stderr);
+        throw PikaError("test_entrance", "???", item);
+    }
+    
     std::cout << "test end: " << info << std::endl;
     return info;
 }
