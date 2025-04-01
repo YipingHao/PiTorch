@@ -2726,7 +2726,7 @@ void Expres::differetial(size_t X1, size_t X2, bool Input)
     for (i = 0; i < length; i++)
     {
         here = sequence[i];
-        //printf("\t%zu\n", i);
+        printf("\t%zu\n", i);
         switch (here->Type)
         {
         case _LeafX_:
