@@ -410,8 +410,26 @@ namespace Pikachu
 		//size_t input;
 	};
 
+	class ActivFunc : public Expres
+	{	
+	public:
+		ActivFunc();
+		~ActivFunc();
+		void PrintForward(VISA1& instru)const;
+		void PrintBackward(VISA1& instru)const;
+		void Differetial(void);
+		void ParameterBackward(VISA1& instru);
+		void Copy(const ActivFunc& source);
+		bool Simplify(void);
+		void Example(size_t No);
+		void Demo(hyperlex::BufferChar& out)const;
+		void Demo(FILE* fp)const;
+		void TestBackward(void);
+	protected:
+		size_t input;
+	};
 
-
+	
 
 
 	class manifold : public expression

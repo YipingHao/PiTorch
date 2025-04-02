@@ -1739,8 +1739,146 @@ void HvForwardFinal::Demo(FILE* fp)const
 
 
 
+ActivFunc::ActivFunc()
+{
+    input = 0;
+}
+ActivFunc::~ActivFunc()
+{
+    input = 0;
+}
+void ActivFunc::PrintForward(VISA1& instru)const
+{
+    vector<size_t> FreeReg;
+    PrintForwardMiniOp(instru, FreeReg);
+}
+void ActivFunc::PrintBackward(VISA1& instru)const
+{
+    vector<size_t> label;
+    vector<Ele*> sequence;
+    buffer<Ele*> queue;
+    vector<size_t> output_;
+    vector<size_t> FreeReg;
 
+    size_t i, now, end;
+    Ele* here;
+    size_t src1, src2;
 
+    PrintForwardInitial(sequence, queue, output_);
+    label.recount(formula.count());
+    label.value(0);
+    for (i = 0; i < sequence.count(); i++)
+    {
+        here = sequence[i];
+        now = here->site();
+        ForwardMiniOpCore(label, output_, instru, FreeReg, now, here);
 
+        if (here->Output)
+        {
+            src1 = label[now];
+            src2 = instru.append(VISA1::_ld_, (int)_LeafX_, FreeReg, 1, 0);
+
+            FreeReg.append(src2);
+            end = instru.append(VISA1::_op_, (int)_mul_, FreeReg, src1, src2);
+
+            instru.append(VISA1::_st_, 0, 0, end, 0);
+        }
+
+    }
+}
+void ActivFunc::Differetial(void)
+{
+    differetial(0, 0, true);
+}
+void ActivFunc::ParameterBackward(VISA1& instru)
+{
+    Expres Ex;
+    vector<size_t> FreeReg;
+    Ex.copy(*this);
+    Ex.ParameterBackward(0);
+    Ex.PrintForwardMiniOp(instru, FreeReg);
+}
+void ActivFunc::Copy(const ActivFunc& source)
+{
+    copy(source);
+    input = source.input;
+}
+bool ActivFunc::Simplify(void)
+{
+    bool changed_;
+    size_t round_;
+    round_ = 0;
+    do
+    {
+        round_ += 1;
+        changed_ = false;
+        changed_ = changed_ || Simplify02();
+        changed_ = changed_ || Simplify01();
+        changed_ = changed_ || Simplify03();
+        changed_ = changed_ || Simplify04();
+
+        changed_ = changed_ || Simplify06();
+        changed_ = changed_ || Simplify07();
+        changed_ = changed_ || Simplify08();
+        changed_ = changed_ || Simplify09();
+        changed_ = changed_ || Simplify10();
+
+        changed_ = changed_ || Simplify02();
+        changed_ = changed_ || Simplify01();
+        changed_ = changed_ || Simplify03();
+        changed_ = changed_ || Simplify04();
+    } while (changed_);
+    changed_ = changed_ || Simplify05();
+    if (round_ > 1)
+    {
+
+    }
+    return round_ > 1;
+}
+void ActivFunc::Example(size_t No)
+{
+
+}
+void ActivFunc::Demo(hyperlex::BufferChar& out)const
+{
+    Expres::demo(out, true, 0);
+}
+void ActivFunc::Demo(FILE* fp)const
+{
+    Expres::demo(fp);
+}
+void ActivFunc::TestBackward(void)
+{
+    vector<Ele*> label, sequence;
+    size_t i, length, now, Base, temp, In_;
+    Ele* here, * New, * base, * in_, *site;
+    backward(false, 0, 0, label, sequence);
+    base = new Ele((long int)0);
+    formula.append(base);
+    length = formula.count();
+    for (i = 0; i < length; i++)
+    {
+        here = sequence[i];
+        now = here->site();
+
+        switch (here->Type)
+        {
+        case _LeafX_:
+            if (label[now] != NULL)
+            {
+                New = new Ele(_add_);
+                site = NewNode(label[now], base, _add_);
+
+                base = site;
+            }
+            break;
+        case _LeafPara_:
+            //output[here->src2] = label[now];
+            break;
+        }
+    }
+    output[0] = base;
+    formula[base->site()]->Output = true;
+}
 
 
