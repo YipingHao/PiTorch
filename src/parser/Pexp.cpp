@@ -448,6 +448,7 @@ int Pikachu::Expres::example(const char* source)
         if (iterator.state() != 0 && GT->root().rules)
         {
             RRR = (Exp::ExpPraser::rules)GT->root().site;
+            printf("RRR:%zu\n", GT->root().site);
             switch (RRR)
             {
             case Exp::ExpPraser::all_all_:
