@@ -433,13 +433,14 @@ int Pikachu::Expres::example(const char* source)
             eme.valid(i) = false;
         }
     }
-    //LexicalSource.Demo(stdout);
+    eme.Demo(stdout);
    
     error = Tree.build<Exp::ExpPraser>(eme);
     if (error != 0)
     {
         return error;
     }
+    Tree.Demo(stdout, eme, Exp::ExpPraser::RulesName);
     iterator.initial(Tree.GT);
     while (iterator.still())
     {
