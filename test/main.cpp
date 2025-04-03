@@ -1582,6 +1582,16 @@ int static test14(const parameter& para)
         Exp.Simplify();
         Exp.demo(BC, true, 0);
         std::cout << BC.ptr() << std::endl; BC.clear();
+
+        std::cout << "Exp.example(\"pow(x * x, 1.0 + x) / (x - 5 + 4)\");";
+        std::cout << Exp.example("pow(x * x, 1.0 + x) / (x - 5 + 4)") << std::endl;
+        Exp.demo(BC, true, 0);
+        std::cout << BC.ptr() << std::endl; BC.clear();
+ 
+        std::cout << "Exp.example(\"pow(x * x, 1.0 + x) / (x - 5 + 4)\");";
+        std::cout << Exp.example("(exp(2 * x) - 1.0) / (exp(2 * x) + 1.0)") << std::endl;
+        Exp.demo(BC, true, 0);
+        std::cout << BC.ptr() << std::endl; BC.clear();
     }
     catch (Pikachu::PikaError& E)
     {
