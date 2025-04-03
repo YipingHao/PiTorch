@@ -1569,11 +1569,11 @@ int static test14(const parameter& para)
 
         std::cout << "Exp.example(\"exp(x * x)\");";
         std::cout << Exp.example("exp(x * x)") << std::endl;
-        Diff.demo(BC, true, 0);
+        Exp.demo(BC, true, 0);
         std::cout << BC.ptr() << std::endl; BC.clear();
 
         std::cout << Exp.example("cos(-x * x)/(x + 5.0)") << std::endl;
-        Diff.demo(BC, true, 0);
+        Exp.demo(BC, true, 0);
         std::cout << BC.ptr() << std::endl; BC.clear();
     }
     catch (Pikachu::PikaError& E)
