@@ -452,6 +452,7 @@ int Pikachu::Expres::example(const char* source)
             {
             case Exp::ExpPraser::all_all_:
                 here = (Ele*)GT->child(0)->root().infor;
+                printf("output.count():%zu\n", output.count());
                 OutputAppend(here);
                 break;
             case Exp::ExpPraser::Expression_left_right_:
@@ -470,6 +471,7 @@ int Pikachu::Expres::example(const char* source)
             case Exp::ExpPraser::EXP_MINUS_plus_:
                 left_ = (Ele*)GT->child(1)->root().infor;
                 op__ = Exp::ExpLexer::operationGet(eme[GT->child(1)].accept);
+                printf("EXP_MINUS_plus_:%d\n", (int)op__);
                 if (op__ == Pikachu::_sub_) here = NewNode(left_, _minus_);
                 else here = left_;
                 break;
@@ -508,7 +510,9 @@ int Pikachu::Expres::example(const char* source)
         }
         iterator.next();
     }
-    
+    InputDim.recount(1);
+    InputDim[0] = 1;
+    ParameterCount = 0;
     return 0;
 }
 
