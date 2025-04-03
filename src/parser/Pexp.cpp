@@ -205,6 +205,141 @@ namespace Rtensor
         static int GroupGet(int state);
     };
 }
+namespace Exp
+{
+    struct ExpLexer
+    {
+        enum regular
+        {
+            _id_ = 1,
+            _integer_ = 2,
+            _realC_ = 3,
+            _return_ = 4,
+            _for_ = 5,
+            _if_ = 6,
+            _else_ = 7,
+            _sin_ = 8,
+            _cos_ = 9,
+            _exp_ = 10,
+            _ln_ = 11,
+            _log_ = 12,
+            _sqrt_ = 13,
+            _pow_ = 14,
+            _spaces_ = 15,
+            _enters_ = 16,
+            _tab_ = 17,
+            _semicolon_ = 18,
+            _colon_ = 19,
+            _dot_ = 20,
+            _comma_ = 21,
+            _braceL_ = 22,
+            _braceR_ = 23,
+            _left_ = 24,
+            _right_ = 25,
+            _squareL_ = 26,
+            _squareR_ = 27,
+            _angleL_ = 28,
+            _angleR_ = 29,
+            _anntationS_ = 30,
+            _anntationM_ = 31,
+            _multi_ = 32,
+            _div_ = 33,
+            _sub_ = 34,
+            _add_ = 35,
+            _value_ = 36
+        };
+        enum group
+        {
+            _id___ = 1,
+            _number___ = 2,
+            _reserved___ = 3,
+            _function1___ = 4,
+            _function2___ = 5,
+            _format___ = 6,
+            _division___ = 7,
+            _braket___ = 8,
+            _anntation___ = 9,
+            _operatmd___ = 10,
+            _operatas___ = 11,
+            _value___ = 12
+        };
+        static int next(int state, const char c);
+        static int action(int state);
+        static int GroupGet(int state);
+        static Pikachu::function functionGet(int state);
+        static Pikachu::operation operationGet(int state);
+    };
+    struct ExpPraser
+    {
+        enum type
+        {
+            accept = 0,
+            error = 1,
+            push = 2,
+            reduce = 3
+        };
+        enum rules
+        {
+            all_all_ = 0,
+            Expression_left_right_ = 1,
+            Expression_right_ = 2,
+            //EXP_RIGHT_<implicit>_ = 3,
+            EXP_RIGHT_add_ = 4,
+            //[operatas]_sub_ = 5,
+            //[operatas]_add_ = 6,
+            //EXP_MUL_<implicit>_ = 7,
+            EXP_MUL_multi_ = 8,
+            //[operatmd]_multi_ = 9,
+            //[operatmd]_div_ = 10,
+            //EXP_MINUS_<implicit>_ = 11,
+            EXP_MINUS_plus_ = 12,
+            UNIT_id_ = 13,
+            UNIT_call_ = 14,
+            UNIT_const_ = 15,
+            UNIT_complex_ = 16,
+            //[number]_integer_ = 17,
+            //[number]_realC_ = 18,
+            CALL_call_1_ = 19,
+            CALL_call_2_ = 20,
+            //[function1]_sin_ = 21,
+            //[function1]_cos_ = 22,
+            //[function1]_exp_ = 23,
+            //[function1]_ln_ = 24,
+            //[function1]_log_ = 25,
+            //[function1]_sqrt_ = 26,
+            //[function2]_pow_ = 27
+        };
+        enum nonterminal
+        {
+            _all_ = 0,
+            _Expression_ = 1,
+            _EXP_RIGHT_ = 2,
+            //_[operatas]_ = 3,
+            _EXP_MUL_ = 4,
+            //_[operatmd]_ = 5,
+            _EXP_MINUS_ = 6,
+            _UNIT_ = 7,
+            //_[number]_ = 8,
+            _CALL_ = 9,
+            //_[function1]_ = 10,
+            //_[function2]_ = 11
+        };
+        static const size_t StateCount;
+        static const size_t NonTerminalCount;
+        static const size_t TerminalCount;
+        static const size_t RulesCount;
+        static const int GOTO[45][12];
+        static const int ACTION[45][37];
+        static const int RulesToSymbol[28];
+        static const int RulesLength[28];
+        static const char* const RulesName[28];
+        static const int Implicit[28];
+    };
+}
+
+typedef hyperlex::tree<hyperlex::GrammarTree::TreeInfor> GLTree;
+typedef hyperlex::tree<hyperlex::GrammarTree::TreeInfor>::PostIterator GTIter;
+
 
 int Pikachu::matrixGet(FILE* fp, vector<double>& output, size_t& row, size_t& column)
 {
@@ -263,6 +398,117 @@ int Pikachu::vectorGet(FILE* fp, vector<double>& output)
         }
     }
     return error;
+}
+
+int Pikachu::Expres::Example(const char* source)
+{
+    size_t i, site;
+    int error;
+    hyperlex::Morpheme eme;
+    Exp::ExpLexer::regular T;
+    Exp::ExpLexer::group G;
+    GTIter iterator;
+    hyperlex::GrammarTree Tree;
+    GLTree* GT;
+    Ele* left_;
+    Ele* right_;
+    Ele* here;
+    Exp::ExpPraser::rules RRR;
+    Pikachu::function func__;
+    Pikachu::operation op__;
+    clear();
+
+    error = eme.Build<Exp::ExpLexer>(source);
+    if (error != 0)
+    {
+        //errorCode = ErrorinputLEXICAL;
+        return error;
+    }
+    for (i = 0; i < eme.GetCount(); i++)
+    {
+        T = (Exp::ExpLexer::regular)(eme[i].accept);
+        G = (Exp::ExpLexer::group)(eme[i].category);
+        if (G == Exp::ExpLexer::_format___ || G == Exp::ExpLexer::_anntation___)
+        {
+            eme.valid(i) = false;
+        }
+    }
+    //LexicalSource.Demo(stdout);
+   
+    error = Tree.build<Exp::ExpPraser>(eme);
+    if (error != 0)
+    {
+        return error;
+    }
+    iterator.initial(Tree.GT);
+    while (iterator.still())
+    {
+        GT = iterator.target();
+        if (iterator.state() != 0 && GT->root().rules)
+        {
+            RRR = (Exp::ExpPraser::rules)GT->root().site;
+            switch (RRR)
+            {
+            case Exp::ExpPraser::all_all_:
+                here = (Ele*)GT->child(0)->root().infor;
+                OutputAppend(here);
+                break;
+            case Exp::ExpPraser::Expression_left_right_:
+                here = (Ele*)GT->child(2)->root().infor;
+                break;
+            case Exp::ExpPraser::Expression_right_:
+                here = (Ele*)GT->child(0)->root().infor;
+                break;
+            case Exp::ExpPraser::EXP_RIGHT_add_:
+            case Exp::ExpPraser::EXP_MUL_multi_:
+                left_ = (Ele*)GT->child(0)->root().infor;
+                right_ = (Ele*)GT->child(2)->root().infor;
+                op__ = Exp::ExpLexer::operationGet(eme[GT->child(1)].accept);
+                here = NewNode(left_, right_, op__);
+                break;
+            case Exp::ExpPraser::EXP_MINUS_plus_:
+                left_ = (Ele*)GT->child(1)->root().infor;
+                op__ = Exp::ExpLexer::operationGet(eme[GT->child(1)].accept);
+                if (op__ == Pikachu::_sub_) here = NewNode(left_, _minus_);
+                else here = left_;
+                break;
+            case Exp::ExpPraser::UNIT_id_:
+                here = new Ele();
+                here->Type = Pikachu::_LeafX_;
+                formula.append(here);
+                break;
+            case Exp::ExpPraser::UNIT_call_:
+                here = (Ele*)GT->child(0)->root().infor;
+                break;
+            case Exp::ExpPraser::UNIT_const_:
+                site = GT->child(1)->root().site;
+                if (eme[site].accept == (int)Exp::ExpLexer::regular::_integer_)
+                    here = NewNode(eme.GetInt(site));
+                else
+                    here = NewNode(eme.GetReal(site));
+                break;
+            case Exp::ExpPraser::UNIT_complex_:
+                here = (Ele*)GT->child(1)->root().infor;
+                break;
+            case Exp::ExpPraser::CALL_call_1_:
+                left_ = (Ele*)GT->child(2)->root().infor;
+                func__ = Exp::ExpLexer::functionGet(eme[GT->child(0)].accept);
+                here = NewNode(left_, func__);
+                break;
+            case Exp::ExpPraser::CALL_call_2_:
+                left_ = (Ele*)GT->child(2)->root().infor;
+                right_ = (Ele*)GT->child(4)->root().infor;
+                here = NewNode(left_, right_, _pow_);
+                break;
+            default:
+                break;
+            }
+            GT->root().infor = (void*)here;
+        }
+        iterator.next();
+    }
+    
+    return 0;
 }
 
 
@@ -1762,5 +2008,870 @@ int Lfunc::GroupGet(int accept)
 }
 
 }
+namespace Exp
+{
+    int ExpLexer::next(int state, const char c)
+    {
+        switch (state)
+        {
+        case 0:
+            if (c == (char)9) return 17;
+            else if (c == (char)10) return 16;
+            else if (c == ' ') return 15;
+            else if (c == '(') return 24;
+            else if (c == ')') return 25;
+            else if (c == '*') return 32;
+            else if (c == '+') return 35;
+            else if (c == ',') return 21;
+            else if (c == '-') return 34;
+            else if (c == '.') return 20;
+            else if (c == '/') return 33;
+            else if ('0' <= c && c <= '9') return 2;
+            else if (c == ':') return 19;
+            else if (c == ';') return 18;
+            else if (c == '<') return 28;
+            else if (c == '=') return 36;
+            else if (c == '>') return 29;
+            else if ('A' <= c && c <= 'Z') return 1;
+            else if (c == '[') return 26;
+            else if (c == ']') return 27;
+            else if (c == '_') return 1;
+            else if ('a' <= c && c <= 'b') return 1;
+            else if (c == 'c') return 48;
+            else if (c == 'd') return 1;
+            else if (c == 'e') return 47;
+            else if (c == 'f') return 45;
+            else if ('g' <= c && c <= 'h') return 1;
+            else if (c == 'i') return 39;
+            else if ('j' <= c && c <= 'k') return 1;
+            else if (c == 'l') return 41;
+            else if ('m' <= c && c <= 'o') return 1;
+            else if (c == 'p') return 55;
+            else if (c == 'q') return 1;
+            else if (c == 'r') return 53;
+            else if (c == 's') return 42;
+            else if ('t' <= c && c <= 'z') return 1;
+            else if (c == '{') return 22;
+            else if (c == '}') return 23;
+            else return 0;
+        case 1:
+            if ('0' <= c && c <= '9') return 1;
+            else if ('A' <= c && c <= 'Z') return 1;
+            else if (c == '_') return 1;
+            else if ('a' <= c && c <= 'z') return 1;
+            else return 0;
+        case 2:
+            if (c == '.') return 37;
+            else if ('0' <= c && c <= '9') return 2;
+            else return 0;
+        case 3:
+            if ('0' <= c && c <= '9') return 3;
+            else if (c == 'E') return 58;
+            else if (c == 'e') return 58;
+            else return 0;
+        case 4:
+            if ('0' <= c && c <= '9') return 1;
+            else if ('A' <= c && c <= 'Z') return 1;
+            else if (c == '_') return 1;
+            else if ('a' <= c && c <= 'z') return 1;
+            else return 0;
+        case 5:
+            if ('0' <= c && c <= '9') return 1;
+            else if ('A' <= c && c <= 'Z') return 1;
+            else if (c == '_') return 1;
+            else if ('a' <= c && c <= 'z') return 1;
+            else return 0;
+        case 6:
+            if ('0' <= c && c <= '9') return 1;
+            else if ('A' <= c && c <= 'Z') return 1;
+            else if (c == '_') return 1;
+            else if ('a' <= c && c <= 'z') return 1;
+            else return 0;
+        case 7:
+            if ('0' <= c && c <= '9') return 1;
+            else if ('A' <= c && c <= 'Z') return 1;
+            else if (c == '_') return 1;
+            else if ('a' <= c && c <= 'z') return 1;
+            else return 0;
+        case 8:
+            if ('0' <= c && c <= '9') return 1;
+            else if ('A' <= c && c <= 'Z') return 1;
+            else if (c == '_') return 1;
+            else if ('a' <= c && c <= 'z') return 1;
+            else return 0;
+        case 9:
+            if ('0' <= c && c <= '9') return 1;
+            else if ('A' <= c && c <= 'Z') return 1;
+            else if (c == '_') return 1;
+            else if ('a' <= c && c <= 'z') return 1;
+            else return 0;
+        case 10:
+            if ('0' <= c && c <= '9') return 1;
+            else if ('A' <= c && c <= 'Z') return 1;
+            else if (c == '_') return 1;
+            else if ('a' <= c && c <= 'z') return 1;
+            else return 0;
+        case 11:
+            if ('0' <= c && c <= '9') return 1;
+            else if ('A' <= c && c <= 'Z') return 1;
+            else if (c == '_') return 1;
+            else if ('a' <= c && c <= 'z') return 1;
+            else return 0;
+        case 12:
+            if ('0' <= c && c <= '9') return 1;
+            else if ('A' <= c && c <= 'Z') return 1;
+            else if (c == '_') return 1;
+            else if ('a' <= c && c <= 'z') return 1;
+            else return 0;
+        case 13:
+            if ('0' <= c && c <= '9') return 1;
+            else if ('A' <= c && c <= 'Z') return 1;
+            else if (c == '_') return 1;
+            else if ('a' <= c && c <= 'z') return 1;
+            else return 0;
+        case 14:
+            if ('0' <= c && c <= '9') return 1;
+            else if ('A' <= c && c <= 'Z') return 1;
+            else if (c == '_') return 1;
+            else if ('a' <= c && c <= 'z') return 1;
+            else return 0;
+        case 15:
+            if (c == ' ') return 15;
+            else return 0;
+        case 16:
+            if (c == (char)10) return 16;
+            else return 0;
+        case 17:
+            return 0;
+        case 18:
+            return 0;
+        case 19:
+            return 0;
+        case 20:
+            return 0;
+        case 21:
+            return 0;
+        case 22:
+            return 0;
+        case 23:
+            return 0;
+        case 24:
+            return 0;
+        case 25:
+            return 0;
+        case 26:
+            return 0;
+        case 27:
+            return 0;
+        case 28:
+            return 0;
+        case 29:
+            return 0;
+        case 30:
+            return 0;
+        case 31:
+            if ((char)0 <= c && c <= ')') return 57;
+            else if (c == '*') return 64;
+            else if ('+' <= c && c <= (char)127) return 57;
+            else return 0;
+        case 32:
+            return 0;
+        case 33:
+            if (c == '*') return 57;
+            else if (c == '/') return 63;
+            else return 0;
+        case 34:
+            if ('0' <= c && c <= '9') return 2;
+            else return 0;
+        case 35:
+            if ('0' <= c && c <= '9') return 2;
+            else return 0;
+        case 36:
+            return 0;
+        case 37:
+            if ('0' <= c && c <= '9') return 3;
+            else return 0;
+        case 38:
+            if ('0' <= c && c <= '9') return 1;
+            else if ('A' <= c && c <= 'Z') return 1;
+            else if (c == '_') return 1;
+            else if ('a' <= c && c <= 'd') return 1;
+            else if (c == 'e') return 7;
+            else if ('f' <= c && c <= 'z') return 1;
+            else return 0;
+        case 39:
+            if ('0' <= c && c <= '9') return 1;
+            else if ('A' <= c && c <= 'Z') return 1;
+            else if (c == '_') return 1;
+            else if ('a' <= c && c <= 'e') return 1;
+            else if (c == 'f') return 6;
+            else if ('g' <= c && c <= 'z') return 1;
+            else return 0;
+        case 40:
+            if ('0' <= c && c <= '9') return 1;
+            else if ('A' <= c && c <= 'Z') return 1;
+            else if (c == '_') return 1;
+            else if ('a' <= c && c <= 'f') return 1;
+            else if (c == 'g') return 12;
+            else if ('h' <= c && c <= 'z') return 1;
+            else return 0;
+        case 41:
+            if ('0' <= c && c <= '9') return 1;
+            else if ('A' <= c && c <= 'Z') return 1;
+            else if (c == '_') return 1;
+            else if ('a' <= c && c <= 'm') return 1;
+            else if (c == 'n') return 11;
+            else if (c == 'o') return 40;
+            else if ('p' <= c && c <= 'z') return 1;
+            else return 0;
+        case 42:
+            if ('0' <= c && c <= '9') return 1;
+            else if ('A' <= c && c <= 'Z') return 1;
+            else if (c == '_') return 1;
+            else if ('a' <= c && c <= 'h') return 1;
+            else if (c == 'i') return 60;
+            else if ('j' <= c && c <= 'p') return 1;
+            else if (c == 'q') return 50;
+            else if ('r' <= c && c <= 'z') return 1;
+            else return 0;
+        case 43:
+            if ('0' <= c && c <= '9') return 1;
+            else if ('A' <= c && c <= 'Z') return 1;
+            else if (c == '_') return 1;
+            else if ('a' <= c && c <= 'o') return 1;
+            else if (c == 'p') return 10;
+            else if ('q' <= c && c <= 'z') return 1;
+            else return 0;
+        case 44:
+            if ('0' <= c && c <= '9') return 1;
+            else if ('A' <= c && c <= 'Z') return 1;
+            else if (c == '_') return 1;
+            else if ('a' <= c && c <= 'q') return 1;
+            else if (c == 'r') return 65;
+            else if ('s' <= c && c <= 'z') return 1;
+            else return 0;
+        case 45:
+            if ('0' <= c && c <= '9') return 1;
+            else if ('A' <= c && c <= 'Z') return 1;
+            else if (c == '_') return 1;
+            else if ('a' <= c && c <= 'n') return 1;
+            else if (c == 'o') return 61;
+            else if ('p' <= c && c <= 'z') return 1;
+            else return 0;
+        case 46:
+            if ('0' <= c && c <= '9') return 1;
+            else if ('A' <= c && c <= 'Z') return 1;
+            else if (c == '_') return 1;
+            else if ('a' <= c && c <= 'r') return 1;
+            else if (c == 's') return 38;
+            else if ('t' <= c && c <= 'z') return 1;
+            else return 0;
+        case 47:
+            if ('0' <= c && c <= '9') return 1;
+            else if ('A' <= c && c <= 'Z') return 1;
+            else if (c == '_') return 1;
+            else if ('a' <= c && c <= 'k') return 1;
+            else if (c == 'l') return 46;
+            else if ('m' <= c && c <= 'w') return 1;
+            else if (c == 'x') return 43;
+            else if ('y' <= c && c <= 'z') return 1;
+            else return 0;
+        case 48:
+            if ('0' <= c && c <= '9') return 1;
+            else if ('A' <= c && c <= 'Z') return 1;
+            else if (c == '_') return 1;
+            else if ('a' <= c && c <= 'n') return 1;
+            else if (c == 'o') return 62;
+            else if ('p' <= c && c <= 'z') return 1;
+            else return 0;
+        case 49:
+            if ('0' <= c && c <= '9') return 1;
+            else if ('A' <= c && c <= 'Z') return 1;
+            else if (c == '_') return 1;
+            else if ('a' <= c && c <= 's') return 1;
+            else if (c == 't') return 13;
+            else if ('u' <= c && c <= 'z') return 1;
+            else return 0;
+        case 50:
+            if ('0' <= c && c <= '9') return 1;
+            else if ('A' <= c && c <= 'Z') return 1;
+            else if (c == '_') return 1;
+            else if ('a' <= c && c <= 'q') return 1;
+            else if (c == 'r') return 49;
+            else if ('s' <= c && c <= 'z') return 1;
+            else return 0;
+        case 51:
+            if ('0' <= c && c <= '9') return 1;
+            else if ('A' <= c && c <= 'Z') return 1;
+            else if (c == '_') return 1;
+            else if ('a' <= c && c <= 't') return 1;
+            else if (c == 'u') return 44;
+            else if ('v' <= c && c <= 'z') return 1;
+            else return 0;
+        case 52:
+            if ('0' <= c && c <= '9') return 1;
+            else if ('A' <= c && c <= 'Z') return 1;
+            else if (c == '_') return 1;
+            else if ('a' <= c && c <= 's') return 1;
+            else if (c == 't') return 51;
+            else if ('u' <= c && c <= 'z') return 1;
+            else return 0;
+        case 53:
+            if ('0' <= c && c <= '9') return 1;
+            else if ('A' <= c && c <= 'Z') return 1;
+            else if (c == '_') return 1;
+            else if ('a' <= c && c <= 'd') return 1;
+            else if (c == 'e') return 52;
+            else if ('f' <= c && c <= 'z') return 1;
+            else return 0;
+        case 54:
+            if ('0' <= c && c <= '9') return 1;
+            else if ('A' <= c && c <= 'Z') return 1;
+            else if (c == '_') return 1;
+            else if ('a' <= c && c <= 'v') return 1;
+            else if (c == 'w') return 14;
+            else if ('x' <= c && c <= 'z') return 1;
+            else return 0;
+        case 55:
+            if ('0' <= c && c <= '9') return 1;
+            else if ('A' <= c && c <= 'Z') return 1;
+            else if (c == '_') return 1;
+            else if ('a' <= c && c <= 'n') return 1;
+            else if (c == 'o') return 54;
+            else if ('p' <= c && c <= 'z') return 1;
+            else return 0;
+        case 56:
+            if ('0' <= c && c <= '9') return 56;
+            else return 0;
+        case 57:
+            if ((char)0 <= c && c <= ')') return 57;
+            else if (c == '*') return 64;
+            else if ('+' <= c && c <= (char)127) return 57;
+            else return 0;
+        case 58:
+            if (c == '+') return 59;
+            else if (c == '-') return 59;
+            else if ('0' <= c && c <= '9') return 56;
+            else return 0;
+        case 59:
+            if ('0' <= c && c <= '9') return 56;
+            else return 0;
+        case 60:
+            if ('0' <= c && c <= '9') return 1;
+            else if ('A' <= c && c <= 'Z') return 1;
+            else if (c == '_') return 1;
+            else if ('a' <= c && c <= 'm') return 1;
+            else if (c == 'n') return 8;
+            else if ('o' <= c && c <= 'z') return 1;
+            else return 0;
+        case 61:
+            if ('0' <= c && c <= '9') return 1;
+            else if ('A' <= c && c <= 'Z') return 1;
+            else if (c == '_') return 1;
+            else if ('a' <= c && c <= 'q') return 1;
+            else if (c == 'r') return 5;
+            else if ('s' <= c && c <= 'z') return 1;
+            else return 0;
+        case 62:
+            if ('0' <= c && c <= '9') return 1;
+            else if ('A' <= c && c <= 'Z') return 1;
+            else if (c == '_') return 1;
+            else if ('a' <= c && c <= 'r') return 1;
+            else if (c == 's') return 9;
+            else if ('t' <= c && c <= 'z') return 1;
+            else return 0;
+        case 63:
+            if ((char)0 <= c && c <= (char)9) return 63;
+            else if (c == (char)10) return 30;
+            else if ((char)11 <= c && c <= (char)127) return 63;
+            else return 0;
+        case 64:
+            if ((char)0 <= c && c <= ')') return 57;
+            else if (c == '*') return 64;
+            else if ('+' <= c && c <= '.') return 57;
+            else if (c == '/') return 31;
+            else if ('0' <= c && c <= (char)127) return 57;
+            else return 0;
+        case 65:
+            if ('0' <= c && c <= '9') return 1;
+            else if ('A' <= c && c <= 'Z') return 1;
+            else if (c == '_') return 1;
+            else if ('a' <= c && c <= 'm') return 1;
+            else if (c == 'n') return 4;
+            else if ('o' <= c && c <= 'z') return 1;
+            else return 0;
+        }
+        return 0;
+    }
+    int ExpLexer::action(int state)
+    {
+        switch (state)
+        {
+        case 1:
+            return 1;//id: id
+        case 2:
+            return 2;//number: integer
+        case 3:
+            return 3;//number: realC
+        case 4:
+            return 4;//reserved: return
+        case 5:
+            return 5;//reserved: for
+        case 6:
+            return 6;//reserved: if
+        case 7:
+            return 7;//reserved: else
+        case 8:
+            return 8;//function1: sin
+        case 9:
+            return 9;//function1: cos
+        case 10:
+            return 10;//function1: exp
+        case 11:
+            return 11;//function1: ln
+        case 12:
+            return 12;//function1: log
+        case 13:
+            return 13;//function1: sqrt
+        case 14:
+            return 14;//function2: pow
+        case 15:
+            return 15;//format: spaces
+        case 16:
+            return 16;//format: enters
+        case 17:
+            return 17;//format: tab
+        case 18:
+            return 18;//division: semicolon
+        case 19:
+            return 19;//division: colon
+        case 20:
+            return 20;//division: dot
+        case 21:
+            return 21;//division: comma
+        case 22:
+            return 22;//braket: braceL
+        case 23:
+            return 23;//braket: braceR
+        case 24:
+            return 24;//braket: left
+        case 25:
+            return 25;//braket: right
+        case 26:
+            return 26;//braket: squareL
+        case 27:
+            return 27;//braket: squareR
+        case 28:
+            return 28;//braket: angleL
+        case 29:
+            return 29;//braket: angleR
+        case 30:
+            return 30;//anntation: anntationS
+        case 31:
+            return 31;//anntation: anntationM
+        case 32:
+            return 32;//operatmd: multi
+        case 33:
+            return 33;//operatmd: div
+        case 34:
+            return 34;//operatas: sub
+        case 35:
+            return 35;//operatas: add
+        case 36:
+            return 36;//value: value
+        case 38:
+            return 1;//id: id
+        case 39:
+            return 1;//id: id
+        case 40:
+            return 1;//id: id
+        case 41:
+            return 1;//id: id
+        case 42:
+            return 1;//id: id
+        case 43:
+            return 1;//id: id
+        case 44:
+            return 1;//id: id
+        case 45:
+            return 1;//id: id
+        case 46:
+            return 1;//id: id
+        case 47:
+            return 1;//id: id
+        case 48:
+            return 1;//id: id
+        case 49:
+            return 1;//id: id
+        case 50:
+            return 1;//id: id
+        case 51:
+            return 1;//id: id
+        case 52:
+            return 1;//id: id
+        case 53:
+            return 1;//id: id
+        case 54:
+            return 1;//id: id
+        case 55:
+            return 1;//id: id
+        case 56:
+            return 3;//number: realC
+        case 60:
+            return 1;//id: id
+        case 61:
+            return 1;//id: id
+        case 62:
+            return 1;//id: id
+        case 65:
+            return 1;//id: id
+        }
+        return 0;
+    }
+    int ExpLexer::GroupGet(int accept)
+    {
+        switch (accept)
+        {
+        case 1:
+            return 1;//id: id
+        case 2:
+            return 2;//number: integer
+        case 3:
+            return 2;//number: realC
+        case 4:
+            return 3;//reserved: return
+        case 5:
+            return 3;//reserved: for
+        case 6:
+            return 3;//reserved: if
+        case 7:
+            return 3;//reserved: else
+        case 8:
+            return 4;//function1: sin
+        case 9:
+            return 4;//function1: cos
+        case 10:
+            return 4;//function1: exp
+        case 11:
+            return 4;//function1: ln
+        case 12:
+            return 4;//function1: log
+        case 13:
+            return 4;//function1: sqrt
+        case 14:
+            return 5;//function2: pow
+        case 15:
+            return 6;//format: spaces
+        case 16:
+            return 6;//format: enters
+        case 17:
+            return 6;//format: tab
+        case 18:
+            return 7;//division: semicolon
+        case 19:
+            return 7;//division: colon
+        case 20:
+            return 7;//division: dot
+        case 21:
+            return 7;//division: comma
+        case 22:
+            return 8;//braket: braceL
+        case 23:
+            return 8;//braket: braceR
+        case 24:
+            return 8;//braket: left
+        case 25:
+            return 8;//braket: right
+        case 26:
+            return 8;//braket: squareL
+        case 27:
+            return 8;//braket: squareR
+        case 28:
+            return 8;//braket: angleL
+        case 29:
+            return 8;//braket: angleR
+        case 30:
+            return 9;//anntation: anntationS
+        case 31:
+            return 9;//anntation: anntationM
+        case 32:
+            return 10;//operatmd: multi
+        case 33:
+            return 10;//operatmd: div
+        case 34:
+            return 11;//operatas: sub
+        case 35:
+            return 11;//operatas: add
+        case 36:
+            return 12;//value: value
+        }
+        return 0;
+    }
+    Pikachu::function ExpLexer::functionGet(int state)
+    {
+        regular RR;
+        RR = (regular)state;
+        switch (RR)
+        {
+        case Exp::ExpLexer::_sin_:
+            return Pikachu::function::_sin_;
 
+        case Exp::ExpLexer::_cos_:
+            return Pikachu::function::_cos_;
+
+        case Exp::ExpLexer::_exp_:
+            return Pikachu::function::_exp_;
+
+        case Exp::ExpLexer::_ln_:
+            return Pikachu::function::_ln_;
+        case Exp::ExpLexer::_log_:
+            return Pikachu::function::_ln_;
+
+        case Exp::ExpLexer::_sqrt_:
+            return Pikachu::function::_sqrt_;
+        
+        default:
+            break;
+        }
+        return Pikachu::function::_sin_;
+    }
+    Pikachu::operation ExpLexer::operationGet(int state)
+    {
+        regular RR;
+        RR = (regular)state;
+        switch (RR)
+        {
+        case Exp::ExpLexer::_multi_:
+            return Pikachu::operation::_mul_;
+
+        case Exp::ExpLexer::_div_:
+            return Pikachu::operation::_div_;
+
+        case Exp::ExpLexer::_sub_:
+            return Pikachu::operation::_sub_;
+
+        case Exp::ExpLexer::_add_:
+            return Pikachu::operation::_add_;
+        }
+        return Pikachu::operation::_mul_;
+    }
+    const size_t ExpPraser::StateCount = 45;
+    const size_t ExpPraser::NonTerminalCount = 12;
+    const size_t ExpPraser::TerminalCount = 36;
+    const size_t ExpPraser::RulesCount = 28;
+    const int ExpPraser::GOTO[45][12] = { \
+    {1, 6, 10, 14, 18, 1, 22, 26, 30, 34, 38, 42}, \
+    {1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1}, \
+    {1, 1, 1, 106, 1, 1, 1, 1, 1, 1, 1, 1}, \
+    {1, 1, 1, 1, 1, 1, 1, 178, 30, 34, 38, 42}, \
+    {1, 1, 1, 1, 1, 118, 1, 1, 1, 1, 1, 1}, \
+    {1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1}, \
+    {1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1}, \
+    {1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1}, \
+    {1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1}, \
+    {1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1}, \
+    {1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1}, \
+    {1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1}, \
+    {1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1}, \
+    {1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1}, \
+    {1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1}, \
+    {1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1}, \
+    {1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1}, \
+    {1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1}, \
+    {1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1}, \
+    {1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1}, \
+    {1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1}, \
+    {1, 1, 98, 14, 18, 1, 22, 26, 30, 34, 38, 42}, \
+    {1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1}, \
+    {1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1}, \
+    {1, 1, 1, 106, 1, 1, 1, 1, 1, 1, 1, 1}, \
+    {1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1}, \
+    {1, 1, 1, 14, 114, 1, 22, 26, 30, 34, 38, 42}, \
+    {1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1}, \
+    {1, 1, 1, 1, 1, 118, 1, 1, 1, 1, 1, 1}, \
+    {1, 1, 1, 14, 1, 1, 130, 26, 30, 34, 38, 42}, \
+    {1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1}, \
+    {1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1}, \
+    {1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1}, \
+    {1, 1, 138, 14, 18, 1, 22, 26, 30, 34, 38, 42}, \
+    {1, 1, 1, 106, 1, 1, 1, 1, 1, 1, 1, 1}, \
+    {1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1}, \
+    {1, 1, 150, 14, 18, 1, 22, 26, 30, 34, 38, 42}, \
+    {1, 1, 1, 106, 1, 1, 1, 1, 1, 1, 1, 1}, \
+    {1, 1, 158, 14, 18, 1, 22, 26, 30, 34, 38, 42}, \
+    {1, 1, 1, 106, 1, 1, 1, 1, 1, 1, 1, 1}, \
+    {1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1}, \
+    {1, 1, 170, 14, 18, 1, 22, 26, 30, 34, 38, 42}, \
+    {1, 1, 1, 106, 1, 1, 1, 1, 1, 1, 1, 1}, \
+    {1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1}, \
+    {1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1} };
+    //==============================
+    const int ExpPraser::ACTION[45][37] = { \
+    {1, 46, 50, 54, 1, 1, 1, 1, 58, 62, 66, 70, 74, 78, 82, 1, 1, 1, 1, 1, 1, 1, 1, 1, 86, 1, 1, 1, 1, 1, 1, 1, 1, 1, 90, 94, 1}, \
+    {0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1}, \
+    {11, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 90, 94, 1}, \
+    {1, 102, 50, 54, 1, 1, 1, 1, 58, 62, 66, 70, 74, 78, 82, 1, 1, 1, 1, 1, 1, 1, 1, 1, 86, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1}, \
+    {15, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 15, 1, 1, 15, 1, 1, 1, 15, 1, 1, 1, 1, 1, 1, 122, 126, 15, 15, 1}, \
+    {31, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 31, 1, 1, 31, 1, 1, 1, 31, 1, 1, 1, 1, 1, 1, 31, 31, 31, 31, 1}, \
+    {47, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 47, 1, 1, 47, 1, 1, 1, 47, 1, 1, 1, 1, 1, 1, 47, 47, 47, 47, 1}, \
+    {63, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 63, 1, 1, 63, 1, 1, 1, 63, 1, 1, 1, 1, 1, 1, 63, 63, 63, 63, 1}, \
+    {59, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 59, 1, 1, 59, 1, 1, 1, 59, 1, 1, 1, 1, 1, 1, 59, 59, 59, 59, 1}, \
+    {97, 97, 97, 97, 97, 97, 97, 97, 97, 97, 97, 97, 97, 97, 97, 97, 97, 97, 97, 97, 97, 97, 97, 97, 166, 97, 97, 97, 97, 97, 97, 97, 97, 97, 97, 97, 97}, \
+    {97, 97, 97, 97, 97, 97, 97, 97, 97, 97, 97, 97, 97, 97, 97, 97, 97, 97, 97, 97, 97, 97, 97, 97, 146, 97, 97, 97, 97, 97, 97, 97, 97, 97, 97, 97, 97}, \
+    {55, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 55, 1, 1, 55, 1, 1, 1, 55, 1, 1, 1, 1, 1, 1, 55, 55, 55, 55, 134}, \
+    {71, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 71, 1, 1, 71, 1, 1, 1, 71, 1, 1, 1, 1, 1, 1, 71, 71, 71, 71, 1}, \
+    {75, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 75, 1, 1, 75, 1, 1, 1, 75, 1, 1, 1, 1, 1, 1, 75, 75, 75, 75, 1}, \
+    {97, 97, 97, 97, 97, 97, 97, 97, 97, 97, 97, 97, 97, 97, 97, 97, 97, 97, 97, 97, 97, 97, 97, 97, 87, 97, 97, 97, 97, 97, 97, 97, 97, 97, 97, 97, 97}, \
+    {97, 97, 97, 97, 97, 97, 97, 97, 97, 97, 97, 97, 97, 97, 97, 97, 97, 97, 97, 97, 97, 97, 97, 97, 91, 97, 97, 97, 97, 97, 97, 97, 97, 97, 97, 97, 97}, \
+    {97, 97, 97, 97, 97, 97, 97, 97, 97, 97, 97, 97, 97, 97, 97, 97, 97, 97, 97, 97, 97, 97, 97, 97, 95, 97, 97, 97, 97, 97, 97, 97, 97, 97, 97, 97, 97}, \
+    {97, 97, 97, 97, 97, 97, 97, 97, 97, 97, 97, 97, 97, 97, 97, 97, 97, 97, 97, 97, 97, 97, 97, 97, 99, 97, 97, 97, 97, 97, 97, 97, 97, 97, 97, 97, 97}, \
+    {97, 97, 97, 97, 97, 97, 97, 97, 97, 97, 97, 97, 97, 97, 97, 97, 97, 97, 97, 97, 97, 97, 97, 97, 103, 97, 97, 97, 97, 97, 97, 97, 97, 97, 97, 97, 97}, \
+    {97, 97, 97, 97, 97, 97, 97, 97, 97, 97, 97, 97, 97, 97, 97, 97, 97, 97, 97, 97, 97, 97, 97, 97, 107, 97, 97, 97, 97, 97, 97, 97, 97, 97, 97, 97, 97}, \
+    {97, 97, 97, 97, 97, 97, 97, 97, 97, 97, 97, 97, 97, 97, 97, 97, 97, 97, 97, 97, 97, 97, 97, 97, 111, 97, 97, 97, 97, 97, 97, 97, 97, 97, 97, 97, 97}, \
+    {1, 102, 50, 54, 1, 1, 1, 1, 58, 62, 66, 70, 74, 78, 82, 1, 1, 1, 1, 1, 1, 1, 1, 1, 86, 1, 1, 1, 1, 1, 1, 1, 1, 1, 90, 94, 1}, \
+    {1, 23, 23, 23, 1, 1, 1, 1, 23, 23, 23, 23, 23, 23, 23, 1, 1, 1, 1, 1, 1, 1, 1, 1, 23, 1, 1, 1, 1, 1, 1, 1, 1, 1, 23, 23, 1}, \
+    {1, 27, 27, 27, 1, 1, 1, 1, 27, 27, 27, 27, 27, 27, 27, 1, 1, 1, 1, 1, 1, 1, 1, 1, 27, 1, 1, 1, 1, 1, 1, 1, 1, 1, 27, 27, 1}, \
+    {1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 110, 1, 1, 1, 1, 1, 1, 1, 1, 90, 94, 1}, \
+    {55, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 55, 1, 1, 55, 1, 1, 1, 55, 1, 1, 1, 1, 1, 1, 55, 55, 55, 55, 1}, \
+    {1, 102, 50, 54, 1, 1, 1, 1, 58, 62, 66, 70, 74, 78, 82, 1, 1, 1, 1, 1, 1, 1, 1, 1, 86, 1, 1, 1, 1, 1, 1, 1, 1, 1, 90, 94, 1}, \
+    {67, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 67, 1, 1, 67, 1, 1, 1, 67, 1, 1, 1, 1, 1, 1, 67, 67, 67, 67, 1}, \
+    {19, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 19, 1, 1, 19, 1, 1, 1, 19, 1, 1, 1, 1, 1, 1, 122, 126, 19, 19, 1}, \
+    {1, 102, 50, 54, 1, 1, 1, 1, 58, 62, 66, 70, 74, 78, 82, 1, 1, 1, 1, 1, 1, 1, 1, 1, 86, 1, 1, 1, 1, 1, 1, 1, 1, 1, 90, 94, 1}, \
+    {1, 39, 39, 39, 1, 1, 1, 1, 39, 39, 39, 39, 39, 39, 39, 1, 1, 1, 1, 1, 1, 1, 1, 1, 39, 1, 1, 1, 1, 1, 1, 1, 1, 1, 39, 39, 1}, \
+    {1, 43, 43, 43, 1, 1, 1, 1, 43, 43, 43, 43, 43, 43, 43, 1, 1, 1, 1, 1, 1, 1, 1, 1, 43, 1, 1, 1, 1, 1, 1, 1, 1, 1, 43, 43, 1}, \
+    {35, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 35, 1, 1, 35, 1, 1, 1, 35, 1, 1, 1, 1, 1, 1, 35, 35, 35, 35, 1}, \
+    {1, 102, 50, 54, 1, 1, 1, 1, 58, 62, 66, 70, 74, 78, 82, 1, 1, 1, 1, 1, 1, 1, 1, 1, 86, 1, 1, 1, 1, 1, 1, 1, 1, 1, 90, 94, 1}, \
+    {1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 142, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 90, 94, 1}, \
+    {7, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1}, \
+    {1, 102, 50, 54, 1, 1, 1, 1, 58, 62, 66, 70, 74, 78, 82, 1, 1, 1, 1, 1, 1, 1, 1, 1, 86, 1, 1, 1, 1, 1, 1, 1, 1, 1, 90, 94, 1}, \
+    {1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 154, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 90, 94, 1}, \
+    {1, 102, 50, 54, 1, 1, 1, 1, 58, 62, 66, 70, 74, 78, 82, 1, 1, 1, 1, 1, 1, 1, 1, 1, 86, 1, 1, 1, 1, 1, 1, 1, 1, 1, 90, 94, 1}, \
+    {1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 162, 1, 1, 1, 1, 1, 1, 1, 1, 90, 94, 1}, \
+    {83, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 83, 1, 1, 83, 1, 1, 1, 83, 1, 1, 1, 1, 1, 1, 83, 83, 83, 83, 1}, \
+    {1, 102, 50, 54, 1, 1, 1, 1, 58, 62, 66, 70, 74, 78, 82, 1, 1, 1, 1, 1, 1, 1, 1, 1, 86, 1, 1, 1, 1, 1, 1, 1, 1, 1, 90, 94, 1}, \
+    {1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 174, 1, 1, 1, 1, 1, 1, 1, 1, 90, 94, 1}, \
+    {79, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 79, 1, 1, 79, 1, 1, 1, 79, 1, 1, 1, 1, 1, 1, 79, 79, 79, 79, 1}, \
+    {51, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 51, 1, 1, 51, 1, 1, 1, 51, 1, 1, 1, 1, 1, 1, 51, 51, 51, 51, 1} };
+    //==============================
+    const int ExpPraser::RulesToSymbol[28] = { \
+    0,\
+    1,\
+    1,\
+    2,\
+    2,\
+    3,\
+    3,\
+    4,\
+    4,\
+    5,\
+    5,\
+    6,\
+    6,\
+    7,\
+    7,\
+    7,\
+    7,\
+    8,\
+    8,\
+    9,\
+    9,\
+    10,\
+    10,\
+    10,\
+    10,\
+    10,\
+    10,\
+    11 };
+    //==============================
+    const int ExpPraser::RulesLength[28] = { \
+    1,\
+    4,\
+    1,\
+    1,\
+    3,\
+    1,\
+    1,\
+    1,\
+    3,\
+    1,\
+    1,\
+    1,\
+    2,\
+    1,\
+    1,\
+    1,\
+    3,\
+    1,\
+    1,\
+    4,\
+    6,\
+    1,\
+    1,\
+    1,\
+    1,\
+    1,\
+    1,\
+    1 };
+    //==============================
+    const char* const ExpPraser::RulesName[28] = { \
+    "all->Expression ",\
+    "Expression->id value EXP_RIGHT semicolon ",\
+    "Expression->EXP_RIGHT ",\
+    "EXP_RIGHT->EXP_MUL ",\
+    "EXP_RIGHT->EXP_RIGHT [operatas] EXP_MUL ",\
+    "[operatas]->sub ",\
+    "[operatas]->add ",\
+    "EXP_MUL->EXP_MINUS ",\
+    "EXP_MUL->EXP_MUL [operatmd] EXP_MINUS ",\
+    "[operatmd]->multi ",\
+    "[operatmd]->div ",\
+    "EXP_MINUS->UNIT ",\
+    "EXP_MINUS->[operatas] UNIT ",\
+    "UNIT->id ",\
+    "UNIT->CALL ",\
+    "UNIT->[number] ",\
+    "UNIT->left EXP_RIGHT right ",\
+    "[number]->integer ",\
+    "[number]->realC ",\
+    "CALL->[function1] left EXP_RIGHT right ",\
+    "CALL->[function2] left EXP_RIGHT comma EXP_RIGHT right ",\
+    "[function1]->sin ",\
+    "[function1]->cos ",\
+    "[function1]->exp ",\
+    "[function1]->ln ",\
+    "[function1]->log ",\
+    "[function1]->sqrt ",\
+    "[function2]->pow " };
+    //==============================
+    const int ExpPraser::Implicit[28] = { \
+    0, \
+    0, \
+    0, \
+    1, \
+    0, \
+    1, \
+    1, \
+    1, \
+    0, \
+    1, \
+    1, \
+    1, \
+    0, \
+    0, \
+    0, \
+    0, \
+    0, \
+    1, \
+    1, \
+    0, \
+    0, \
+    1, \
+    1, \
+    1, \
+    1, \
+    1, \
+    1, \
+    1 };
+
+}
 

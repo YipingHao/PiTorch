@@ -3050,6 +3050,20 @@ void Expres::backward(bool ExternOutput, size_t NewInputDim, size_t No, vector<v
     }
 }
 //========================Expression simplification
+vortex<Expres::node>* Expres::NewNode(long int ele)
+{
+    vortex<Expres::node>* New;
+    New = new vortex<Expres::node>(ele);
+    formula.append(New);
+    return New;
+}
+vortex<Expres::node>* Expres::NewNode(double ele)
+{
+    vortex<Expres::node>* New;
+    New = new vortex<Expres::node>(ele);
+    formula.append(New);
+    return New;
+}
 vortex<Expres::node>* Expres::NewNode(operation Op)
 {
     vortex<Expres::node>* New;
@@ -3493,6 +3507,11 @@ bool Expres::Simplify01(void)
         }
     }
     return changed_;
+}
+void Expres::OutputAppend(vortex<Expres::node>* src)
+{
+    output.append(src);
+    src->Output = true;
 }
 void Expres::OutputShift(vortex<Expres::node>* src, vortex<Expres::node>* dst)
 {

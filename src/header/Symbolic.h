@@ -291,7 +291,8 @@ namespace Pikachu
 		void copy(const Expres& source);
 		bool Simplify(void);
 		void Example(size_t No);
-		
+		int Example(const char* source);
+
 		void demo(bufferC& out, bool single, size_t No)const;
 		void demo(FILE* fp)const;
 
@@ -312,9 +313,12 @@ namespace Pikachu
 		vector<size_t> InputDim;
 		size_t ParameterCount;
 
+		//====================================================
 		void PrintForwardInitial(vector<Ele*>& sequence, buffer<Ele*>& queue, vector<size_t>& output_)const;
 		void ForwardMiniOpCore(vector<size_t>& label, vector<size_t>& output_, VISA1& instru, vector<size_t>& FreeReg, size_t now, Ele* here)const;
 		//====================================================
+		vortex<node>* NewNode(long int ele);
+		vortex<node>* NewNode(double ele);
 		vortex<node>* NewNode(operation Op);
 		vortex<node>* NewNode(vortex<node>* L, vortex<node>* R, operation Op);
 		vortex<node>* NewNode(function func_);
@@ -331,6 +335,7 @@ namespace Pikachu
 		void FunctBackDiff(vector<vortex<node>*>& label, size_t now, vortex<node>* here);
 		void Funct2BackDiff(vector<vortex<node>*>& label, size_t now, vortex<node>* here);
 		//====================================================
+		void OutputAppend(vortex<node>* src);
 		void OutputShift(vortex<node>* src, vortex<node>* dst);
 		void example01(void);
 		//========================Expression simplification
