@@ -3,9 +3,9 @@ BASE = ../
 
 ODIR = $(BASE)obj/
 CODE = $(BASE)src/
-SYMBOL = $(CODE)/Symbolic/
-HEAD = $(CODE)/header/
-LEX = $(CODE)/parser/
+SYMBOL = $(CODE)Symbolic/
+HEAD = $(CODE)header/
+LEX = $(CODE)parser/
 TOOLS = $(BASE)tools/
 TEST = $(BASE)test/
 EXTERN = $(BASE)extern/lib/
