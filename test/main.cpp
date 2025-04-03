@@ -1571,6 +1571,7 @@ int static test14(const parameter& para)
         std::cout << Exp.example("exp(-x * x)") << std::endl;
         Exp.demo(BC, true, 0);
         std::cout << BC.ptr() << std::endl; BC.clear();
+        Exp.demo(stdout);
 
         std::cout << Exp.example("cos(-x * x)/(x + 5.0)") << std::endl;
         Exp.demo(BC, true, 0);
