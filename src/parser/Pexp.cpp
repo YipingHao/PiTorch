@@ -400,7 +400,7 @@ int Pikachu::vectorGet(FILE* fp, vector<double>& output)
     return error;
 }
 
-int Pikachu::Expres::Example(const char* source)
+int Pikachu::Expres::example(const char* source)
 {
     size_t i, site;
     int error;

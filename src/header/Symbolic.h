@@ -291,7 +291,7 @@ namespace Pikachu
 		void copy(const Expres& source);
 		bool Simplify(void);
 		void Example(size_t No);
-		int Example(const char* source);
+		int example(const char* source);
 
 		void demo(bufferC& out, bool single, size_t No)const;
 		void demo(FILE* fp)const;
