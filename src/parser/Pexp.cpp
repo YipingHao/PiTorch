@@ -470,7 +470,7 @@ int Pikachu::Expres::example(const char* source)
                 break;
             case Exp::ExpPraser::EXP_MINUS_plus_:
                 left_ = (Ele*)GT->child(1)->root().infor;
-                op__ = Exp::ExpLexer::operationGet(eme[GT->child(1)].accept);
+                op__ = Exp::ExpLexer::operationGet(eme[GT->child(0)].accept);
                 printf("EXP_MINUS_plus_:%d\n", (int)op__);
                 if (op__ == Pikachu::_sub_) here = NewNode(left_, _minus_);
                 else here = left_;
