@@ -1576,6 +1576,9 @@ int static test14(const parameter& para)
         std::cout << Exp.example("cos(-x * x)/(x + 5.0)") << std::endl;
         Exp.demo(BC, true, 0);
         std::cout << BC.ptr() << std::endl; BC.clear();
+        Exp.differetial(0, 0, true);
+        Exp.demo(BC, true, 0);
+        std::cout << BC.ptr() << std::endl; BC.clear();
     }
     catch (Pikachu::PikaError& E)
     {
