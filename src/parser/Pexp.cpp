@@ -485,7 +485,7 @@ int Pikachu::Expres::example(const char* source)
                 here = (Ele*)GT->child(0)->root().infor;
                 break;
             case Exp::ExpPraser::UNIT_const_:
-                site = GT->child(1)->root().site;
+                site = GT->child(0)->root().site;
                 if (eme[site].accept == (int)Exp::ExpLexer::regular::_integer_)
                     here = NewNode(eme.GetInt(site));
                 else
