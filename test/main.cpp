@@ -1567,8 +1567,8 @@ int static test14(const parameter& para)
         Diff.demo(BC, true, 0);
         std::cout << BC.ptr() << std::endl; BC.clear();
 
-        std::cout << "Exp.example(\"exp(x * x)\");";
-        std::cout << Exp.example("exp(x * x)") << std::endl;
+        std::cout << "Exp.example(\"exp(-x * x)\");";
+        std::cout << Exp.example("exp(-x * x)") << std::endl;
         Exp.demo(BC, true, 0);
         std::cout << BC.ptr() << std::endl; BC.clear();
 
