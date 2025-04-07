@@ -2960,8 +2960,8 @@ void Expres::differetial(size_t X1, size_t X2, bool Input)
     for (i = 0; i < output.count(); i++)
     {
         printf("output[%zu]\n", i);
-        printf("\toutput[i]\n", (size_t)output[i]);
-        printf("\toutput[i]->site()\n", output[i]->site());
+        printf("\toutput[i]:%zu\n", (size_t)output[i]);
+        printf("\toutput[i]->site():%zu\n", output[i]->site());
         formula[output[i]->site()]->Output = false;
         output[i] = label[output[i]->site()];
         formula[output[i]->site()]->Output = true;
