@@ -2908,6 +2908,11 @@ void Expres::differetial(size_t X1, size_t X2, bool Input)
     printf("BFTbackward\n");
     formula.TopoSortBFS(sequence);
     printf("TopoSortBFS\n");
+    for (i = 0; i < length; i++)
+    {
+        here = sequence[i];
+        printf("\t%zu\n", here->site());
+    }
     formula.Shrink(valid, sequence);
     printf("?????\n");
 
