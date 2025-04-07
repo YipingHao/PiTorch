@@ -2913,7 +2913,7 @@ void Expres::differetial(size_t X1, size_t X2, bool Input)
     length = sequence.count();
     label.recount(formula.count());
     label.value(NULL);
-    printf("?????\n");
+    printf("formula.count():%zu\n", formula.count());
     for (i = 0; i < length; i++)
     {
         here = sequence[i];
