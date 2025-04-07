@@ -2964,6 +2964,7 @@ void Expres::differetial(size_t X1, size_t X2, bool Input)
         printf("\toutput[i]->site():%zu\n", output[i]->site());
         formula[output[i]->site()]->Output = false;
         output[i] = label[output[i]->site()];
+        printf("\toutput[i]->site():%zu\n", output[i]->site());
         formula[output[i]->site()]->Output = true;
     }
     printf("?????\n");
