@@ -3179,7 +3179,7 @@ vortex<Expres::node>* Expres::FunctForwardDiff(vector<vortex<Expres::node>*>& la
         site = NewNode(label[Src_], here, _mul_);
         break;
     case _ln_:
-        printf("_ln_:here->In(0):%zu\n", (size_t)here->In(0));
+        //printf("_ln_:here->In(0):%zu\n", (size_t)here->In(0));
         site = NewNode(label[Src_], here->In(0), _div_);//f=xy
         break;
     case _sqrt_://origin_
