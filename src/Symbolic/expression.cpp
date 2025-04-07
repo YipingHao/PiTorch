@@ -3125,9 +3125,13 @@ vortex<Expres::node>* Expres::OpForwardDiff(vector<vortex<Expres::node>*>& label
         site = NewNode(label[LeftSrc_], label[RightSrc_], (operation)here->Code);
         break;
     case _mul_:
+        printf("_mul_0\n");
         left_ = NewNode(label[LeftSrc_], here->In(1), _mul_);
+        printf("_mul_1\n");
         right_ = NewNode(here->In(0), label[RightSrc_], _mul_);
+        printf("_mul_2\n");
         site = NewNode(left_, right_, _add_);
+        printf("_mul_3\n");
         break;
     case _div_:
         left_ = NewNode(label[LeftSrc_], here->In(1), _mul_);//x^\prime * y
@@ -3160,6 +3164,7 @@ vortex<Expres::node>* Expres::FunctForwardDiff(vector<vortex<Expres::node>*>& la
         site = NewNode(label[Src_], here, _mul_);
         break;
     case _ln_:
+        printf("_ln_:here->In(0):%zu\n", (size_t)here->In(0));
         site = NewNode(label[Src_], here->In(0), _div_);//f=xy
         break;
     case _sqrt_://origin_
