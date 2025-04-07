@@ -2903,35 +2903,35 @@ void Expres::differetial(size_t X1, size_t X2, bool Input)
     {
         if (output[i] != NULL) queue.append(output[i]);
     }
-    printf("?????\n");
+    //printf("?????\n");
     formula.BFTbackward(valid, queue);
-    printf("BFTbackward\n");
+    //printf("BFTbackward\n");
     formula.TopoSortBFS(sequence);
-    printf("TopoSortBFS\n");
-    for (i = 0; i < sequence.count(); i++)
-    {
-        here = sequence[i];
-        printf("\t%zu\n", here->site());
-    }
+    //printf("TopoSortBFS\n");
+    //for (i = 0; i < sequence.count(); i++)
+    //{
+     //   here = sequence[i];
+        //printf("\t%zu\n", here->site());
+    //}
     formula.Shrink(valid, sequence);
-    printf("?????\n");
+    //printf("?????\n");
 
 
     length = sequence.count();
     label.recount(formula.count());
     label.value(NULL);
-    printf("formula.count():%zu\n", formula.count());
+    //printf("formula.count():%zu\n", formula.count());
+   // for (i = 0; i < length; i++)
+    //{
+    //    here = sequence[i];
+    //    printf("\t%zu\n", here->site());
+    //}
     for (i = 0; i < length; i++)
     {
-        here = sequence[i];
-        printf("\t%zu\n", here->site());
-    }
-    for (i = 0; i < length; i++)
-    {
-        printf("\t%zu, \n", i);
+       // printf("\t%zu, \n", i);
         here = sequence[i];
         site = here->site();
-        printf("\t\t:%zu\n", here->site());
+        //printf("\t\t:%zu\n", here->site());
         switch (here->Type)
         {
         case _LeafX_:
@@ -2951,7 +2951,7 @@ void Expres::differetial(size_t X1, size_t X2, bool Input)
             break;
         case _Operation_:
             label[site] = OpForwardDiff(label, here);
-            printf("label[%zu]\n", (size_t)site);
+            //printf("label[%zu]\n", (size_t)site);
             break;
         case _Funct_:
             label[site] = FunctForwardDiff(label, here);
@@ -2963,19 +2963,19 @@ void Expres::differetial(size_t X1, size_t X2, bool Input)
             break;
         }
     }
-    printf("?????\n");
+    //printf("?????\n");
     for (i = 0; i < output.count(); i++)
     {
-        printf("output[%zu]\n", i);
-        printf("\toutput[i]:%zu\n", (size_t)output[i]);
-        printf("\toutput[i]->site():%zu\n", output[i]->site());
+       // printf("output[%zu]\n", i);
+        //printf("\toutput[i]:%zu\n", (size_t)output[i]);
+        //printf("\toutput[i]->site():%zu\n", output[i]->site());
         formula[output[i]->site()]->Output = false;
-        printf("\t\t?????\n");
+       // printf("\t\t?????\n");
         output[i] = label[output[i]->site()];
-        printf("\toutput[i]->site():%zu\n", output[i]->site());
+       // printf("\toutput[i]->site():%zu\n", output[i]->site());
         formula[output[i]->site()]->Output = true;
     }
-    printf("?????\n");
+    //printf("?????\n");
 
 }
 void Expres::ParameterBackward(size_t No)
@@ -3139,13 +3139,13 @@ vortex<Expres::node>* Expres::OpForwardDiff(vector<vortex<Expres::node>*>& label
         site = NewNode(label[LeftSrc_], label[RightSrc_], (operation)here->Code);
         break;
     case _mul_:
-        printf("_mul_0\n");
+        //printf("_mul_0\n");
         left_ = NewNode(label[LeftSrc_], here->In(1), _mul_);
-        printf("_mul_1\n");
+        //printf("_mul_1\n");
         right_ = NewNode(here->In(0), label[RightSrc_], _mul_);
-        printf("_mul_2\n");
+        //printf("_mul_2\n");
         site = NewNode(left_, right_, _add_);
-        printf("_mul_3\n");
+        //printf("_mul_3\n");
         break;
     case _div_:
         left_ = NewNode(label[LeftSrc_], here->In(1), _mul_);//x^\prime * y
@@ -3155,7 +3155,7 @@ vortex<Expres::node>* Expres::OpForwardDiff(vector<vortex<Expres::node>*>& label
         site = NewNode(mid_, div_, _div_);
         break;
     }
-    printf("return site;%zu\n", (size_t)site);
+    //printf("return site;%zu\n", (size_t)site);
     return site;
 }
 vortex<Expres::node>* Expres::FunctForwardDiff(vector<vortex<Expres::node>*>& label, vortex<Expres::node>* here)

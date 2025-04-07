@@ -1096,17 +1096,17 @@ namespace Pikachu
 			{
 				label[i] = now->in.count();
 				if (label[i] == 0) stack.append(now);
-				if (label[i] == 0) printf("now->site()%zu\n", now->site());
+				//if (label[i] == 0) printf("now->site()%zu\n", now->site());
 			}
 		}
 		while (stack.dequeue(head))
 		{
 			sequence.append(head);
-			printf("head->site()%zu\n", head->site());
+			//printf("head->site()%zu\n", head->site());
 			for (i = 0; i < head->out.count(); i++)
 			{
 				next = head->out[i];
-				printf("\t [%zu] next->site()%zu\n", i, next->site());
+				//printf("\t [%zu] next->site()%zu\n", i, next->site());
 				if (label[next->site()] == 0)
 				{
 					throw PikaError("TopoSortDFS", "label[next] == 0", next->site());
