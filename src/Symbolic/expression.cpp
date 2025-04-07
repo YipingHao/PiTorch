@@ -2956,14 +2956,14 @@ void Expres::differetial(size_t X1, size_t X2, bool Input)
             break;
         }
     }
-
+    printf("?????\n");
     for (i = 0; i < output.count(); i++)
     {
         formula[output[i]->site()]->Output = false;
         output[i] = label[output[i]->site()];
         formula[output[i]->site()]->Output = true;
     }
-    //printf("?????\n");
+    printf("?????\n");
 
 }
 void Expres::ParameterBackward(size_t No)
