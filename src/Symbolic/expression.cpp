@@ -2631,7 +2631,7 @@ void Expres::Example(size_t No)
 {
     int error = 0;
     clear();
-    if (No == 1)example01();
+    if (No == 1) example01();
     else if (No == 2)error = example("exp(-(x*x))");
     else if (No == 3)error = example("pow(2, x) + pow(x, 4)");
     else if (No == 4)error = example("(exp(2 * x) - 1)/(exp(2 * x) + 1)");

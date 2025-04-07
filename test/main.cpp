@@ -1576,7 +1576,7 @@ int static test14(const parameter& para)
         size_t i;
         for (i = 0; i < 10; i++)
         {
-            Exp.Example(i);
+            Exp.Example(i + 1);
             std::cout << "=========================Exp.Example(";
             std::cout << i;
             std::cout << ")=========================" <<std::endl;
