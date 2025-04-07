@@ -2943,6 +2943,7 @@ void Expres::differetial(size_t X1, size_t X2, bool Input)
             break;
         case _Operation_:
             label[site] = OpForwardDiff(label, here);
+            printf("label[%zu]\n", (size_t)site);
             break;
         case _Funct_:
             label[site] = FunctForwardDiff(label, here);
