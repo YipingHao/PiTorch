@@ -3141,6 +3141,7 @@ vortex<Expres::node>* Expres::OpForwardDiff(vector<vortex<Expres::node>*>& label
         site = NewNode(mid_, div_, _div_);
         break;
     }
+    printf("return site;%zu\n", (size_t)site);
     return site;
 }
 vortex<Expres::node>* Expres::FunctForwardDiff(vector<vortex<Expres::node>*>& label, vortex<Expres::node>* here)
