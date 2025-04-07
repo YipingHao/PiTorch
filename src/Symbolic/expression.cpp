@@ -2683,11 +2683,13 @@ void Expres::demo(bufferC& out, bool single, size_t No)const
 void Expres::demo(FILE* fp)const
 {
     size_t i;
+    const char* BB;
     for (i = 0; i < formula.count(); i++)
     {
         if (formula[i] != NULL)
         {
-            fprintf(fp, "formula[%zu]: valid.\n", i);
+            BB = formula[i]->Output ? "true" : "false";
+            fprintf(fp, "formula[%zu]: valid. output: %s\n", i, BB);
             formula[i]->demo(fp);
             //formula[i]->Demo(fp);
             fprintf(fp, "\n");
