@@ -2638,7 +2638,7 @@ void Expres::Example(size_t No)
     else if (No == 5)error = example("-(x*x)");
     else if (No == 6)error = example("(x)/(sqrt(1+x*x))");
     else if (No == 7)error = example("sin(-(x*x))");
-    else if (No == 8)error = example("xln(x*x)");
+    else if (No == 8)error = example("x * ln(x*x)");
     else if (No == 9)error = example("pow(x,8)");
     else error = example("pow(x * x,x)");
 }
