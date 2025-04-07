@@ -1096,7 +1096,7 @@ namespace Pikachu
 			{
 				label[i] = now->in.count();
 				if (label[i] == 0) stack.append(now);
-				printf("now->site()%zu\n", now->site());
+				if (label[i] == 0) printf("now->site()%zu\n", now->site());
 			}
 		}
 		while (stack.dequeue(head))

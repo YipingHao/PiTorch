@@ -1543,6 +1543,8 @@ int static test14(const parameter& para)
         //Diff.demo(stdout);
         Diff.demo(BC, true, 0);
         std::cout << BC.ptr() << std::endl; BC.clear();
+        Diff.demo(stdout);
+        std::cout << "Diff.Simplify();====================" << std::endl;
         Diff.Simplify();
         Diff.demo(BC, true, 0);
         std::cout << BC.ptr() << std::endl; BC.clear();
