@@ -1573,25 +1573,22 @@ int static test14(const parameter& para)
         std::cout << BC.ptr() << std::endl; BC.clear();
         Exp.demo(stdout);
 
-        std::cout << Exp.example("cos(-x * x)/(x + 5.0)") << std::endl;
-        Exp.demo(BC, true, 0);
-        std::cout << BC.ptr() << std::endl; BC.clear();
-        Exp.differetial(0, 0, true);
-        Exp.demo(BC, true, 0);
-        std::cout << BC.ptr() << std::endl; BC.clear();
-        Exp.Simplify();
-        Exp.demo(BC, true, 0);
-        std::cout << BC.ptr() << std::endl; BC.clear();
-
-        std::cout << "Exp.example(\"pow(x * x, 1.0 + x) / (x - 5 + 4)\");";
-        std::cout << Exp.example("pow(x * x, 1.0 + x) / (x - 5 + 4)") << std::endl;
-        Exp.demo(BC, true, 0);
-        std::cout << BC.ptr() << std::endl; BC.clear();
- 
-        std::cout << "Exp.example(\"pow(x * x, 1.0 + x) / (x - 5 + 4)\");";
-        std::cout << Exp.example("(exp(2 * x) - 1.0) / (exp(2 * x) + 1.0)") << std::endl;
-        Exp.demo(BC, true, 0);
-        std::cout << BC.ptr() << std::endl; BC.clear();
+        size_t i;
+        for (i = 0; i < 10; i++)
+        {
+            Exp.Example(i);
+            std::cout << "=========================Exp.Example(";
+            std::cout << i;
+            std::cout << ")=========================" <<std::endl;
+            Exp.demo(BC, true, 0);
+            std::cout << BC.ptr() << std::endl; BC.clear();
+            Exp.differetial(0, 0, true);
+            Exp.demo(BC, true, 0);
+            std::cout << BC.ptr() << std::endl; BC.clear();
+            Diff.Simplify();
+            Diff.demo(BC, true, 0);
+            std::cout << BC.ptr() << std::endl; BC.clear();
+        }
     }
     catch (Pikachu::PikaError& E)
     {
@@ -1605,6 +1602,7 @@ int static test14(const parameter& para)
 }
 int static test15(const parameter& para)
 {
+    
     return 0;
 }
 int static test16(const parameter& para)

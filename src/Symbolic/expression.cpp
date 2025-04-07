@@ -2629,17 +2629,18 @@ bool Expres::Simplify(void)
 }
 void Expres::Example(size_t No) 
 {
+    int error = 0;
     clear();
     if (No == 1)example01();
-    //else if (No == 2)example02();
-   // else if (No == 3)example03();
-    //else if (No == 4)example04();
-    //else if (No == 5)example05();
-    //else if (No == 6)example06();
-    //else if (No == 7)example07();
-    //else if (No == 8)example08();
-    //else if (No == 9)example09();
-    else example01();
+    else if (No == 2)error = example("exp(-(x*x))");
+    else if (No == 3)error = example("pow(2, x) + pow(x, 4)");
+    else if (No == 4)error = example("(exp(2 * x) - 1)/(exp(2 * x) + 1)");
+    else if (No == 5)error = example("-(x*x)");
+    else if (No == 6)error = example("(x)/(sqrt(1+x*x))");
+    else if (No == 7)error = example("sin(-(x*x))");
+    else if (No == 8)error = example("xln(x*x)");
+    else if (No == 9)error = example("pow(x,8)");
+    else error = example("pow(x * x,x)");
 }
 
 void Expres::demo(bufferC& out, bool single, size_t No)const
