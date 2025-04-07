@@ -3178,7 +3178,7 @@ vortex<Expres::node>* Expres::FunctForwardDiff(vector<vortex<Expres::node>*>& la
 }
 vortex<Expres::node>* Expres::Funct2ForwardDiff(vector<vortex<Expres::node>*>& label, vortex<Expres::node>* here)
 {
-    vortex<node>* New;
+    //vortex<node>* New;
     vortex<node>* site;
     vortex<node>* origin_, * xPrime, * const_, * yPrime;
     vortex<node>* originR_, *originL_;
@@ -3191,7 +3191,8 @@ vortex<Expres::node>* Expres::Funct2ForwardDiff(vector<vortex<Expres::node>*>& l
     case _pow_:// R^{prime}ln(L)L^R+L^{prime}R L^{R-1}
         //1
         const_ = new vortex<node>((long int)1);
-        formula.append(New);
+        printf("const_\n");
+        //formula.append(New);
         xPrime = NewNode(here->In(1), const_, _sub_);//R-1
         temp1 = NewNode(here->In(0), xPrime, _pow_);//L^{R-1}
         temp2 = NewNode(here->In(1), temp1, _mul_);//R L^{R-1}
