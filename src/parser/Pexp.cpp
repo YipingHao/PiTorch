@@ -433,14 +433,14 @@ int Pikachu::Expres::example(const char* source)
             eme.valid(i) = false;
         }
     }
-    eme.Demo(stdout);
+    //eme.Demo(stdout);
    
     error = Tree.build<Exp::ExpPraser>(eme);
     if (error != 0)
     {
         return error;
     }
-    Tree.Demo(stdout, eme, Exp::ExpPraser::RulesName);
+    //Tree.Demo(stdout, eme, Exp::ExpPraser::RulesName);
     iterator.initial(Tree.GT);
     while (iterator.still())
     {
@@ -448,12 +448,12 @@ int Pikachu::Expres::example(const char* source)
         if (iterator.state() != 0 && GT->root().rules)
         {
             RRR = (Exp::ExpPraser::rules)GT->root().site;
-            printf("RRR:%zu\n", GT->root().site);
+            //printf("RRR:%zu\n", GT->root().site);
             switch (RRR)
             {
             case Exp::ExpPraser::all_all_:
                 here = (Ele*)GT->child(0)->root().infor;
-                printf("output.count():%zu\n", output.count());
+                //printf("output.count():%zu\n", output.count());
                 OutputAppend(here);
                 break;
             case Exp::ExpPraser::Expression_left_right_:
@@ -472,7 +472,7 @@ int Pikachu::Expres::example(const char* source)
             case Exp::ExpPraser::EXP_MINUS_plus_:
                 left_ = (Ele*)GT->child(1)->root().infor;
                 op__ = Exp::ExpLexer::operationGet(eme[GT->child(0)].accept);
-                printf("EXP_MINUS_plus_:%d\n", (int)op__);
+                //printf("EXP_MINUS_plus_:%d\n", (int)op__);
                 if (op__ == Pikachu::_sub_) here = NewNode(left_, _minus_);
                 else here = left_;
                 break;
