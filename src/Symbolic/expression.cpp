@@ -1151,7 +1151,6 @@ void expression::InputExpand(size_t NewDim)
 
 
 
-
 size_t expression::OperationForwardDifferential(vector<size_t>& label, size_t now, node* here)
 {
     node* New;
@@ -3065,6 +3064,13 @@ void Expres::backward(bool ExternOutput, size_t NewInputDim, size_t No, vector<v
     }
 }
 //========================Expression simplification
+vortex<Expres::node>* Expres::NewNode(type T, size_t S1, size_t S2)
+{
+    vortex<Expres::node>* New;
+    New = new vortex<Expres::node>(T, S1, S2);
+    formula.append(New);
+    return New;
+}
 vortex<Expres::node>* Expres::NewNode(long int ele)
 {
     vortex<Expres::node>* New;

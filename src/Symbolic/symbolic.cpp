@@ -1835,9 +1835,12 @@ bool ActivFunc::Simplify(void)
     }
     return round_ > 1;
 }
-void ActivFunc::Example(size_t No)
-{
 
+int ActivFunc::Example(FILE* fp)
+{
+    hyperlex::BufferChar BC;
+    BC << fp;
+    return Example(BC.ptr());
 }
 void ActivFunc::Demo(hyperlex::BufferChar& out)const
 {

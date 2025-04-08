@@ -317,6 +317,7 @@ namespace Pikachu
 		void PrintForwardInitial(vector<Ele*>& sequence, buffer<Ele*>& queue, vector<size_t>& output_)const;
 		void ForwardMiniOpCore(vector<size_t>& label, vector<size_t>& output_, VISA1& instru, vector<size_t>& FreeReg, size_t now, Ele* here)const;
 		//====================================================
+		vortex<node>* NewNode(type T, size_t S1, size_t S2);
 		vortex<node>* NewNode(long int ele);
 		vortex<node>* NewNode(double ele);
 		vortex<node>* NewNode(operation Op);
@@ -426,7 +427,8 @@ namespace Pikachu
 		void ParameterBackward(VISA1& instru);
 		void Copy(const ActivFunc& source);
 		bool Simplify(void);
-		void Example(size_t No);
+		int Example(const char * text);
+		int Example(FILE* fp);
 		void Demo(hyperlex::BufferChar& out)const;
 		void Demo(FILE* fp)const;
 		void TestBackward(void);

@@ -5,7 +5,7 @@
 #endif
 namespace LP
 {
-    struct Lfunc
+    struct FuncLexer
     {
         enum regular
         {
@@ -51,10 +51,10 @@ namespace LP
             _angleR_ = 40,
             _anntationS_ = 41,
             _anntationM_ = 42,
-            _sub_ = 43,
-            _add_ = 44,
-            _multi_ = 45,
-            _div_ = 46,
+            _multi_ = 43,
+            _div_ = 44,
+            _sub_ = 45,
+            _add_ = 46,
             _value_ = 47
         };
         enum group
@@ -68,13 +68,17 @@ namespace LP
             _division___ = 7,
             _braket___ = 8,
             _anntation___ = 9,
-            _operation___ = 10,
-            _value___ = 11
+            _operatmd___ = 10,
+            _operatas___ = 11,
+            _value___ = 12
         };
         static int next(int state, const char c);
         static int action(int state);
         static int GroupGet(int state);
+        static Pikachu::function functionGet(int state);
+        static Pikachu::operation operationGet(int state);
     };
+
     struct FuncPraser
     {
         enum type
@@ -174,6 +178,7 @@ namespace LP
         static const char* const RulesName[48];
         static const int Implicit[48];
     };
+
 
 }
 namespace Rtensor
@@ -400,6 +405,129 @@ int Pikachu::vectorGet(FILE* fp, vector<double>& output)
     return error;
 }
 
+class LexSheet
+{
+public:
+    struct item
+    {
+        hyperlex::BufferChar name;
+        hyperlex::BufferChar attri;
+        size_t length;
+        Pikachu::vector<void*> infor;
+        long int label;
+        item() { label = 0;
+        length = 0;
+        }
+        ~item() {}
+        inline bool nameIs(const char* source)
+        {
+            hyperlex::BufferChar temp;
+            temp = source;
+            return name == temp;
+        }
+        inline bool attriIs(const char* source)
+        {
+            hyperlex::BufferChar temp;
+            temp = source;
+            return attri == temp;
+        }
+        inline void*& operator [](size_t site) 
+        {
+            return infor[site]; 
+        }
+        inline size_t count(void) const { return infor.count(); }
+    };
+    struct SiteInfor
+    {
+        size_t site1;
+        size_t site2;
+    };
+private:
+    hyperlex::vector<item*> items;
+public:
+    LexSheet() {}
+    ~LexSheet()
+    {
+        size_t i;
+        for (i = 0; i < items.count(); i++)
+        {
+            delete items[i];
+        }
+    }
+    inline item*& operator [](size_t site) { return items[site]; }
+    inline item*& operator [](int site) { return items[(size_t)site]; }
+    inline item* operator [](const char* source)
+    {
+        size_t i;
+        for (i = 0; i < items.count(); i++)
+        {
+            if (items[i] != NULL)
+                if (items[i]->nameIs(source)) return items[i];
+        }
+        return NULL;
+    }
+    inline void* operator [](const SiteInfor* source)
+    {
+        item* temp;
+        temp = items[source->site1];
+        return temp->infor[source->site2];
+    }
+    void append(size_t length, const char* Name, const char* Attri)
+    {
+        item* New;
+        long int temp;
+        size_t i;
+        New = new item;
+        New->name = Name;
+        New->attri = Attri;
+        New->length = length;
+        New->infor.recount(length);
+        New->infor.value(NULL);
+        temp = 0;
+        for (i = 0; i < items.count(); i++)
+        {
+            if (items[i] != NULL)
+                if (items[i]->attriIs(Attri)) temp += 1;
+        }
+        New->label = temp;
+        items.append(New);
+    }
+    void demo(FILE* fp)
+    {
+        size_t i;
+        for (i = 0; i < items.count(); i++)
+        {
+            if (items[i] != NULL)
+            {
+                fprintf(fp, "items[%zu]: length: %zu\n", i, items[i]->length);
+                fprintf(fp, "\tname: %s\n", items[i]->name.ptr());
+                fprintf(fp, "\tattribute: %s\n", items[i]->attri.ptr());
+            }
+        }
+    }
+    inline size_t count(void) { return items.count(); }
+    inline SiteInfor* siteGet(const char* Name, size_t No)
+    {
+        size_t i;
+        SiteInfor* New;
+        New = NULL;
+        for (i = 0; i < items.count(); i++)
+        {
+            if (items[i] != NULL)
+                if (items[i]->nameIs(Name))
+                {
+                    if (No < items[i]->count())
+                    {
+                        New = (SiteInfor*)malloc(sizeof(SiteInfor));
+                        New->site1 = i;
+                        New->site2 = No;
+                    }
+                }
+        }
+        return New;
+    }
+};
+
 int Pikachu::Expres::example(const char* source)
 {
     size_t i, site;
@@ -416,6 +544,8 @@ int Pikachu::Expres::example(const char* source)
     Exp::ExpPraser::rules RRR;
     Pikachu::function func__;
     Pikachu::operation op__;
+    LexSheet Ls;
+    const char* name__;
     clear();
 
     error = eme.Build<Exp::ExpLexer>(source);
@@ -477,9 +607,20 @@ int Pikachu::Expres::example(const char* source)
                 else here = left_;
                 break;
             case Exp::ExpPraser::UNIT_id_:
-                here = new Ele();
-                here->Type = Pikachu::_LeafX_;
-                formula.append(here);
+                name__ = eme.GetWord(GT->child(0)->root().site);
+                if (Ls.count() == 0)
+                {
+                    here = new Ele();
+                    here->Type = Pikachu::_LeafX_;
+                    formula.append(here);
+                    Ls.append(1, name__, "input");
+                    (*Ls[0])[0] = (void*)here;
+                }
+                else if (Ls[name__] != NULL)
+                {
+                    here = (Ele*)(*Ls[0])[0];
+                }
+                else return -12234;
                 break;
             case Exp::ExpPraser::UNIT_call_:
                 here = (Ele*)GT->child(0)->root().infor;
@@ -516,7 +657,179 @@ int Pikachu::Expres::example(const char* source)
     ParameterCount = 0;
     return 0;
 }
+int Pikachu::ActivFunc::Example(const char* source)
+{
+    using namespace LP;
+    size_t i, site, temp_;
+    int error;
+    hyperlex::Morpheme eme;
+    LP::FuncLexer::regular T;
+    LP::FuncLexer::group G;
+    GTIter iterator;
+    hyperlex::GrammarTree Tree;
+    GLTree* GT;
+    Ele* left_;
+    Ele* right_;
+    Ele* here;
+    FuncPraser::rules RRR;
+    Pikachu::function func__;
+    Pikachu::operation op__;
+    LexSheet Ls;
+    LexSheet::SiteInfor *SiteTemp_;
+    const char* name__;
+    clear();
 
+    error = eme.Build<FuncLexer>(source);
+    if (error != 0)
+    {
+        //errorCode = ErrorinputLEXICAL;
+        return error;
+    }
+    for (i = 0; i < eme.GetCount(); i++)
+    {
+        T = (FuncLexer::regular)(eme[i].accept);
+        G = (FuncLexer::group)(eme[i].category);
+        if (G == FuncLexer::_format___ || G == FuncLexer::_anntation___)
+        {
+            eme.valid(i) = false;
+        }
+    }
+    //eme.Demo(stdout);
+
+    error = Tree.build<FuncPraser>(eme);
+    if (error != 0)
+    {
+        return error;
+    }
+    //Tree.Demo(stdout, eme, Exp::ExpPraser::RulesName);
+    iterator.initial(Tree.GT);
+    
+    while (iterator.still())
+    {
+        GT = iterator.target();
+        if (iterator.state() != 0 && GT->root().rules)
+        {
+            RRR = (FuncPraser::rules)GT->root().site;
+            here = NULL;
+            SiteTemp_ = NULL;
+            switch (RRR)
+            {
+            case LP::FuncPraser::MANIFPARA_input_:
+                name__ = eme.GetWord(GT->child(1)->root().site);
+                here = new Ele();
+                here->Type = Pikachu::_LeafX_;
+                formula.append(here);
+                Ls.append(1, name__, "input");
+                (*Ls[name__])[0] = (void*)here;
+                break;
+            case LP::FuncPraser::MANIFPARA_para_:
+                name__ = eme.GetWord(GT->child(1)->root().site);
+                Ls.append(1, name__, "para");
+                site = Ls.count() - 1;
+                (*Ls[site])[0] = NewNode(Pikachu::_LeafPara_, Ls[site]->label, 0);
+                ParameterCount += 1;
+                break;
+            case LP::FuncPraser::MANIFPARA_paras_:
+                name__ = eme.GetWord(GT->child(1)->root().site);
+                site = GT->child(3)->root().site;
+                temp_ = eme.GetInt(site);
+                Ls.append(temp_, name__, "para");
+                ParameterCount += temp_;
+                site = Ls.count() - 1;
+                for (i = 0; i < temp_; i++)
+                {
+                    (*Ls[site])[i] = NewNode(Pikachu::_LeafPara_, Ls[site]->label, i);
+                }
+                break;
+            case LP::FuncPraser::DELARATION_single_:
+                name__ = eme.GetWord(GT->child(1)->root().site);
+                Ls.append(1, name__, "var");
+                break;
+            case LP::FuncPraser::DELARATION_multi_:
+                name__ = eme.GetWord(GT->child(1)->root().site);
+                site = GT->child(3)->root().site;
+                temp_ = eme.GetInt(site);
+                Ls.append(temp_, name__, "var");
+                break;
+            case LP::FuncPraser::RETURN_RETURN_:
+                here = (Ele*)GT->child(1)->root().infor;
+                OutputAppend(here);
+                here = NULL;
+                break;
+            case LP::FuncPraser::EXPRESSION_EXPRESSION_:
+                right_ = (Ele*)GT->child(2)->root().infor;
+                SiteTemp_ = (LexSheet::SiteInfor*)GT->child(0)->root().infor;
+                if (SiteTemp_ == NULL) return -5448;
+                Ls[SiteTemp_->site1]->infor[SiteTemp_->site2] = right_;
+                here = right_;
+                free((void*)SiteTemp_);
+                break;
+            case LP::FuncPraser::EXP_RIGHT_add_:
+            case LP::FuncPraser::EXP_MUL_multi_:
+                left_ = (Ele*)GT->child(0)->root().infor;
+                right_ = (Ele*)GT->child(2)->root().infor;
+                op__ = FuncLexer::operationGet(eme[GT->child(1)].accept);
+                here = NewNode(left_, right_, op__);
+                break;
+            case LP::FuncPraser::EXP_MINUS_plus_:
+                left_ = (Ele*)GT->child(1)->root().infor;
+                op__ = FuncLexer::operationGet(eme[GT->child(0)].accept);
+                if (op__ == Pikachu::_sub_) here = NewNode(left_, _minus_);
+                else here = left_;
+                break;
+            case LP::FuncPraser::UNIT_id_:
+                SiteTemp_ = (LexSheet::SiteInfor*)GT->child(0)->root().infor;
+                if (SiteTemp_ == NULL) return -548348;
+                here = (Ele*)Ls[SiteTemp_];
+                if (here == NULL) return -45784537;
+                free((void*)SiteTemp_);
+                break;
+            case LP::FuncPraser::UNIT_call_:
+                here = (Ele*)GT->child(0)->root().infor;
+                break;
+            case LP::FuncPraser::UNIT_const_:
+                site = GT->child(0)->root().site;
+                if (eme[site].accept == (int)FuncLexer::regular::_integer_)
+                    here = NewNode(eme.GetInt(site));
+                else
+                    here = NewNode(eme.GetReal(site));
+                break;
+            case LP::FuncPraser::UNIT_complex_:
+                here = (Ele*)GT->child(1)->root().infor;
+                break;
+            case LP::FuncPraser::ID_array_:
+                name__ = eme.GetWord(GT->child(0)->root().site);
+                site = GT->child(2)->root().site;
+                temp_ = eme.GetInt(site);
+                SiteTemp_ = Ls.siteGet(name__, temp_);
+                if (SiteTemp_ == NULL) return -34843;
+                break;
+            case LP::FuncPraser::ID_single_:
+                name__ = eme.GetWord(GT->child(0)->root().site);
+                SiteTemp_ = Ls.siteGet(name__, 0);
+                if (SiteTemp_ == NULL) return -34844;
+                break;
+            case LP::FuncPraser::CALL_call_1_:
+                left_ = (Ele*)GT->child(2)->root().infor;
+                func__ = FuncLexer::functionGet(eme[GT->child(0)].accept);
+                here = NewNode(left_, func__);
+                break;
+            case LP::FuncPraser::CALL_call_2_:
+                left_ = (Ele*)GT->child(2)->root().infor;
+                right_ = (Ele*)GT->child(4)->root().infor;
+                here = NewNode(left_, right_, _pow_);
+                break;
+            default:
+                break;
+            }
+            GT->root().infor = (here == NULL ? (void*)SiteTemp_ : (void*)here);
+        }
+        iterator.next();
+    }
+    InputDim.recount(1);
+    InputDim[0] = 1;
+    return 0;
+}
 
 
 namespace Rtensor
@@ -640,6 +953,8 @@ namespace Rtensor
         }
         return 0;
     }
+
+    
 }
 namespace LP
 { 
@@ -1021,998 +1336,1047 @@ namespace LP
     1, \
     1 };
 
-int Lfunc::next(int state, const char c)
-{
-    switch (state)
-    {
-    case 0:
-        if (c == (char)9) return 28;
-        else if (c == (char)10) return 27;
-        else if (c == ' ') return 26;
-        else if (c == '(') return 35;
-        else if (c == ')') return 36;
-        else if (c == '*') return 45;
-        else if (c == '+') return 44;
-        else if (c == ',') return 32;
-        else if (c == '-') return 43;
-        else if (c == '.') return 31;
-        else if (c == '/') return 46;
-        else if ('0' <= c && c <= '9') return 2;
-        else if (c == ':') return 30;
-        else if (c == ';') return 29;
-        else if (c == '<') return 39;
-        else if (c == '=') return 47;
-        else if (c == '>') return 40;
-        else if ('A' <= c && c <= 'Z') return 1;
-        else if (c == '[') return 37;
-        else if (c == ']') return 38;
-        else if (c == '_') return 1;
-        else if ('a' <= c && c <= 'b') return 1;
-        else if (c == 'c') return 69;
-        else if (c == 'd') return 53;
-        else if (c == 'e') return 68;
-        else if (c == 'f') return 66;
-        else if ('g' <= c && c <= 'h') return 1;
-        else if (c == 'i') return 52;
-        else if ('j' <= c && c <= 'k') return 1;
-        else if (c == 'l') return 59;
-        else if (c == 'm') return 60;
-        else if (c == 'n') return 1;
-        else if (c == 'o') return 78;
-        else if (c == 'p') return 65;
-        else if (c == 'q') return 1;
-        else if (c == 'r') return 58;
-        else if (c == 's') return 61;
-        else if (c == 't') return 1;
-        else if (c == 'u') return 73;
-        else if ('v' <= c && c <= 'z') return 1;
-        else if (c == '{') return 33;
-        else if (c == '}') return 34;
-        else return 0;
-    case 1:
-        if ('0' <= c && c <= '9') return 1;
-        else if ('A' <= c && c <= 'Z') return 1;
-        else if (c == '_') return 1;
-        else if ('a' <= c && c <= 'z') return 1;
-        else return 0;
-    case 2:
-        if (c == '.') return 48;
-        else if ('0' <= c && c <= '9') return 2;
-        else return 0;
-    case 3:
-        if ('0' <= c && c <= '9') return 3;
-        else if (c == 'E') return 82;
-        else if (c == 'e') return 82;
-        else return 0;
-    case 4:
-        if ('0' <= c && c <= '9') return 1;
-        else if ('A' <= c && c <= 'Z') return 1;
-        else if (c == '_') return 1;
-        else if ('a' <= c && c <= 'h') return 1;
-        else if (c == 'i') return 62;
-        else if ('j' <= c && c <= 'z') return 1;
-        else return 0;
-    case 5:
-        if ('0' <= c && c <= '9') return 1;
-        else if ('A' <= c && c <= 'Z') return 1;
-        else if (c == '_') return 1;
-        else if ('a' <= c && c <= 'z') return 1;
-        else return 0;
-    case 6:
-        if ('0' <= c && c <= '9') return 1;
-        else if ('A' <= c && c <= 'Z') return 1;
-        else if (c == '_') return 1;
-        else if ('a' <= c && c <= 'z') return 1;
-        else return 0;
-    case 7:
-        if ('0' <= c && c <= '9') return 1;
-        else if ('A' <= c && c <= 'Z') return 1;
-        else if (c == '_') return 1;
-        else if ('a' <= c && c <= 'n') return 1;
-        else if (c == 'o') return 85;
-        else if ('p' <= c && c <= 'z') return 1;
-        else return 0;
-    case 8:
-        if ('0' <= c && c <= '9') return 1;
-        else if ('A' <= c && c <= 'Z') return 1;
-        else if (c == '_') return 1;
-        else if ('a' <= c && c <= 'z') return 1;
-        else return 0;
-    case 9:
-        if ('0' <= c && c <= '9') return 1;
-        else if ('A' <= c && c <= 'Z') return 1;
-        else if (c == '_') return 1;
-        else if ('a' <= c && c <= 'z') return 1;
-        else return 0;
-    case 10:
-        if ('0' <= c && c <= '9') return 1;
-        else if ('A' <= c && c <= 'Z') return 1;
-        else if (c == '_') return 1;
-        else if ('a' <= c && c <= 'z') return 1;
-        else return 0;
-    case 11:
-        if ('0' <= c && c <= '9') return 1;
-        else if ('A' <= c && c <= 'Z') return 1;
-        else if (c == '_') return 1;
-        else if ('a' <= c && c <= 'z') return 1;
-        else return 0;
-    case 12:
-        if ('0' <= c && c <= '9') return 1;
-        else if ('A' <= c && c <= 'Z') return 1;
-        else if (c == '_') return 1;
-        else if ('a' <= c && c <= 'z') return 1;
-        else return 0;
-    case 13:
-        if ('0' <= c && c <= '9') return 1;
-        else if ('A' <= c && c <= 'Z') return 1;
-        else if (c == '_') return 1;
-        else if ('a' <= c && c <= 'z') return 1;
-        else return 0;
-    case 14:
-        if ('0' <= c && c <= '9') return 1;
-        else if ('A' <= c && c <= 'Z') return 1;
-        else if (c == '_') return 1;
-        else if ('a' <= c && c <= 'z') return 1;
-        else return 0;
-    case 15:
-        if ('0' <= c && c <= '9') return 1;
-        else if ('A' <= c && c <= 'Z') return 1;
-        else if (c == '_') return 1;
-        else if ('a' <= c && c <= 'z') return 1;
-        else return 0;
-    case 16:
-        if ('0' <= c && c <= '9') return 1;
-        else if ('A' <= c && c <= 'Z') return 1;
-        else if (c == '_') return 1;
-        else if ('a' <= c && c <= 'z') return 1;
-        else return 0;
-    case 17:
-        if ('0' <= c && c <= '9') return 1;
-        else if ('A' <= c && c <= 'Z') return 1;
-        else if (c == '_') return 1;
-        else if ('a' <= c && c <= 'z') return 1;
-        else return 0;
-    case 18:
-        if ('0' <= c && c <= '9') return 1;
-        else if ('A' <= c && c <= 'Z') return 1;
-        else if (c == '_') return 1;
-        else if ('a' <= c && c <= 'z') return 1;
-        else return 0;
-    case 19:
-        if ('0' <= c && c <= '9') return 1;
-        else if ('A' <= c && c <= 'Z') return 1;
-        else if (c == '_') return 1;
-        else if ('a' <= c && c <= 's') return 1;
-        else if (c == 't') return 13;
-        else if ('u' <= c && c <= 'z') return 1;
-        else return 0;
-    case 20:
-        if ('0' <= c && c <= '9') return 1;
-        else if ('A' <= c && c <= 'Z') return 1;
-        else if (c == '_') return 1;
-        else if ('a' <= c && c <= 'z') return 1;
-        else return 0;
-    case 21:
-        if ('0' <= c && c <= '9') return 1;
-        else if ('A' <= c && c <= 'Z') return 1;
-        else if (c == '_') return 1;
-        else if ('a' <= c && c <= 'z') return 1;
-        else return 0;
-    case 22:
-        if ('0' <= c && c <= '9') return 1;
-        else if ('A' <= c && c <= 'Z') return 1;
-        else if (c == '_') return 1;
-        else if ('a' <= c && c <= 'z') return 1;
-        else return 0;
-    case 23:
-        if ('0' <= c && c <= '9') return 1;
-        else if ('A' <= c && c <= 'Z') return 1;
-        else if (c == '_') return 1;
-        else if ('a' <= c && c <= 'z') return 1;
-        else return 0;
-    case 24:
-        if ('0' <= c && c <= '9') return 1;
-        else if ('A' <= c && c <= 'Z') return 1;
-        else if (c == '_') return 1;
-        else if ('a' <= c && c <= 'z') return 1;
-        else return 0;
-    case 25:
-        if ('0' <= c && c <= '9') return 1;
-        else if ('A' <= c && c <= 'Z') return 1;
-        else if (c == '_') return 1;
-        else if ('a' <= c && c <= 'z') return 1;
-        else return 0;
-    case 26:
-        if (c == ' ') return 26;
-        else return 0;
-    case 27:
-        if (c == (char)10) return 27;
-        else return 0;
-    case 28:
-        return 0;
-    case 29:
-        return 0;
-    case 30:
-        return 0;
-    case 31:
-        return 0;
-    case 32:
-        return 0;
-    case 33:
-        return 0;
-    case 34:
-        return 0;
-    case 35:
-        return 0;
-    case 36:
-        return 0;
-    case 37:
-        return 0;
-    case 38:
-        return 0;
-    case 39:
-        return 0;
-    case 40:
-        return 0;
-    case 41:
-        return 0;
-    case 42:
-        if ((char)0 <= c && c <= ')') return 81;
-        else if (c == '*') return 93;
-        else if ('+' <= c && c <= (char)127) return 81;
-        else return 0;
-    case 43:
-        if ('0' <= c && c <= '9') return 2;
-        else return 0;
-    case 44:
-        if ('0' <= c && c <= '9') return 2;
-        else return 0;
-    case 45:
-        return 0;
-    case 46:
-        if (c == '*') return 81;
-        else if (c == '/') return 92;
-        else return 0;
-    case 47:
-        return 0;
-    case 48:
-        if ('0' <= c && c <= '9') return 3;
-        else return 0;
-    case 49:
-        if ('0' <= c && c <= '9') return 1;
-        else if ('A' <= c && c <= 'Z') return 1;
-        else if (c == '_') return 1;
-        else if (c == 'a') return 11;
-        else if ('b' <= c && c <= 'z') return 1;
-        else return 0;
-    case 50:
-        if ('0' <= c && c <= '9') return 1;
-        else if ('A' <= c && c <= 'Z') return 1;
-        else if (c == '_') return 1;
-        else if ('a' <= c && c <= 'c') return 1;
-        else if (c == 'd') return 5;
-        else if ('e' <= c && c <= 'z') return 1;
-        else return 0;
-    case 51:
-        if ('0' <= c && c <= '9') return 1;
-        else if ('A' <= c && c <= 'Z') return 1;
-        else if (c == '_') return 1;
-        else if ('a' <= c && c <= 'd') return 1;
-        else if (c == 'e') return 18;
-        else if ('f' <= c && c <= 'z') return 1;
-        else return 0;
-    case 52:
-        if ('0' <= c && c <= '9') return 1;
-        else if ('A' <= c && c <= 'Z') return 1;
-        else if (c == '_') return 1;
-        else if ('a' <= c && c <= 'e') return 1;
-        else if (c == 'f') return 17;
-        else if ('g' <= c && c <= 'm') return 1;
-        else if (c == 'n') return 101;
-        else if ('o' <= c && c <= 'z') return 1;
-        else return 0;
-    case 53:
-        if ('0' <= c && c <= '9') return 1;
-        else if ('A' <= c && c <= 'Z') return 1;
-        else if (c == '_') return 1;
-        else if ('a' <= c && c <= 'd') return 1;
-        else if (c == 'e') return 94;
-        else if ('f' <= c && c <= 'z') return 1;
-        else return 0;
-    case 54:
-        if ('0' <= c && c <= '9') return 1;
-        else if ('A' <= c && c <= 'Z') return 1;
-        else if (c == '_') return 1;
-        else if ('a' <= c && c <= 'f') return 1;
-        else if (c == 'g') return 23;
-        else if ('h' <= c && c <= 'z') return 1;
-        else return 0;
-    case 55:
-        if ('0' <= c && c <= '9') return 1;
-        else if ('A' <= c && c <= 'Z') return 1;
-        else if (c == '_') return 1;
-        else if ('a' <= c && c <= 'h') return 1;
-        else if (c == 'i') return 84;
-        else if ('j' <= c && c <= 'z') return 1;
-        else return 0;
-    case 56:
-        if ('0' <= c && c <= '9') return 1;
-        else if ('A' <= c && c <= 'Z') return 1;
-        else if (c == '_') return 1;
-        else if ('a' <= c && c <= 'k') return 1;
-        else if (c == 'l') return 12;
-        else if ('m' <= c && c <= 'z') return 1;
-        else return 0;
-    case 57:
-        if ('0' <= c && c <= '9') return 1;
-        else if ('A' <= c && c <= 'Z') return 1;
-        else if (c == '_') return 1;
-        else if (c == 'a') return 56;
-        else if ('b' <= c && c <= 's') return 1;
-        else if (c == 't') return 75;
-        else if ('u' <= c && c <= 'z') return 1;
-        else return 0;
-    case 58:
-        if ('0' <= c && c <= '9') return 1;
-        else if ('A' <= c && c <= 'Z') return 1;
-        else if (c == '_') return 1;
-        else if ('a' <= c && c <= 'd') return 1;
-        else if (c == 'e') return 57;
-        else if ('f' <= c && c <= 'z') return 1;
-        else return 0;
-    case 59:
-        if ('0' <= c && c <= '9') return 1;
-        else if ('A' <= c && c <= 'Z') return 1;
-        else if (c == '_') return 1;
-        else if ('a' <= c && c <= 'm') return 1;
-        else if (c == 'n') return 22;
-        else if (c == 'o') return 54;
-        else if ('p' <= c && c <= 'z') return 1;
-        else return 0;
-    case 60:
-        if ('0' <= c && c <= '9') return 1;
-        else if ('A' <= c && c <= 'Z') return 1;
-        else if (c == '_') return 1;
-        else if (c == 'a') return 98;
-        else if ('b' <= c && c <= 'z') return 1;
-        else return 0;
-    case 61:
-        if ('0' <= c && c <= '9') return 1;
-        else if ('A' <= c && c <= 'Z') return 1;
-        else if (c == '_') return 1;
-        else if ('a' <= c && c <= 'h') return 1;
-        else if (c == 'i') return 86;
-        else if ('j' <= c && c <= 'p') return 1;
-        else if (c == 'q') return 74;
-        else if ('r' <= c && c <= 'z') return 1;
-        else return 0;
-    case 62:
-        if ('0' <= c && c <= '9') return 1;
-        else if ('A' <= c && c <= 'Z') return 1;
-        else if (c == '_') return 1;
-        else if ('a' <= c && c <= 'n') return 1;
-        else if (c == 'o') return 102;
-        else if ('p' <= c && c <= 'z') return 1;
-        else return 0;
-    case 63:
-        if ('0' <= c && c <= '9') return 1;
-        else if ('A' <= c && c <= 'Z') return 1;
-        else if (c == '_') return 1;
-        else if ('a' <= c && c <= 'o') return 1;
-        else if (c == 'p') return 21;
-        else if ('q' <= c && c <= 'z') return 1;
-        else return 0;
-    case 64:
-        if ('0' <= c && c <= '9') return 1;
-        else if ('A' <= c && c <= 'Z') return 1;
-        else if (c == '_') return 1;
-        else if ('a' <= c && c <= 'q') return 1;
-        else if (c == 'r') return 95;
-        else if ('s' <= c && c <= 'z') return 1;
-        else return 0;
-    case 65:
-        if ('0' <= c && c <= '9') return 1;
-        else if ('A' <= c && c <= 'Z') return 1;
-        else if (c == '_') return 1;
-        else if (c == 'a') return 87;
-        else if ('b' <= c && c <= 'n') return 1;
-        else if (c == 'o') return 79;
-        else if ('p' <= c && c <= 'z') return 1;
-        else return 0;
-    case 66:
-        if ('0' <= c && c <= '9') return 1;
-        else if ('A' <= c && c <= 'Z') return 1;
-        else if (c == '_') return 1;
-        else if ('a' <= c && c <= 'n') return 1;
-        else if (c == 'o') return 96;
-        else if ('p' <= c && c <= 't') return 1;
-        else if (c == 'u') return 90;
-        else if ('v' <= c && c <= 'z') return 1;
-        else return 0;
-    case 67:
-        if ('0' <= c && c <= '9') return 1;
-        else if ('A' <= c && c <= 'Z') return 1;
-        else if (c == '_') return 1;
-        else if ('a' <= c && c <= 'r') return 1;
-        else if (c == 's') return 51;
-        else if ('t' <= c && c <= 'z') return 1;
-        else return 0;
-    case 68:
-        if ('0' <= c && c <= '9') return 1;
-        else if ('A' <= c && c <= 'Z') return 1;
-        else if (c == '_') return 1;
-        else if ('a' <= c && c <= 'k') return 1;
-        else if (c == 'l') return 67;
-        else if ('m' <= c && c <= 'w') return 1;
-        else if (c == 'x') return 63;
-        else if ('y' <= c && c <= 'z') return 1;
-        else return 0;
-    case 69:
-        if ('0' <= c && c <= '9') return 1;
-        else if ('A' <= c && c <= 'Z') return 1;
-        else if (c == '_') return 1;
-        else if ('a' <= c && c <= 'n') return 1;
-        else if (c == 'o') return 88;
-        else if ('p' <= c && c <= 'z') return 1;
-        else return 0;
-    case 70:
-        if ('0' <= c && c <= '9') return 1;
-        else if ('A' <= c && c <= 'Z') return 1;
-        else if (c == '_') return 1;
-        else if ('a' <= c && c <= 's') return 1;
-        else if (c == 't') return 14;
-        else if ('u' <= c && c <= 'z') return 1;
-        else return 0;
-    case 71:
-        if ('0' <= c && c <= '9') return 1;
-        else if ('A' <= c && c <= 'Z') return 1;
-        else if (c == '_') return 1;
-        else if ('a' <= c && c <= 'b') return 1;
-        else if (c == 'c') return 103;
-        else if ('d' <= c && c <= 'z') return 1;
-        else return 0;
-    case 72:
-        if ('0' <= c && c <= '9') return 1;
-        else if ('A' <= c && c <= 'Z') return 1;
-        else if (c == '_') return 1;
-        else if ('a' <= c && c <= 'm') return 1;
-        else if (c == 'n') return 70;
-        else if ('o' <= c && c <= 'z') return 1;
-        else return 0;
-    case 73:
-        if ('0' <= c && c <= '9') return 1;
-        else if ('A' <= c && c <= 'Z') return 1;
-        else if (c == '_') return 1;
-        else if ('a' <= c && c <= 'h') return 1;
-        else if (c == 'i') return 72;
-        else if ('j' <= c && c <= 'z') return 1;
-        else return 0;
-    case 74:
-        if ('0' <= c && c <= '9') return 1;
-        else if ('A' <= c && c <= 'Z') return 1;
-        else if (c == '_') return 1;
-        else if ('a' <= c && c <= 'q') return 1;
-        else if (c == 'r') return 89;
-        else if ('s' <= c && c <= 'z') return 1;
-        else return 0;
-    case 75:
-        if ('0' <= c && c <= '9') return 1;
-        else if ('A' <= c && c <= 'Z') return 1;
-        else if (c == '_') return 1;
-        else if ('a' <= c && c <= 't') return 1;
-        else if (c == 'u') return 64;
-        else if ('v' <= c && c <= 'z') return 1;
-        else return 0;
-    case 76:
-        if ('0' <= c && c <= '9') return 1;
-        else if ('A' <= c && c <= 'Z') return 1;
-        else if (c == '_') return 1;
-        else if ('a' <= c && c <= 'o') return 1;
-        else if (c == 'p') return 91;
-        else if ('q' <= c && c <= 'z') return 1;
-        else return 0;
-    case 77:
-        if ('0' <= c && c <= '9') return 1;
-        else if ('A' <= c && c <= 'Z') return 1;
-        else if (c == '_') return 1;
-        else if ('a' <= c && c <= 's') return 1;
-        else if (c == 't') return 76;
-        else if ('u' <= c && c <= 'z') return 1;
-        else return 0;
-    case 78:
-        if ('0' <= c && c <= '9') return 1;
-        else if ('A' <= c && c <= 'Z') return 1;
-        else if (c == '_') return 1;
-        else if ('a' <= c && c <= 't') return 1;
-        else if (c == 'u') return 77;
-        else if ('v' <= c && c <= 'z') return 1;
-        else return 0;
-    case 79:
-        if ('0' <= c && c <= '9') return 1;
-        else if ('A' <= c && c <= 'Z') return 1;
-        else if (c == '_') return 1;
-        else if ('a' <= c && c <= 'v') return 1;
-        else if (c == 'w') return 25;
-        else if ('x' <= c && c <= 'z') return 1;
-        else return 0;
-    case 80:
-        if ('0' <= c && c <= '9') return 80;
-        else return 0;
-    case 81:
-        if ((char)0 <= c && c <= ')') return 81;
-        else if (c == '*') return 93;
-        else if ('+' <= c && c <= (char)127) return 81;
-        else return 0;
-    case 82:
-        if (c == '+') return 83;
-        else if (c == '-') return 83;
-        else if ('0' <= c && c <= '9') return 80;
-        else return 0;
-    case 83:
-        if ('0' <= c && c <= '9') return 80;
-        else return 0;
-    case 84:
-        if ('0' <= c && c <= '9') return 1;
-        else if ('A' <= c && c <= 'Z') return 1;
-        else if (c == '_') return 1;
-        else if ('a' <= c && c <= 'e') return 1;
-        else if (c == 'f') return 7;
-        else if ('g' <= c && c <= 'z') return 1;
-        else return 0;
-    case 85:
-        if ('0' <= c && c <= '9') return 1;
-        else if ('A' <= c && c <= 'Z') return 1;
-        else if (c == '_') return 1;
-        else if ('a' <= c && c <= 'k') return 1;
-        else if (c == 'l') return 50;
-        else if ('m' <= c && c <= 'z') return 1;
-        else return 0;
-    case 86:
-        if ('0' <= c && c <= '9') return 1;
-        else if ('A' <= c && c <= 'Z') return 1;
-        else if (c == '_') return 1;
-        else if ('a' <= c && c <= 'm') return 1;
-        else if (c == 'n') return 19;
-        else if ('o' <= c && c <= 'z') return 1;
-        else return 0;
-    case 87:
-        if ('0' <= c && c <= '9') return 1;
-        else if ('A' <= c && c <= 'Z') return 1;
-        else if (c == '_') return 1;
-        else if ('a' <= c && c <= 'q') return 1;
-        else if (c == 'r') return 49;
-        else if ('s' <= c && c <= 'z') return 1;
-        else return 0;
-    case 88:
-        if ('0' <= c && c <= '9') return 1;
-        else if ('A' <= c && c <= 'Z') return 1;
-        else if (c == '_') return 1;
-        else if ('a' <= c && c <= 'r') return 1;
-        else if (c == 's') return 20;
-        else if ('t' <= c && c <= 'z') return 1;
-        else return 0;
-    case 89:
-        if ('0' <= c && c <= '9') return 1;
-        else if ('A' <= c && c <= 'Z') return 1;
-        else if (c == '_') return 1;
-        else if ('a' <= c && c <= 's') return 1;
-        else if (c == 't') return 24;
-        else if ('u' <= c && c <= 'z') return 1;
-        else return 0;
-    case 90:
-        if ('0' <= c && c <= '9') return 1;
-        else if ('A' <= c && c <= 'Z') return 1;
-        else if (c == '_') return 1;
-        else if ('a' <= c && c <= 'm') return 1;
-        else if (c == 'n') return 71;
-        else if ('o' <= c && c <= 'z') return 1;
-        else return 0;
-    case 91:
-        if ('0' <= c && c <= '9') return 1;
-        else if ('A' <= c && c <= 'Z') return 1;
-        else if (c == '_') return 1;
-        else if ('a' <= c && c <= 't') return 1;
-        else if (c == 'u') return 97;
-        else if ('v' <= c && c <= 'z') return 1;
-        else return 0;
-    case 92:
-        if ((char)0 <= c && c <= (char)9) return 92;
-        else if (c == (char)10) return 41;
-        else if ((char)11 <= c && c <= (char)127) return 92;
-        else return 0;
-    case 93:
-        if ((char)0 <= c && c <= ')') return 81;
-        else if (c == '*') return 93;
-        else if ('+' <= c && c <= '.') return 81;
-        else if (c == '/') return 42;
-        else if ('0' <= c && c <= (char)127) return 81;
-        else return 0;
-    case 94:
-        if ('0' <= c && c <= '9') return 1;
-        else if ('A' <= c && c <= 'Z') return 1;
-        else if (c == '_') return 1;
-        else if ('a' <= c && c <= 'e') return 1;
-        else if (c == 'f') return 8;
-        else if ('g' <= c && c <= 'z') return 1;
-        else return 0;
-    case 95:
-        if ('0' <= c && c <= '9') return 1;
-        else if ('A' <= c && c <= 'Z') return 1;
-        else if (c == '_') return 1;
-        else if ('a' <= c && c <= 'm') return 1;
-        else if (c == 'n') return 15;
-        else if ('o' <= c && c <= 'z') return 1;
-        else return 0;
-    case 96:
-        if ('0' <= c && c <= '9') return 1;
-        else if ('A' <= c && c <= 'Z') return 1;
-        else if (c == '_') return 1;
-        else if ('a' <= c && c <= 'q') return 1;
-        else if (c == 'r') return 16;
-        else if ('s' <= c && c <= 'z') return 1;
-        else return 0;
-    case 97:
-        if ('0' <= c && c <= '9') return 1;
-        else if ('A' <= c && c <= 'Z') return 1;
-        else if (c == '_') return 1;
-        else if ('a' <= c && c <= 's') return 1;
-        else if (c == 't') return 10;
-        else if ('u' <= c && c <= 'z') return 1;
-        else return 0;
-    case 98:
-        if ('0' <= c && c <= '9') return 1;
-        else if ('A' <= c && c <= 'Z') return 1;
-        else if (c == '_') return 1;
-        else if ('a' <= c && c <= 'm') return 1;
-        else if (c == 'n') return 55;
-        else if ('o' <= c && c <= 'z') return 1;
-        else return 0;
-    case 99:
-        if ('0' <= c && c <= '9') return 1;
-        else if ('A' <= c && c <= 'Z') return 1;
-        else if (c == '_') return 1;
-        else if ('a' <= c && c <= 's') return 1;
-        else if (c == 't') return 9;
-        else if ('u' <= c && c <= 'z') return 1;
-        else return 0;
-    case 100:
-        if ('0' <= c && c <= '9') return 1;
-        else if ('A' <= c && c <= 'Z') return 1;
-        else if (c == '_') return 1;
-        else if ('a' <= c && c <= 't') return 1;
-        else if (c == 'u') return 99;
-        else if ('v' <= c && c <= 'z') return 1;
-        else return 0;
-    case 101:
-        if ('0' <= c && c <= '9') return 1;
-        else if ('A' <= c && c <= 'Z') return 1;
-        else if (c == '_') return 1;
-        else if ('a' <= c && c <= 'o') return 1;
-        else if (c == 'p') return 100;
-        else if ('q' <= c && c <= 'z') return 1;
-        else return 0;
-    case 102:
-        if ('0' <= c && c <= '9') return 1;
-        else if ('A' <= c && c <= 'Z') return 1;
-        else if (c == '_') return 1;
-        else if ('a' <= c && c <= 'm') return 1;
-        else if (c == 'n') return 6;
-        else if ('o' <= c && c <= 'z') return 1;
-        else return 0;
-    case 103:
-        if ('0' <= c && c <= '9') return 1;
-        else if ('A' <= c && c <= 'Z') return 1;
-        else if (c == '_') return 1;
-        else if ('a' <= c && c <= 's') return 1;
-        else if (c == 't') return 4;
-        else if ('u' <= c && c <= 'z') return 1;
-        else return 0;
-    }
-    return 0;
-}
-int Lfunc::action(int state)
-{
-    switch (state)
-    {
-    case 1:
-        return 1;//id: id
-    case 2:
-        return 2;//number: integer
-    case 3:
-        return 3;//number: realC
-    case 4:
-        return 4;//reserved: funct
-    case 5:
-        return 5;//reserved: manifold
-    case 6:
-        return 6;//reserved: function
-    case 7:
-        return 7;//reserved: manif
-    case 8:
-        return 8;//reserved: def
-    case 9:
-        return 9;//reserved: input
-    case 10:
-        return 10;//reserved: output
-    case 11:
-        return 11;//reserved: para
-    case 12:
-        return 12;//reserved: real
-    case 13:
-        return 13;//reserved: sint
-    case 14:
-        return 14;//reserved: uint
-    case 15:
-        return 15;//reserved: return
-    case 16:
-        return 16;//reserved: for
-    case 17:
-        return 17;//reserved: if
-    case 18:
-        return 18;//reserved: else
-    case 19:
-        return 19;//function1: sin
-    case 20:
-        return 20;//function1: cos
-    case 21:
-        return 21;//function1: exp
-    case 22:
-        return 22;//function1: ln
-    case 23:
-        return 23;//function1: log
-    case 24:
-        return 24;//function1: sqrt
-    case 25:
-        return 25;//function2: pow
-    case 26:
-        return 26;//format: spaces
-    case 27:
-        return 27;//format: enters
-    case 28:
-        return 28;//format: tab
-    case 29:
-        return 29;//division: semicolon
-    case 30:
-        return 30;//division: colon
-    case 31:
-        return 31;//division: dot
-    case 32:
-        return 32;//division: comma
-    case 33:
-        return 33;//braket: braceL
-    case 34:
-        return 34;//braket: braceR
-    case 35:
-        return 35;//braket: left
-    case 36:
-        return 36;//braket: right
-    case 37:
-        return 37;//braket: squareL
-    case 38:
-        return 38;//braket: squareR
-    case 39:
-        return 39;//braket: angleL
-    case 40:
-        return 40;//braket: angleR
-    case 41:
-        return 41;//anntation: anntationS
-    case 42:
-        return 42;//anntation: anntationM
-    case 43:
-        return 43;//operation: sub
-    case 44:
-        return 44;//operation: add
-    case 45:
-        return 45;//operation: multi
-    case 46:
-        return 46;//operation: div
-    case 47:
-        return 47;//value: value
-    case 49:
-        return 1;//id: id
-    case 50:
-        return 1;//id: id
-    case 51:
-        return 1;//id: id
-    case 52:
-        return 1;//id: id
-    case 53:
-        return 1;//id: id
-    case 54:
-        return 1;//id: id
-    case 55:
-        return 1;//id: id
-    case 56:
-        return 1;//id: id
-    case 57:
-        return 1;//id: id
-    case 58:
-        return 1;//id: id
-    case 59:
-        return 1;//id: id
-    case 60:
-        return 1;//id: id
-    case 61:
-        return 1;//id: id
-    case 62:
-        return 1;//id: id
-    case 63:
-        return 1;//id: id
-    case 64:
-        return 1;//id: id
-    case 65:
-        return 1;//id: id
-    case 66:
-        return 1;//id: id
-    case 67:
-        return 1;//id: id
-    case 68:
-        return 1;//id: id
-    case 69:
-        return 1;//id: id
-    case 70:
-        return 1;//id: id
-    case 71:
-        return 1;//id: id
-    case 72:
-        return 1;//id: id
-    case 73:
-        return 1;//id: id
-    case 74:
-        return 1;//id: id
-    case 75:
-        return 1;//id: id
-    case 76:
-        return 1;//id: id
-    case 77:
-        return 1;//id: id
-    case 78:
-        return 1;//id: id
-    case 79:
-        return 1;//id: id
-    case 80:
-        return 3;//number: realC
-    case 84:
-        return 1;//id: id
-    case 85:
-        return 1;//id: id
-    case 86:
-        return 1;//id: id
-    case 87:
-        return 1;//id: id
-    case 88:
-        return 1;//id: id
-    case 89:
-        return 1;//id: id
-    case 90:
-        return 1;//id: id
-    case 91:
-        return 1;//id: id
-    case 94:
-        return 1;//id: id
-    case 95:
-        return 1;//id: id
-    case 96:
-        return 1;//id: id
-    case 97:
-        return 1;//id: id
-    case 98:
-        return 1;//id: id
-    case 99:
-        return 1;//id: id
-    case 100:
-        return 1;//id: id
-    case 101:
-        return 1;//id: id
-    case 102:
-        return 1;//id: id
-    case 103:
-        return 1;//id: id
-    }
-    return 0;
-}
-int Lfunc::GroupGet(int accept)
-{
-    switch (accept)
-    {
-    case 1:
-        return 1;//id: id
-    case 2:
-        return 2;//number: integer
-    case 3:
-        return 2;//number: realC
-    case 4:
-        return 3;//reserved: funct
-    case 5:
-        return 3;//reserved: manifold
-    case 6:
-        return 3;//reserved: function
-    case 7:
-        return 3;//reserved: manif
-    case 8:
-        return 3;//reserved: def
-    case 9:
-        return 3;//reserved: input
-    case 10:
-        return 3;//reserved: output
-    case 11:
-        return 3;//reserved: para
-    case 12:
-        return 3;//reserved: real
-    case 13:
-        return 3;//reserved: sint
-    case 14:
-        return 3;//reserved: uint
-    case 15:
-        return 3;//reserved: return
-    case 16:
-        return 3;//reserved: for
-    case 17:
-        return 3;//reserved: if
-    case 18:
-        return 3;//reserved: else
-    case 19:
-        return 4;//function1: sin
-    case 20:
-        return 4;//function1: cos
-    case 21:
-        return 4;//function1: exp
-    case 22:
-        return 4;//function1: ln
-    case 23:
-        return 4;//function1: log
-    case 24:
-        return 4;//function1: sqrt
-    case 25:
-        return 5;//function2: pow
-    case 26:
-        return 6;//format: spaces
-    case 27:
-        return 6;//format: enters
-    case 28:
-        return 6;//format: tab
-    case 29:
-        return 7;//division: semicolon
-    case 30:
-        return 7;//division: colon
-    case 31:
-        return 7;//division: dot
-    case 32:
-        return 7;//division: comma
-    case 33:
-        return 8;//braket: braceL
-    case 34:
-        return 8;//braket: braceR
-    case 35:
-        return 8;//braket: left
-    case 36:
-        return 8;//braket: right
-    case 37:
-        return 8;//braket: squareL
-    case 38:
-        return 8;//braket: squareR
-    case 39:
-        return 8;//braket: angleL
-    case 40:
-        return 8;//braket: angleR
-    case 41:
-        return 9;//anntation: anntationS
-    case 42:
-        return 9;//anntation: anntationM
-    case 43:
-        return 10;//operation: sub
-    case 44:
-        return 10;//operation: add
-    case 45:
-        return 10;//operation: multi
-    case 46:
-        return 10;//operation: div
-    case 47:
-        return 11;//value: value
-    }
-    return 0;
-}
 
+    int FuncLexer::next(int state, const char c)
+    {
+        switch (state)
+        {
+        case 0:
+            if (c == (char)9) return 28;
+            else if (c == (char)10) return 27;
+            else if (c == ' ') return 26;
+            else if (c == '(') return 35;
+            else if (c == ')') return 36;
+            else if (c == '*') return 43;
+            else if (c == '+') return 46;
+            else if (c == ',') return 32;
+            else if (c == '-') return 45;
+            else if (c == '.') return 31;
+            else if (c == '/') return 44;
+            else if ('0' <= c && c <= '9') return 2;
+            else if (c == ':') return 30;
+            else if (c == ';') return 29;
+            else if (c == '<') return 39;
+            else if (c == '=') return 47;
+            else if (c == '>') return 40;
+            else if ('A' <= c && c <= 'Z') return 1;
+            else if (c == '[') return 37;
+            else if (c == ']') return 38;
+            else if (c == '_') return 1;
+            else if ('a' <= c && c <= 'b') return 1;
+            else if (c == 'c') return 69;
+            else if (c == 'd') return 53;
+            else if (c == 'e') return 68;
+            else if (c == 'f') return 66;
+            else if ('g' <= c && c <= 'h') return 1;
+            else if (c == 'i') return 52;
+            else if ('j' <= c && c <= 'k') return 1;
+            else if (c == 'l') return 59;
+            else if (c == 'm') return 60;
+            else if (c == 'n') return 1;
+            else if (c == 'o') return 78;
+            else if (c == 'p') return 65;
+            else if (c == 'q') return 1;
+            else if (c == 'r') return 58;
+            else if (c == 's') return 61;
+            else if (c == 't') return 1;
+            else if (c == 'u') return 73;
+            else if ('v' <= c && c <= 'z') return 1;
+            else if (c == '{') return 33;
+            else if (c == '}') return 34;
+            else return 0;
+        case 1:
+            if ('0' <= c && c <= '9') return 1;
+            else if ('A' <= c && c <= 'Z') return 1;
+            else if (c == '_') return 1;
+            else if ('a' <= c && c <= 'z') return 1;
+            else return 0;
+        case 2:
+            if (c == '.') return 48;
+            else if ('0' <= c && c <= '9') return 2;
+            else return 0;
+        case 3:
+            if ('0' <= c && c <= '9') return 3;
+            else if (c == 'E') return 82;
+            else if (c == 'e') return 82;
+            else return 0;
+        case 4:
+            if ('0' <= c && c <= '9') return 1;
+            else if ('A' <= c && c <= 'Z') return 1;
+            else if (c == '_') return 1;
+            else if ('a' <= c && c <= 'h') return 1;
+            else if (c == 'i') return 62;
+            else if ('j' <= c && c <= 'z') return 1;
+            else return 0;
+        case 5:
+            if ('0' <= c && c <= '9') return 1;
+            else if ('A' <= c && c <= 'Z') return 1;
+            else if (c == '_') return 1;
+            else if ('a' <= c && c <= 'z') return 1;
+            else return 0;
+        case 6:
+            if ('0' <= c && c <= '9') return 1;
+            else if ('A' <= c && c <= 'Z') return 1;
+            else if (c == '_') return 1;
+            else if ('a' <= c && c <= 'z') return 1;
+            else return 0;
+        case 7:
+            if ('0' <= c && c <= '9') return 1;
+            else if ('A' <= c && c <= 'Z') return 1;
+            else if (c == '_') return 1;
+            else if ('a' <= c && c <= 'n') return 1;
+            else if (c == 'o') return 85;
+            else if ('p' <= c && c <= 'z') return 1;
+            else return 0;
+        case 8:
+            if ('0' <= c && c <= '9') return 1;
+            else if ('A' <= c && c <= 'Z') return 1;
+            else if (c == '_') return 1;
+            else if ('a' <= c && c <= 'z') return 1;
+            else return 0;
+        case 9:
+            if ('0' <= c && c <= '9') return 1;
+            else if ('A' <= c && c <= 'Z') return 1;
+            else if (c == '_') return 1;
+            else if ('a' <= c && c <= 'z') return 1;
+            else return 0;
+        case 10:
+            if ('0' <= c && c <= '9') return 1;
+            else if ('A' <= c && c <= 'Z') return 1;
+            else if (c == '_') return 1;
+            else if ('a' <= c && c <= 'z') return 1;
+            else return 0;
+        case 11:
+            if ('0' <= c && c <= '9') return 1;
+            else if ('A' <= c && c <= 'Z') return 1;
+            else if (c == '_') return 1;
+            else if ('a' <= c && c <= 'z') return 1;
+            else return 0;
+        case 12:
+            if ('0' <= c && c <= '9') return 1;
+            else if ('A' <= c && c <= 'Z') return 1;
+            else if (c == '_') return 1;
+            else if ('a' <= c && c <= 'z') return 1;
+            else return 0;
+        case 13:
+            if ('0' <= c && c <= '9') return 1;
+            else if ('A' <= c && c <= 'Z') return 1;
+            else if (c == '_') return 1;
+            else if ('a' <= c && c <= 'z') return 1;
+            else return 0;
+        case 14:
+            if ('0' <= c && c <= '9') return 1;
+            else if ('A' <= c && c <= 'Z') return 1;
+            else if (c == '_') return 1;
+            else if ('a' <= c && c <= 'z') return 1;
+            else return 0;
+        case 15:
+            if ('0' <= c && c <= '9') return 1;
+            else if ('A' <= c && c <= 'Z') return 1;
+            else if (c == '_') return 1;
+            else if ('a' <= c && c <= 'z') return 1;
+            else return 0;
+        case 16:
+            if ('0' <= c && c <= '9') return 1;
+            else if ('A' <= c && c <= 'Z') return 1;
+            else if (c == '_') return 1;
+            else if ('a' <= c && c <= 'z') return 1;
+            else return 0;
+        case 17:
+            if ('0' <= c && c <= '9') return 1;
+            else if ('A' <= c && c <= 'Z') return 1;
+            else if (c == '_') return 1;
+            else if ('a' <= c && c <= 'z') return 1;
+            else return 0;
+        case 18:
+            if ('0' <= c && c <= '9') return 1;
+            else if ('A' <= c && c <= 'Z') return 1;
+            else if (c == '_') return 1;
+            else if ('a' <= c && c <= 'z') return 1;
+            else return 0;
+        case 19:
+            if ('0' <= c && c <= '9') return 1;
+            else if ('A' <= c && c <= 'Z') return 1;
+            else if (c == '_') return 1;
+            else if ('a' <= c && c <= 's') return 1;
+            else if (c == 't') return 13;
+            else if ('u' <= c && c <= 'z') return 1;
+            else return 0;
+        case 20:
+            if ('0' <= c && c <= '9') return 1;
+            else if ('A' <= c && c <= 'Z') return 1;
+            else if (c == '_') return 1;
+            else if ('a' <= c && c <= 'z') return 1;
+            else return 0;
+        case 21:
+            if ('0' <= c && c <= '9') return 1;
+            else if ('A' <= c && c <= 'Z') return 1;
+            else if (c == '_') return 1;
+            else if ('a' <= c && c <= 'z') return 1;
+            else return 0;
+        case 22:
+            if ('0' <= c && c <= '9') return 1;
+            else if ('A' <= c && c <= 'Z') return 1;
+            else if (c == '_') return 1;
+            else if ('a' <= c && c <= 'z') return 1;
+            else return 0;
+        case 23:
+            if ('0' <= c && c <= '9') return 1;
+            else if ('A' <= c && c <= 'Z') return 1;
+            else if (c == '_') return 1;
+            else if ('a' <= c && c <= 'z') return 1;
+            else return 0;
+        case 24:
+            if ('0' <= c && c <= '9') return 1;
+            else if ('A' <= c && c <= 'Z') return 1;
+            else if (c == '_') return 1;
+            else if ('a' <= c && c <= 'z') return 1;
+            else return 0;
+        case 25:
+            if ('0' <= c && c <= '9') return 1;
+            else if ('A' <= c && c <= 'Z') return 1;
+            else if (c == '_') return 1;
+            else if ('a' <= c && c <= 'z') return 1;
+            else return 0;
+        case 26:
+            if (c == ' ') return 26;
+            else return 0;
+        case 27:
+            if (c == (char)10) return 27;
+            else return 0;
+        case 28:
+            return 0;
+        case 29:
+            return 0;
+        case 30:
+            return 0;
+        case 31:
+            return 0;
+        case 32:
+            return 0;
+        case 33:
+            return 0;
+        case 34:
+            return 0;
+        case 35:
+            return 0;
+        case 36:
+            return 0;
+        case 37:
+            return 0;
+        case 38:
+            return 0;
+        case 39:
+            return 0;
+        case 40:
+            return 0;
+        case 41:
+            return 0;
+        case 42:
+            if ((char)0 <= c && c <= ')') return 81;
+            else if (c == '*') return 93;
+            else if ('+' <= c && c <= (char)127) return 81;
+            else return 0;
+        case 43:
+            return 0;
+        case 44:
+            if (c == '*') return 81;
+            else if (c == '/') return 92;
+            else return 0;
+        case 45:
+            if ('0' <= c && c <= '9') return 2;
+            else return 0;
+        case 46:
+            if ('0' <= c && c <= '9') return 2;
+            else return 0;
+        case 47:
+            return 0;
+        case 48:
+            if ('0' <= c && c <= '9') return 3;
+            else return 0;
+        case 49:
+            if ('0' <= c && c <= '9') return 1;
+            else if ('A' <= c && c <= 'Z') return 1;
+            else if (c == '_') return 1;
+            else if (c == 'a') return 11;
+            else if ('b' <= c && c <= 'z') return 1;
+            else return 0;
+        case 50:
+            if ('0' <= c && c <= '9') return 1;
+            else if ('A' <= c && c <= 'Z') return 1;
+            else if (c == '_') return 1;
+            else if ('a' <= c && c <= 'c') return 1;
+            else if (c == 'd') return 5;
+            else if ('e' <= c && c <= 'z') return 1;
+            else return 0;
+        case 51:
+            if ('0' <= c && c <= '9') return 1;
+            else if ('A' <= c && c <= 'Z') return 1;
+            else if (c == '_') return 1;
+            else if ('a' <= c && c <= 'd') return 1;
+            else if (c == 'e') return 18;
+            else if ('f' <= c && c <= 'z') return 1;
+            else return 0;
+        case 52:
+            if ('0' <= c && c <= '9') return 1;
+            else if ('A' <= c && c <= 'Z') return 1;
+            else if (c == '_') return 1;
+            else if ('a' <= c && c <= 'e') return 1;
+            else if (c == 'f') return 17;
+            else if ('g' <= c && c <= 'm') return 1;
+            else if (c == 'n') return 101;
+            else if ('o' <= c && c <= 'z') return 1;
+            else return 0;
+        case 53:
+            if ('0' <= c && c <= '9') return 1;
+            else if ('A' <= c && c <= 'Z') return 1;
+            else if (c == '_') return 1;
+            else if ('a' <= c && c <= 'd') return 1;
+            else if (c == 'e') return 94;
+            else if ('f' <= c && c <= 'z') return 1;
+            else return 0;
+        case 54:
+            if ('0' <= c && c <= '9') return 1;
+            else if ('A' <= c && c <= 'Z') return 1;
+            else if (c == '_') return 1;
+            else if ('a' <= c && c <= 'f') return 1;
+            else if (c == 'g') return 23;
+            else if ('h' <= c && c <= 'z') return 1;
+            else return 0;
+        case 55:
+            if ('0' <= c && c <= '9') return 1;
+            else if ('A' <= c && c <= 'Z') return 1;
+            else if (c == '_') return 1;
+            else if ('a' <= c && c <= 'h') return 1;
+            else if (c == 'i') return 84;
+            else if ('j' <= c && c <= 'z') return 1;
+            else return 0;
+        case 56:
+            if ('0' <= c && c <= '9') return 1;
+            else if ('A' <= c && c <= 'Z') return 1;
+            else if (c == '_') return 1;
+            else if ('a' <= c && c <= 'k') return 1;
+            else if (c == 'l') return 12;
+            else if ('m' <= c && c <= 'z') return 1;
+            else return 0;
+        case 57:
+            if ('0' <= c && c <= '9') return 1;
+            else if ('A' <= c && c <= 'Z') return 1;
+            else if (c == '_') return 1;
+            else if (c == 'a') return 56;
+            else if ('b' <= c && c <= 's') return 1;
+            else if (c == 't') return 75;
+            else if ('u' <= c && c <= 'z') return 1;
+            else return 0;
+        case 58:
+            if ('0' <= c && c <= '9') return 1;
+            else if ('A' <= c && c <= 'Z') return 1;
+            else if (c == '_') return 1;
+            else if ('a' <= c && c <= 'd') return 1;
+            else if (c == 'e') return 57;
+            else if ('f' <= c && c <= 'z') return 1;
+            else return 0;
+        case 59:
+            if ('0' <= c && c <= '9') return 1;
+            else if ('A' <= c && c <= 'Z') return 1;
+            else if (c == '_') return 1;
+            else if ('a' <= c && c <= 'm') return 1;
+            else if (c == 'n') return 22;
+            else if (c == 'o') return 54;
+            else if ('p' <= c && c <= 'z') return 1;
+            else return 0;
+        case 60:
+            if ('0' <= c && c <= '9') return 1;
+            else if ('A' <= c && c <= 'Z') return 1;
+            else if (c == '_') return 1;
+            else if (c == 'a') return 98;
+            else if ('b' <= c && c <= 'z') return 1;
+            else return 0;
+        case 61:
+            if ('0' <= c && c <= '9') return 1;
+            else if ('A' <= c && c <= 'Z') return 1;
+            else if (c == '_') return 1;
+            else if ('a' <= c && c <= 'h') return 1;
+            else if (c == 'i') return 86;
+            else if ('j' <= c && c <= 'p') return 1;
+            else if (c == 'q') return 74;
+            else if ('r' <= c && c <= 'z') return 1;
+            else return 0;
+        case 62:
+            if ('0' <= c && c <= '9') return 1;
+            else if ('A' <= c && c <= 'Z') return 1;
+            else if (c == '_') return 1;
+            else if ('a' <= c && c <= 'n') return 1;
+            else if (c == 'o') return 102;
+            else if ('p' <= c && c <= 'z') return 1;
+            else return 0;
+        case 63:
+            if ('0' <= c && c <= '9') return 1;
+            else if ('A' <= c && c <= 'Z') return 1;
+            else if (c == '_') return 1;
+            else if ('a' <= c && c <= 'o') return 1;
+            else if (c == 'p') return 21;
+            else if ('q' <= c && c <= 'z') return 1;
+            else return 0;
+        case 64:
+            if ('0' <= c && c <= '9') return 1;
+            else if ('A' <= c && c <= 'Z') return 1;
+            else if (c == '_') return 1;
+            else if ('a' <= c && c <= 'q') return 1;
+            else if (c == 'r') return 95;
+            else if ('s' <= c && c <= 'z') return 1;
+            else return 0;
+        case 65:
+            if ('0' <= c && c <= '9') return 1;
+            else if ('A' <= c && c <= 'Z') return 1;
+            else if (c == '_') return 1;
+            else if (c == 'a') return 87;
+            else if ('b' <= c && c <= 'n') return 1;
+            else if (c == 'o') return 79;
+            else if ('p' <= c && c <= 'z') return 1;
+            else return 0;
+        case 66:
+            if ('0' <= c && c <= '9') return 1;
+            else if ('A' <= c && c <= 'Z') return 1;
+            else if (c == '_') return 1;
+            else if ('a' <= c && c <= 'n') return 1;
+            else if (c == 'o') return 96;
+            else if ('p' <= c && c <= 't') return 1;
+            else if (c == 'u') return 90;
+            else if ('v' <= c && c <= 'z') return 1;
+            else return 0;
+        case 67:
+            if ('0' <= c && c <= '9') return 1;
+            else if ('A' <= c && c <= 'Z') return 1;
+            else if (c == '_') return 1;
+            else if ('a' <= c && c <= 'r') return 1;
+            else if (c == 's') return 51;
+            else if ('t' <= c && c <= 'z') return 1;
+            else return 0;
+        case 68:
+            if ('0' <= c && c <= '9') return 1;
+            else if ('A' <= c && c <= 'Z') return 1;
+            else if (c == '_') return 1;
+            else if ('a' <= c && c <= 'k') return 1;
+            else if (c == 'l') return 67;
+            else if ('m' <= c && c <= 'w') return 1;
+            else if (c == 'x') return 63;
+            else if ('y' <= c && c <= 'z') return 1;
+            else return 0;
+        case 69:
+            if ('0' <= c && c <= '9') return 1;
+            else if ('A' <= c && c <= 'Z') return 1;
+            else if (c == '_') return 1;
+            else if ('a' <= c && c <= 'n') return 1;
+            else if (c == 'o') return 88;
+            else if ('p' <= c && c <= 'z') return 1;
+            else return 0;
+        case 70:
+            if ('0' <= c && c <= '9') return 1;
+            else if ('A' <= c && c <= 'Z') return 1;
+            else if (c == '_') return 1;
+            else if ('a' <= c && c <= 's') return 1;
+            else if (c == 't') return 14;
+            else if ('u' <= c && c <= 'z') return 1;
+            else return 0;
+        case 71:
+            if ('0' <= c && c <= '9') return 1;
+            else if ('A' <= c && c <= 'Z') return 1;
+            else if (c == '_') return 1;
+            else if ('a' <= c && c <= 'b') return 1;
+            else if (c == 'c') return 103;
+            else if ('d' <= c && c <= 'z') return 1;
+            else return 0;
+        case 72:
+            if ('0' <= c && c <= '9') return 1;
+            else if ('A' <= c && c <= 'Z') return 1;
+            else if (c == '_') return 1;
+            else if ('a' <= c && c <= 'm') return 1;
+            else if (c == 'n') return 70;
+            else if ('o' <= c && c <= 'z') return 1;
+            else return 0;
+        case 73:
+            if ('0' <= c && c <= '9') return 1;
+            else if ('A' <= c && c <= 'Z') return 1;
+            else if (c == '_') return 1;
+            else if ('a' <= c && c <= 'h') return 1;
+            else if (c == 'i') return 72;
+            else if ('j' <= c && c <= 'z') return 1;
+            else return 0;
+        case 74:
+            if ('0' <= c && c <= '9') return 1;
+            else if ('A' <= c && c <= 'Z') return 1;
+            else if (c == '_') return 1;
+            else if ('a' <= c && c <= 'q') return 1;
+            else if (c == 'r') return 89;
+            else if ('s' <= c && c <= 'z') return 1;
+            else return 0;
+        case 75:
+            if ('0' <= c && c <= '9') return 1;
+            else if ('A' <= c && c <= 'Z') return 1;
+            else if (c == '_') return 1;
+            else if ('a' <= c && c <= 't') return 1;
+            else if (c == 'u') return 64;
+            else if ('v' <= c && c <= 'z') return 1;
+            else return 0;
+        case 76:
+            if ('0' <= c && c <= '9') return 1;
+            else if ('A' <= c && c <= 'Z') return 1;
+            else if (c == '_') return 1;
+            else if ('a' <= c && c <= 'o') return 1;
+            else if (c == 'p') return 91;
+            else if ('q' <= c && c <= 'z') return 1;
+            else return 0;
+        case 77:
+            if ('0' <= c && c <= '9') return 1;
+            else if ('A' <= c && c <= 'Z') return 1;
+            else if (c == '_') return 1;
+            else if ('a' <= c && c <= 's') return 1;
+            else if (c == 't') return 76;
+            else if ('u' <= c && c <= 'z') return 1;
+            else return 0;
+        case 78:
+            if ('0' <= c && c <= '9') return 1;
+            else if ('A' <= c && c <= 'Z') return 1;
+            else if (c == '_') return 1;
+            else if ('a' <= c && c <= 't') return 1;
+            else if (c == 'u') return 77;
+            else if ('v' <= c && c <= 'z') return 1;
+            else return 0;
+        case 79:
+            if ('0' <= c && c <= '9') return 1;
+            else if ('A' <= c && c <= 'Z') return 1;
+            else if (c == '_') return 1;
+            else if ('a' <= c && c <= 'v') return 1;
+            else if (c == 'w') return 25;
+            else if ('x' <= c && c <= 'z') return 1;
+            else return 0;
+        case 80:
+            if ('0' <= c && c <= '9') return 80;
+            else return 0;
+        case 81:
+            if ((char)0 <= c && c <= ')') return 81;
+            else if (c == '*') return 93;
+            else if ('+' <= c && c <= (char)127) return 81;
+            else return 0;
+        case 82:
+            if (c == '+') return 83;
+            else if (c == '-') return 83;
+            else if ('0' <= c && c <= '9') return 80;
+            else return 0;
+        case 83:
+            if ('0' <= c && c <= '9') return 80;
+            else return 0;
+        case 84:
+            if ('0' <= c && c <= '9') return 1;
+            else if ('A' <= c && c <= 'Z') return 1;
+            else if (c == '_') return 1;
+            else if ('a' <= c && c <= 'e') return 1;
+            else if (c == 'f') return 7;
+            else if ('g' <= c && c <= 'z') return 1;
+            else return 0;
+        case 85:
+            if ('0' <= c && c <= '9') return 1;
+            else if ('A' <= c && c <= 'Z') return 1;
+            else if (c == '_') return 1;
+            else if ('a' <= c && c <= 'k') return 1;
+            else if (c == 'l') return 50;
+            else if ('m' <= c && c <= 'z') return 1;
+            else return 0;
+        case 86:
+            if ('0' <= c && c <= '9') return 1;
+            else if ('A' <= c && c <= 'Z') return 1;
+            else if (c == '_') return 1;
+            else if ('a' <= c && c <= 'm') return 1;
+            else if (c == 'n') return 19;
+            else if ('o' <= c && c <= 'z') return 1;
+            else return 0;
+        case 87:
+            if ('0' <= c && c <= '9') return 1;
+            else if ('A' <= c && c <= 'Z') return 1;
+            else if (c == '_') return 1;
+            else if ('a' <= c && c <= 'q') return 1;
+            else if (c == 'r') return 49;
+            else if ('s' <= c && c <= 'z') return 1;
+            else return 0;
+        case 88:
+            if ('0' <= c && c <= '9') return 1;
+            else if ('A' <= c && c <= 'Z') return 1;
+            else if (c == '_') return 1;
+            else if ('a' <= c && c <= 'r') return 1;
+            else if (c == 's') return 20;
+            else if ('t' <= c && c <= 'z') return 1;
+            else return 0;
+        case 89:
+            if ('0' <= c && c <= '9') return 1;
+            else if ('A' <= c && c <= 'Z') return 1;
+            else if (c == '_') return 1;
+            else if ('a' <= c && c <= 's') return 1;
+            else if (c == 't') return 24;
+            else if ('u' <= c && c <= 'z') return 1;
+            else return 0;
+        case 90:
+            if ('0' <= c && c <= '9') return 1;
+            else if ('A' <= c && c <= 'Z') return 1;
+            else if (c == '_') return 1;
+            else if ('a' <= c && c <= 'm') return 1;
+            else if (c == 'n') return 71;
+            else if ('o' <= c && c <= 'z') return 1;
+            else return 0;
+        case 91:
+            if ('0' <= c && c <= '9') return 1;
+            else if ('A' <= c && c <= 'Z') return 1;
+            else if (c == '_') return 1;
+            else if ('a' <= c && c <= 't') return 1;
+            else if (c == 'u') return 97;
+            else if ('v' <= c && c <= 'z') return 1;
+            else return 0;
+        case 92:
+            if ((char)0 <= c && c <= (char)9) return 92;
+            else if (c == (char)10) return 41;
+            else if ((char)11 <= c && c <= (char)127) return 92;
+            else return 0;
+        case 93:
+            if ((char)0 <= c && c <= ')') return 81;
+            else if (c == '*') return 93;
+            else if ('+' <= c && c <= '.') return 81;
+            else if (c == '/') return 42;
+            else if ('0' <= c && c <= (char)127) return 81;
+            else return 0;
+        case 94:
+            if ('0' <= c && c <= '9') return 1;
+            else if ('A' <= c && c <= 'Z') return 1;
+            else if (c == '_') return 1;
+            else if ('a' <= c && c <= 'e') return 1;
+            else if (c == 'f') return 8;
+            else if ('g' <= c && c <= 'z') return 1;
+            else return 0;
+        case 95:
+            if ('0' <= c && c <= '9') return 1;
+            else if ('A' <= c && c <= 'Z') return 1;
+            else if (c == '_') return 1;
+            else if ('a' <= c && c <= 'm') return 1;
+            else if (c == 'n') return 15;
+            else if ('o' <= c && c <= 'z') return 1;
+            else return 0;
+        case 96:
+            if ('0' <= c && c <= '9') return 1;
+            else if ('A' <= c && c <= 'Z') return 1;
+            else if (c == '_') return 1;
+            else if ('a' <= c && c <= 'q') return 1;
+            else if (c == 'r') return 16;
+            else if ('s' <= c && c <= 'z') return 1;
+            else return 0;
+        case 97:
+            if ('0' <= c && c <= '9') return 1;
+            else if ('A' <= c && c <= 'Z') return 1;
+            else if (c == '_') return 1;
+            else if ('a' <= c && c <= 's') return 1;
+            else if (c == 't') return 10;
+            else if ('u' <= c && c <= 'z') return 1;
+            else return 0;
+        case 98:
+            if ('0' <= c && c <= '9') return 1;
+            else if ('A' <= c && c <= 'Z') return 1;
+            else if (c == '_') return 1;
+            else if ('a' <= c && c <= 'm') return 1;
+            else if (c == 'n') return 55;
+            else if ('o' <= c && c <= 'z') return 1;
+            else return 0;
+        case 99:
+            if ('0' <= c && c <= '9') return 1;
+            else if ('A' <= c && c <= 'Z') return 1;
+            else if (c == '_') return 1;
+            else if ('a' <= c && c <= 's') return 1;
+            else if (c == 't') return 9;
+            else if ('u' <= c && c <= 'z') return 1;
+            else return 0;
+        case 100:
+            if ('0' <= c && c <= '9') return 1;
+            else if ('A' <= c && c <= 'Z') return 1;
+            else if (c == '_') return 1;
+            else if ('a' <= c && c <= 't') return 1;
+            else if (c == 'u') return 99;
+            else if ('v' <= c && c <= 'z') return 1;
+            else return 0;
+        case 101:
+            if ('0' <= c && c <= '9') return 1;
+            else if ('A' <= c && c <= 'Z') return 1;
+            else if (c == '_') return 1;
+            else if ('a' <= c && c <= 'o') return 1;
+            else if (c == 'p') return 100;
+            else if ('q' <= c && c <= 'z') return 1;
+            else return 0;
+        case 102:
+            if ('0' <= c && c <= '9') return 1;
+            else if ('A' <= c && c <= 'Z') return 1;
+            else if (c == '_') return 1;
+            else if ('a' <= c && c <= 'm') return 1;
+            else if (c == 'n') return 6;
+            else if ('o' <= c && c <= 'z') return 1;
+            else return 0;
+        case 103:
+            if ('0' <= c && c <= '9') return 1;
+            else if ('A' <= c && c <= 'Z') return 1;
+            else if (c == '_') return 1;
+            else if ('a' <= c && c <= 's') return 1;
+            else if (c == 't') return 4;
+            else if ('u' <= c && c <= 'z') return 1;
+            else return 0;
+        }
+        return 0;
+    }
+    int FuncLexer::action(int state)
+    {
+        switch (state)
+        {
+        case 1:
+            return 1;//id: id
+        case 2:
+            return 2;//number: integer
+        case 3:
+            return 3;//number: realC
+        case 4:
+            return 4;//reserved: funct
+        case 5:
+            return 5;//reserved: manifold
+        case 6:
+            return 6;//reserved: function
+        case 7:
+            return 7;//reserved: manif
+        case 8:
+            return 8;//reserved: def
+        case 9:
+            return 9;//reserved: input
+        case 10:
+            return 10;//reserved: output
+        case 11:
+            return 11;//reserved: para
+        case 12:
+            return 12;//reserved: real
+        case 13:
+            return 13;//reserved: sint
+        case 14:
+            return 14;//reserved: uint
+        case 15:
+            return 15;//reserved: return
+        case 16:
+            return 16;//reserved: for
+        case 17:
+            return 17;//reserved: if
+        case 18:
+            return 18;//reserved: else
+        case 19:
+            return 19;//function1: sin
+        case 20:
+            return 20;//function1: cos
+        case 21:
+            return 21;//function1: exp
+        case 22:
+            return 22;//function1: ln
+        case 23:
+            return 23;//function1: log
+        case 24:
+            return 24;//function1: sqrt
+        case 25:
+            return 25;//function2: pow
+        case 26:
+            return 26;//format: spaces
+        case 27:
+            return 27;//format: enters
+        case 28:
+            return 28;//format: tab
+        case 29:
+            return 29;//division: semicolon
+        case 30:
+            return 30;//division: colon
+        case 31:
+            return 31;//division: dot
+        case 32:
+            return 32;//division: comma
+        case 33:
+            return 33;//braket: braceL
+        case 34:
+            return 34;//braket: braceR
+        case 35:
+            return 35;//braket: left
+        case 36:
+            return 36;//braket: right
+        case 37:
+            return 37;//braket: squareL
+        case 38:
+            return 38;//braket: squareR
+        case 39:
+            return 39;//braket: angleL
+        case 40:
+            return 40;//braket: angleR
+        case 41:
+            return 41;//anntation: anntationS
+        case 42:
+            return 42;//anntation: anntationM
+        case 43:
+            return 43;//operatmd: multi
+        case 44:
+            return 44;//operatmd: div
+        case 45:
+            return 45;//operatas: sub
+        case 46:
+            return 46;//operatas: add
+        case 47:
+            return 47;//value: value
+        case 49:
+            return 1;//id: id
+        case 50:
+            return 1;//id: id
+        case 51:
+            return 1;//id: id
+        case 52:
+            return 1;//id: id
+        case 53:
+            return 1;//id: id
+        case 54:
+            return 1;//id: id
+        case 55:
+            return 1;//id: id
+        case 56:
+            return 1;//id: id
+        case 57:
+            return 1;//id: id
+        case 58:
+            return 1;//id: id
+        case 59:
+            return 1;//id: id
+        case 60:
+            return 1;//id: id
+        case 61:
+            return 1;//id: id
+        case 62:
+            return 1;//id: id
+        case 63:
+            return 1;//id: id
+        case 64:
+            return 1;//id: id
+        case 65:
+            return 1;//id: id
+        case 66:
+            return 1;//id: id
+        case 67:
+            return 1;//id: id
+        case 68:
+            return 1;//id: id
+        case 69:
+            return 1;//id: id
+        case 70:
+            return 1;//id: id
+        case 71:
+            return 1;//id: id
+        case 72:
+            return 1;//id: id
+        case 73:
+            return 1;//id: id
+        case 74:
+            return 1;//id: id
+        case 75:
+            return 1;//id: id
+        case 76:
+            return 1;//id: id
+        case 77:
+            return 1;//id: id
+        case 78:
+            return 1;//id: id
+        case 79:
+            return 1;//id: id
+        case 80:
+            return 3;//number: realC
+        case 84:
+            return 1;//id: id
+        case 85:
+            return 1;//id: id
+        case 86:
+            return 1;//id: id
+        case 87:
+            return 1;//id: id
+        case 88:
+            return 1;//id: id
+        case 89:
+            return 1;//id: id
+        case 90:
+            return 1;//id: id
+        case 91:
+            return 1;//id: id
+        case 94:
+            return 1;//id: id
+        case 95:
+            return 1;//id: id
+        case 96:
+            return 1;//id: id
+        case 97:
+            return 1;//id: id
+        case 98:
+            return 1;//id: id
+        case 99:
+            return 1;//id: id
+        case 100:
+            return 1;//id: id
+        case 101:
+            return 1;//id: id
+        case 102:
+            return 1;//id: id
+        case 103:
+            return 1;//id: id
+        }
+        return 0;
+    }
+    int FuncLexer::GroupGet(int accept)
+    {
+        switch (accept)
+        {
+        case 1:
+            return 1;//id: id
+        case 2:
+            return 2;//number: integer
+        case 3:
+            return 2;//number: realC
+        case 4:
+            return 3;//reserved: funct
+        case 5:
+            return 3;//reserved: manifold
+        case 6:
+            return 3;//reserved: function
+        case 7:
+            return 3;//reserved: manif
+        case 8:
+            return 3;//reserved: def
+        case 9:
+            return 3;//reserved: input
+        case 10:
+            return 3;//reserved: output
+        case 11:
+            return 3;//reserved: para
+        case 12:
+            return 3;//reserved: real
+        case 13:
+            return 3;//reserved: sint
+        case 14:
+            return 3;//reserved: uint
+        case 15:
+            return 3;//reserved: return
+        case 16:
+            return 3;//reserved: for
+        case 17:
+            return 3;//reserved: if
+        case 18:
+            return 3;//reserved: else
+        case 19:
+            return 4;//function1: sin
+        case 20:
+            return 4;//function1: cos
+        case 21:
+            return 4;//function1: exp
+        case 22:
+            return 4;//function1: ln
+        case 23:
+            return 4;//function1: log
+        case 24:
+            return 4;//function1: sqrt
+        case 25:
+            return 5;//function2: pow
+        case 26:
+            return 6;//format: spaces
+        case 27:
+            return 6;//format: enters
+        case 28:
+            return 6;//format: tab
+        case 29:
+            return 7;//division: semicolon
+        case 30:
+            return 7;//division: colon
+        case 31:
+            return 7;//division: dot
+        case 32:
+            return 7;//division: comma
+        case 33:
+            return 8;//braket: braceL
+        case 34:
+            return 8;//braket: braceR
+        case 35:
+            return 8;//braket: left
+        case 36:
+            return 8;//braket: right
+        case 37:
+            return 8;//braket: squareL
+        case 38:
+            return 8;//braket: squareR
+        case 39:
+            return 8;//braket: angleL
+        case 40:
+            return 8;//braket: angleR
+        case 41:
+            return 9;//anntation: anntationS
+        case 42:
+            return 9;//anntation: anntationM
+        case 43:
+            return 10;//operatmd: multi
+        case 44:
+            return 10;//operatmd: div
+        case 45:
+            return 11;//operatas: sub
+        case 46:
+            return 11;//operatas: add
+        case 47:
+            return 12;//value: value
+        }
+        return 0;
+    }
+
+    Pikachu::function FuncLexer::functionGet(int state)
+    {
+        regular RR;
+        RR = (regular)state;
+        switch (RR)
+        {
+        case FuncLexer::_sin_:
+            return Pikachu::function::_sin_;
+
+        case FuncLexer::_cos_:
+            return Pikachu::function::_cos_;
+
+        case FuncLexer::_exp_:
+            return Pikachu::function::_exp_;
+
+        case FuncLexer::_ln_:
+            return Pikachu::function::_ln_;
+        case FuncLexer::_log_:
+            return Pikachu::function::_ln_;
+
+        case FuncLexer::_sqrt_:
+            return Pikachu::function::_sqrt_;
+
+        default:
+            break;
+        }
+        return Pikachu::function::_sin_;
+    }
+    Pikachu::operation FuncLexer::operationGet(int state)
+    {
+        regular RR;
+        RR = (regular)state;
+        switch (RR)
+        {
+        case FuncLexer::_multi_:
+            return Pikachu::operation::_mul_;
+
+        case FuncLexer::_div_:
+            return Pikachu::operation::_div_;
+
+        case FuncLexer::_sub_:
+            return Pikachu::operation::_sub_;
+
+        case FuncLexer::_add_:
+            return Pikachu::operation::_add_;
+        }
+        return Pikachu::operation::_mul_;
+    }
 }
 namespace Exp
 {
@@ -2619,21 +2983,21 @@ namespace Exp
         RR = (regular)state;
         switch (RR)
         {
-        case Exp::ExpLexer::_sin_:
+        case ExpLexer::_sin_:
             return Pikachu::function::_sin_;
 
-        case Exp::ExpLexer::_cos_:
+        case ExpLexer::_cos_:
             return Pikachu::function::_cos_;
 
-        case Exp::ExpLexer::_exp_:
+        case ExpLexer::_exp_:
             return Pikachu::function::_exp_;
 
-        case Exp::ExpLexer::_ln_:
+        case ExpLexer::_ln_:
             return Pikachu::function::_ln_;
-        case Exp::ExpLexer::_log_:
+        case ExpLexer::_log_:
             return Pikachu::function::_ln_;
 
-        case Exp::ExpLexer::_sqrt_:
+        case ExpLexer::_sqrt_:
             return Pikachu::function::_sqrt_;
         
         default:
@@ -2647,16 +3011,16 @@ namespace Exp
         RR = (regular)state;
         switch (RR)
         {
-        case Exp::ExpLexer::_multi_:
+        case ExpLexer::_multi_:
             return Pikachu::operation::_mul_;
 
-        case Exp::ExpLexer::_div_:
+        case ExpLexer::_div_:
             return Pikachu::operation::_div_;
 
-        case Exp::ExpLexer::_sub_:
+        case ExpLexer::_sub_:
             return Pikachu::operation::_sub_;
 
-        case Exp::ExpLexer::_add_:
+        case ExpLexer::_add_:
             return Pikachu::operation::_add_;
         }
         return Pikachu::operation::_mul_;

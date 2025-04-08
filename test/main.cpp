@@ -1605,7 +1605,12 @@ int static test14(const parameter& para)
 }
 int static test15(const parameter& para)
 {
-    
+    //char a, * b, ** c;
+    //b = &a;
+    //c = &*&b;
+    //b = &(*b);
+    //&(*b) = NULL;
+    //&*b = NULL;
     return 0;
 }
 int static test16(const parameter& para)
