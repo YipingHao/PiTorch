@@ -3935,7 +3935,7 @@ bool Expres::Simplify08(void)
                 LL = j / 2;
                 RR = j % 2;
                 judge = left_->In(LL)->Type == _LeafConst_;
-                judge = right_->In(RR)->Type == _LeafConst_;
+                judge = judge && right_->In(RR)->Type == _LeafConst_;
                 if (judge)
                 {
                     temp_ = new vortex<node>((operation)here->Code);
