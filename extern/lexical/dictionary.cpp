@@ -318,6 +318,7 @@ size_t dictionary::append(const char* key, dictionary::element value, dictionary
         if (compare(storage[i - 1], target->Content[j].key)) return site;
     printf("j%zu\n", j);
     site = target->Content.count();
+    kv.key = (char*)Copy(storage[i - 1]);
     kv.setType(T);
     kv.append(value);
     target->Content.append(kv);
