@@ -1608,7 +1608,7 @@ int static test14(const parameter& para)
         ss += "\tz = exp(x*x);\n";
         ss += "\treturn y * z;\n}\n";
         std::cout << ss << std::endl;
-        Ac.construct(ss.c_str());
+        std::cout << "error: " << Ac.construct(ss.c_str()) << std::endl;;
         Ac.demo(stdout);
         Ac.demo(BC, true, 0);
         std::cout << BC.ptr() << std::endl; BC.clear();
