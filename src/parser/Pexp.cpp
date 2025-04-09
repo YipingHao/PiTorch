@@ -675,7 +675,11 @@ int Pikachu::ActivFunc::construct(const char* source)
     error = LPMorpheneBuild(source, eme);
     if (error != 0) 
     {
-        printf("?????\n");
+        for (i = 0; i < eme.GetCount(); i++)
+        {
+            printf("%s\n", eme.GetWord(i));
+        }
+        
         return error;
     }
     eme.Demo(stdout);
