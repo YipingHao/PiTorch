@@ -1631,9 +1631,13 @@ int static test14(const parameter& para)
     std::cout << "hyperlex::dictionary dick;" << std::endl; 
     hyperlex::dictionary dick;
     dick.append("haha", true);
+    std::cout << "hyperlex::dictionary dick;" << std::endl;
     dick.append("ne2", (long int)-123);
+    std::cout << "hyperlex::dictionary dick;" << std::endl;
     dick.append("ne3", -4.5);
+    std::cout << "hyperlex::dictionary dick;" << std::endl;
     dick.append("bb32", "NoNo");
+    std::cout << "hyperlex::dictionary dick;" << std::endl;
     dick.print(stdout);
     return 0;
 }
