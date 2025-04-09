@@ -320,6 +320,7 @@ size_t dictionary::append(const char* key, dictionary::element value, dictionary
     target->Content.append(kv);
     kv.Count = 0;
     kv.Content = NULL;
+    kv.key = NULL;
     return site;
 }
 size_t dictionary::append(const char* key, const char* value)
