@@ -178,7 +178,7 @@ namespace LP
         static const char* const RulesName[48];
         static const int Implicit[48];
     };
-    static int LPMorpheneBuild(const char* source, hyperlex::Morpheme& eme);
+    int static  LPMorpheneBuild(const char* source, hyperlex::Morpheme& eme);
 
 }
 namespace Rtensor
@@ -962,7 +962,7 @@ namespace Rtensor
 namespace LP
 { 
 
-    static int LP::LPMorpheneBuild(const char* source, hyperlex::Morpheme& eme)
+    int LPMorpheneBuild(const char* source, hyperlex::Morpheme& eme)
     {
         int error;
         size_t i;
