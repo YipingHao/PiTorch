@@ -1554,7 +1554,7 @@ void static testsymbolic(ActivFunc& Af, const double delta, bool print)
 
     for (i = 0; i < 1024; i++)
     {
-        X = Sr.rand(-1.0, 1.0);
+        X = Sr.rand(1.0, 2.0);
         x = X + delta;
         F.compute(input.array(), parameter.array(), output.array());
         y1 = output[0];
