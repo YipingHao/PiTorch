@@ -1529,7 +1529,7 @@ int static test14(const parameter& para)
         ActivFunc Exp;
         ActivFunc Diff;
         hyperlex::BufferChar BC;
-        Exp.Example(1);
+        Exp.Example(8);
         Exp.demo(stdout);
         Exp.demo(BC, true, 0);
         std::cout << BC.ptr() << std::endl; BC.clear();
