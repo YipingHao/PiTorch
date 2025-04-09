@@ -3968,6 +3968,7 @@ bool Expres::Simplify08(void)
                 if (left_->In(LL) == right_->In(RR))
                 {
                     New = new vortex<node>(_div_);
+                    std::cout << "New->site(): " << New->site() << std::endl;
                     formula.ArcAdd(left_->In((size_t)(!LL)), right_->In((size_t)(!RR)), New);
                     break;
                     SimplifyMove(here, New);
