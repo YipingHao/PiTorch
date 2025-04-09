@@ -991,6 +991,7 @@ namespace LP
                 eme.valid(i) = false;
             }
         }
+        return 0;
     }
 
     const size_t FuncPraser::StateCount = 85;
