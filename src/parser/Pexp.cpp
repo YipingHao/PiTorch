@@ -675,11 +675,6 @@ int Pikachu::ActivFunc::construct(const char* source)
     error = LPMorpheneBuild(source, eme);
     if (error != 0) 
     {
-        for (i = 0; i < eme.GetCount(); i++)
-        {
-            printf("%s\n", eme.GetWord(i));
-        }
-        
         return error;
     }
     eme.Demo(stdout);
@@ -689,7 +684,7 @@ int Pikachu::ActivFunc::construct(const char* source)
     {
         return error;
     }
-    Tree.Demo(stdout, eme, Exp::ExpPraser::RulesName);
+    Tree.Demo(stdout, eme, FuncPraser::RulesName);
     
     state.recount(FuncPraser::RulesCount);
     for (i = 0; i < state.count(); i++) state[i] = (int)i;
