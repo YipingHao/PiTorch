@@ -3957,8 +3957,8 @@ bool Expres::Simplify08(void)
             }
             break;
         }
-        //if ((operation)here->Code == _div_)
-        if(false)
+        if ((operation)here->Code == _div_)
+        //if(false)
         {
             //std::cout << "Here: " << i << std::endl;
             for (j = 0; j < 4; j++)
@@ -3969,6 +3969,7 @@ bool Expres::Simplify08(void)
                 {
                     New = new vortex<node>(_div_);
                     formula.ArcAdd(left_->In((size_t)(!LL)), right_->In((size_t)(!RR)), New);
+                    break;
                     SimplifyMove(here, New);
                     changed_ = true;
                     break;
