@@ -1618,6 +1618,13 @@ int static test14(const parameter& para)
         Ac.Simplify();
         Ac.demo(BC, true, 0);
         std::cout << BC.ptr() << std::endl; BC.clear();
+        hyperlex::dictionary dick;
+        dick.append("haha", true);
+        dick.append("ne2", (long int)-123);
+        dick.append("ne3", -4.5);
+        dick.append("bb32", "NoNo");
+        dick.print(stdout);
+        
     }
     catch (Pikachu::PikaError& E)
     {
