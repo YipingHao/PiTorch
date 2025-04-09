@@ -159,7 +159,10 @@ void expression::node::Demo(FILE* fp) const
         break;
     case Pikachu::_LeafPara_:
         output += "w_";
-        Fc.print(output);
+        output += (long long int)src1;
+        output += "[";
+        output += (long long int)src2;
+        output += "]";
         break;
     case Pikachu::_Funct_:
         output += FunctionName((function)Code);
