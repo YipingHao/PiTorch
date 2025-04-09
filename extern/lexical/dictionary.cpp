@@ -296,6 +296,7 @@ size_t dictionary::append(const char* key, dictionary::element value, dictionary
         if (eme[i].category == complex::_id___)
             storage.append(eme.GetWord(i));
     }
+    printf("????%d\n", (int)T);
     for (i = 1; i < storage.count(); i++)
     {
         for (j = 0; j < target->Content.count(); j++)
@@ -312,8 +313,10 @@ size_t dictionary::append(const char* key, dictionary::element value, dictionary
         }
         if(j == target->Content.count()) return site;
     }
+    printf("storage.count()%zu\n", storage.count());
     for (j = 0; j < target->Content.count(); j++)
         if (compare(storage[i - 1], target->Content[j].key)) return site;
+    printf("j%zu\n", j);
     site = target->Content.count();
     kv.setType(T);
     kv.append(value);
