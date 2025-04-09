@@ -662,7 +662,7 @@ int Pikachu::Expres::example(const char* source)
     return 0;
 }
 
-int Pikachu::ActivFunc::Example(const char* source)
+int Pikachu::ActivFunc::construct(const char* source)
 {
     using namespace LP;
     size_t i;

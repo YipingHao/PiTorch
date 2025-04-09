@@ -429,8 +429,8 @@ namespace Pikachu
 		void ParameterBackward(VISA1& instru);
 		void Copy(const ActivFunc& source);
 		bool Simplify(void);
-		int Example(const char * text);
-		int Example(FILE* fp);
+		int construct(const char * text);
+		int construct(FILE* fp);
 		void Demo(hyperlex::BufferChar& out)const;
 		void Demo(FILE* fp)const;
 		void TestBackward(void);

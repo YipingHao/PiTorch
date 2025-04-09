@@ -1833,14 +1833,16 @@ bool ActivFunc::Simplify(void)
     {
 
     }
+    formula.compress();
+    
     return round_ > 1;
 }
 
-int ActivFunc::Example(FILE* fp)
+int ActivFunc::construct(FILE* fp)
 {
     hyperlex::BufferChar BC;
     BC << fp;
-    return Example(BC.ptr());
+    return construct(BC.ptr());
 }
 void ActivFunc::Demo(hyperlex::BufferChar& out)const
 {
