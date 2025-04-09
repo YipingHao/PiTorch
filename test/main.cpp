@@ -1522,6 +1522,61 @@ int static test13(const parameter& para)
     }
     return 0;
 }
+void static testsymbolic(ActivFunc& Af, const double delta, bool print)
+{
+    vector<double> parameter;
+    vector<double> output;
+    vector<double*> input;
+    double x, error, temp, y1, y2, X;
+    HyperAlgebra::SimpleRandom Sr;
+    ActivFunc now;
+    size_t i;
+    VISA1 F, f;
+    parameter.recount(Af.ParameterAmount());
+    output.recount(Af.OutputAmount());
+    input.recount(1);
+    input[0] = &x;
+
+    for (i = 0; i < parameter.count(); i++)
+    {
+        parameter[i] = Sr.rand(-1.0, 1.0);
+    }
+    error = 0;
+
+    now.Copy(Af);
+
+    now.Differetial();
+    now.Simplify();
+    Af.PrintForward(F);
+    now.PrintForward(f);
+
+    error = 0.0;
+
+    for (i = 0; i < 1024; i++)
+    {
+        X = Sr.rand(-1.0, 1.0);
+        x = X + delta;
+        F.compute(input.array(), parameter.array(), output.array());
+        y1 = output[0];
+
+        x = X - delta;
+        F.compute(input.array(), parameter.array(), output.array());
+        y2 = output[0];
+
+        x = X;
+        f.compute(input.array(), parameter.array(), output.array());
+        temp = std::fabs((y1 - y2) * 0.5 / delta - output[0]);
+
+        error = error > temp ? error : temp;
+        if (print)
+        {
+            std::cout << "X: " << X << ", y1: " << y1 << ", y2: " << y2 << ", Numer: ";
+            std::cout << (y1 - y2) * 0.5 / delta << ", output[0]" << output[0] << std::endl;
+        }
+    }
+
+    std::cout << "error: " << error << std::endl;
+}
 int static test14(const parameter& para)
 {
     try
@@ -1576,7 +1631,7 @@ int static test14(const parameter& para)
         std::cout << BC.ptr() << std::endl; BC.clear();
         Exp.demo(stdout);
 
-        size_t i;
+        size_t i,j;
         for (i = 0; i < 10; i++)
         {
             std::cout << "=========================Exp.Example(";
@@ -1598,7 +1653,21 @@ int static test14(const parameter& para)
             Exp.demo(BC, true, 0);
             std::cout << BC.ptr() << std::endl; BC.clear();
         }
-
+        for (i = 0; i < 10; i++)
+        {
+            std::cout << "=========================Exp.Example(";
+            std::cout << i;
+            std::cout << ")=========================" << std::endl;
+            Exp.Example(i + 1);
+            Exp.demo(BC, true, 0);
+            std::cout << BC.ptr() << std::endl; BC.clear();
+            for (j = 0; j < 8; j++)
+            {
+                Exp.Differetial();
+                Exp.Simplify();
+                testsymbolic(Exp, 1.0E-7, false);
+            }
+        }
         ActivFunc Ac;
         std::string ss;
         ss = "funct (input x, para w[5])\n";
@@ -1643,12 +1712,7 @@ int static test14(const parameter& para)
 }
 int static test15(const parameter& para)
 {
-    //char a, * b, ** c;
-    //b = &a;
-    //c = &*&b;
-    //b = &(*b);
-    //&(*b) = NULL;
-    //&*b = NULL;
+
     return 0;
 }
 int static test16(const parameter& para)
