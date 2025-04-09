@@ -1598,6 +1598,20 @@ int static test14(const parameter& para)
             Exp.demo(BC, true, 0);
             std::cout << BC.ptr() << std::endl; BC.clear();
         }
+
+        ActivFunc Ac;
+        std::string ss;
+        ss = "funct (input x, para w[5])\n";
+        ss += "{\n\tdef y;\n\tdef z;\n";
+        ss += "\ty = (w[0] + x * w[1] + x * x * w[2]);\n";
+        ss += "\ty = y + (x * x * x * w[3] + x * x * x * x * w[4]);\n";
+        ss += "\tz = exp(x*x);\n";
+        ss += "\treturn y * z;\n}\n";
+        std::cout << ss << std::endl;
+        Ac.construct(ss.c_str());
+        Diff.demo(stdout);
+        Diff.demo(BC, true, 0);
+        std::cout << BC.ptr() << std::endl; BC.clear();
     }
     catch (Pikachu::PikaError& E)
     {
