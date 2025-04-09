@@ -673,7 +673,11 @@ int Pikachu::ActivFunc::construct(const char* source)
     clear();
 
     error = LPMorpheneBuild(source, eme);
-    if (error != 0) return error;
+    if (error != 0) 
+    {
+        printf("?????\n");
+        return error;
+    }
     eme.Demo(stdout);
 
     error = Tree.build<FuncPraser>(eme);
