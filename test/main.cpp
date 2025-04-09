@@ -1609,8 +1609,8 @@ int static test14(const parameter& para)
         ss += "\treturn y * z;\n}\n";
         std::cout << ss << std::endl;
         Ac.construct(ss.c_str());
-        Diff.demo(stdout);
-        Diff.demo(BC, true, 0);
+        Ac.demo(stdout);
+        Ac.demo(BC, true, 0);
         std::cout << BC.ptr() << std::endl; BC.clear();
     }
     catch (Pikachu::PikaError& E)
