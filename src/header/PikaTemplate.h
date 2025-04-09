@@ -1067,7 +1067,7 @@ namespace Pikachu
 				next = head->out[i];
 				if (label[next->site()] == 0)
 				{
-					throw PikaError("TopoSortDFS", "label[next] == 0", next->site());
+					throw PikaError("graph<V>::TopoSortDFS", "label[next] == 0", next->site());
 				}
 				label[next->site()] -= 1;
 				if (label[next->site()] == 0)

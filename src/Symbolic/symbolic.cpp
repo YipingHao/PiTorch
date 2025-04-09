@@ -1817,11 +1817,11 @@ bool ActivFunc::Simplify(void)
         changed_ = changed_ || Simplify03();
         changed_ = changed_ || Simplify04();
 
-        changed_ = changed_ || Simplify06();
-        changed_ = changed_ || Simplify07();
-        changed_ = changed_ || Simplify08();
-        changed_ = changed_ || Simplify09();
-        changed_ = changed_ || Simplify10();
+        //changed_ = changed_ || Simplify06();
+        //changed_ = changed_ || Simplify07();
+        //changed_ = changed_ || Simplify08();
+        //changed_ = changed_ || Simplify09();
+        //changed_ = changed_ || Simplify10();
 
         changed_ = changed_ || Simplify02();
         changed_ = changed_ || Simplify01();
