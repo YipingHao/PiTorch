@@ -1819,7 +1819,7 @@ bool ActivFunc::Simplify(void)
 
         changed_ = changed_ || Simplify06();
         changed_ = changed_ || Simplify07();
-        //changed_ = changed_ || Simplify08();
+        changed_ = changed_ || Simplify08();
         //changed_ = changed_ || Simplify09();
         //changed_ = changed_ || Simplify10();
 
