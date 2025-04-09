@@ -342,8 +342,7 @@ namespace Exp
     };
 }
 
-typedef hyperlex::tree<hyperlex::GrammarTree::TreeInfor> GLTree;
-typedef hyperlex::tree<hyperlex::GrammarTree::TreeInfor>::PostIterator GTIter;
+
 
 
 int Pikachu::matrixGet(FILE* fp, vector<double>& output, size_t& row, size_t& column)
@@ -666,23 +665,11 @@ int Pikachu::Expres::example(const char* source)
 int Pikachu::ActivFunc::Example(const char* source)
 {
     using namespace LP;
-    size_t i, site, temp_;
+    size_t i;
     int error;
     hyperlex::Morpheme eme;
-    LP::FuncLexer::regular T;
-    LP::FuncLexer::group G;
-    GTIter iterator;
     hyperlex::GrammarTree Tree;
-    GLTree* GT;
-    Ele* left_;
-    Ele* right_;
-    Ele* here;
-    FuncPraser::rules RRR;
-    Pikachu::function func__;
-    Pikachu::operation op__;
-    LexSheet Ls;
-    LexSheet::SiteInfor *SiteTemp_;
-    const char* name__;
+    hyperlex::vector<int> state;
     clear();
 
     error = LPMorpheneBuild(source, eme);
@@ -695,14 +682,40 @@ int Pikachu::ActivFunc::Example(const char* source)
         return error;
     }
     //Tree.Demo(stdout, eme, Exp::ExpPraser::RulesName);
-    iterator.initial(Tree.GT);
     
+    state.recount(FuncPraser::RulesCount);
+    for (i = 0; i < state.count(); i++) state[i] = (int)i;
+    error = build(Tree.GT, eme, state.ptr());
+
+    InputDim.recount(1);
+    InputDim[0] = 1;
+    return 0;
+}
+int Pikachu::ActivFunc::build(GLTree* Tree, hyperlex::Morpheme& eme, int* state)
+{
+    using namespace LP;
+    GTIter iterator;
+    GLTree* GT;
+    FuncPraser::rules RRR;
+
+    Ele* left_;
+    Ele* right_;
+    Ele* here;
+    Pikachu::function func__;
+    Pikachu::operation op__;
+    LexSheet Ls;
+    LexSheet::SiteInfor* SiteTemp_;
+    const char* name__;
+
+    size_t i, site, temp_;
+    iterator.initial(Tree);
+
     while (iterator.still())
     {
         GT = iterator.target();
         if (iterator.state() != 0 && GT->root().rules)
         {
-            RRR = (FuncPraser::rules)GT->root().site;
+            RRR = (FuncPraser::rules)state[GT->root().site];
             here = NULL;
             SiteTemp_ = NULL;
             switch (RRR)
@@ -819,11 +832,8 @@ int Pikachu::ActivFunc::Example(const char* source)
         }
         iterator.next();
     }
-    InputDim.recount(1);
-    InputDim[0] = 1;
-    return 0;
-}
 
+}
 
 namespace Rtensor
 {

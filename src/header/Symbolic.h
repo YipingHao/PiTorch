@@ -3,6 +3,8 @@
 
 namespace Pikachu
 {
+	typedef hyperlex::tree<hyperlex::GrammarTree::TreeInfor> GLTree;
+	typedef hyperlex::tree<hyperlex::GrammarTree::TreeInfor>::PostIterator GTIter;
 	enum type
 	{
 		_LeafX_ = 0,
@@ -434,6 +436,8 @@ namespace Pikachu
 		void TestBackward(void);
 	protected:
 		size_t input;
+
+		int build(GLTree*Tree, hyperlex::Morpheme&eme, int*state);
 	};
 
 	
