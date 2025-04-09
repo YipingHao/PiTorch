@@ -178,7 +178,7 @@ namespace LP
         static const char* const RulesName[48];
         static const int Implicit[48];
     };
-
+    static int LPMorpheneBuild(const char* source, hyperlex::Morpheme& eme);
 
 }
 namespace Rtensor
@@ -528,13 +528,35 @@ public:
     }
 };
 
+static int ExpMorpheneBuild(const char* source, hyperlex::Morpheme& eme)
+{
+    using namespace Exp;
+    int error;
+    size_t i;
+    ExpLexer::regular T;
+    ExpLexer::group G;
+    error = eme.Build<ExpLexer>(source);
+    if (error != 0)
+    {
+        //errorCode = ErrorinputLEXICAL;
+        return error;
+    }
+    for (i = 0; i < eme.GetCount(); i++)
+    {
+        T = (ExpLexer::regular)(eme[i].accept);
+        G = (ExpLexer::group)(eme[i].category);
+        if (G == ExpLexer::_format___ || G == ExpLexer::_anntation___)
+        {
+            eme.valid(i) = false;
+        }
+    }
+    return error;
+}
 int Pikachu::Expres::example(const char* source)
 {
     size_t i, site;
     int error;
     hyperlex::Morpheme eme;
-    Exp::ExpLexer::regular T;
-    Exp::ExpLexer::group G;
     GTIter iterator;
     hyperlex::GrammarTree Tree;
     GLTree* GT;
@@ -547,22 +569,8 @@ int Pikachu::Expres::example(const char* source)
     LexSheet Ls;
     const char* name__;
     clear();
-
-    error = eme.Build<Exp::ExpLexer>(source);
-    if (error != 0)
-    {
-        //errorCode = ErrorinputLEXICAL;
-        return error;
-    }
-    for (i = 0; i < eme.GetCount(); i++)
-    {
-        T = (Exp::ExpLexer::regular)(eme[i].accept);
-        G = (Exp::ExpLexer::group)(eme[i].category);
-        if (G == Exp::ExpLexer::_format___ || G == Exp::ExpLexer::_anntation___)
-        {
-            eme.valid(i) = false;
-        }
-    }
+    error = ExpMorpheneBuild(source, eme);
+    if (error != 0)return error;
     //eme.Demo(stdout);
    
     error = Tree.build<Exp::ExpPraser>(eme);
@@ -581,16 +589,13 @@ int Pikachu::Expres::example(const char* source)
             //printf("RRR:%zu\n", GT->root().site);
             switch (RRR)
             {
-            case Exp::ExpPraser::all_all_:
-                here = (Ele*)GT->child(0)->root().infor;
-                //printf("output.count():%zu\n", output.count());
-                OutputAppend(here);
-                break;
             case Exp::ExpPraser::Expression_left_right_:
                 here = (Ele*)GT->child(2)->root().infor;
+                OutputAppend(here);
                 break;
             case Exp::ExpPraser::Expression_right_:
                 here = (Ele*)GT->child(0)->root().infor;
+                OutputAppend(here);
                 break;
             case Exp::ExpPraser::EXP_RIGHT_add_:
             case Exp::ExpPraser::EXP_MUL_multi_:
@@ -657,6 +662,7 @@ int Pikachu::Expres::example(const char* source)
     ParameterCount = 0;
     return 0;
 }
+
 int Pikachu::ActivFunc::Example(const char* source)
 {
     using namespace LP;
@@ -679,21 +685,8 @@ int Pikachu::ActivFunc::Example(const char* source)
     const char* name__;
     clear();
 
-    error = eme.Build<FuncLexer>(source);
-    if (error != 0)
-    {
-        //errorCode = ErrorinputLEXICAL;
-        return error;
-    }
-    for (i = 0; i < eme.GetCount(); i++)
-    {
-        T = (FuncLexer::regular)(eme[i].accept);
-        G = (FuncLexer::group)(eme[i].category);
-        if (G == FuncLexer::_format___ || G == FuncLexer::_anntation___)
-        {
-            eme.valid(i) = false;
-        }
-    }
+    error = LPMorpheneBuild(source, eme);
+    if (error != 0) return error;
     //eme.Demo(stdout);
 
     error = Tree.build<FuncPraser>(eme);
@@ -958,6 +951,30 @@ namespace Rtensor
 }
 namespace LP
 { 
+
+    static int LP::LPMorpheneBuild(const char* source, hyperlex::Morpheme& eme)
+    {
+        int error;
+        size_t i;
+        FuncLexer::regular T;
+        FuncLexer::group G;
+        error = eme.Build<FuncLexer>(source);
+        if (error != 0)
+        {
+            //errorCode = ErrorinputLEXICAL;
+            return error;
+        }
+        for (i = 0; i < eme.GetCount(); i++)
+        {
+            T = (FuncLexer::regular)(eme[i].accept);
+            G = (FuncLexer::group)(eme[i].category);
+            if (G == FuncLexer::_format___ || G == FuncLexer::_anntation___)
+            {
+                eme.valid(i) = false;
+            }
+        }
+    }
+
     const size_t FuncPraser::StateCount = 85;
     const size_t FuncPraser::NonTerminalCount = 25;
     const size_t FuncPraser::TerminalCount = 47;
