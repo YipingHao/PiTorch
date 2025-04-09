@@ -1522,16 +1522,20 @@ int static test13(const parameter& para)
     }
     return 0;
 }
-void static testsymbolic(ActivFunc& Af, const double delta, bool print)
+void static testsymbolic(ActivFunc& Af, const double delta, bool print, double lower, double upper)
 {
     vector<double> parameter;
     vector<double> output;
     vector<double*> input;
-    double x, error, temp, y1, y2, X;
+    double x, error, temp, temp2, y1, y2, X, f_out, b_out;
+    double record1, record2;
+    double recordb1, recordb2, error2;
     HyperAlgebra::SimpleRandom Sr;
     ActivFunc now;
+    ActivFunc back;
     size_t i;
     VISA1 F, f;
+    VISA1 B;
     parameter.recount(Af.ParameterAmount());
     output.recount(Af.OutputAmount());
     input.recount(1);
@@ -1539,22 +1543,31 @@ void static testsymbolic(ActivFunc& Af, const double delta, bool print)
 
     for (i = 0; i < parameter.count(); i++)
     {
-        parameter[i] = Sr.rand(-1.0, 1.0);
+        parameter[i] = Sr.rand(lower, upper);
     }
     error = 0;
 
     now.Copy(Af);
-
     now.Differetial();
     now.Simplify();
+    back.Copy(Af);
+    back.Differetial();
+    back.Simplify();
+
     Af.PrintForward(F);
     now.PrintForward(f);
+    back.PrintForward(B);
 
     error = 0.0;
+    record1 = 0.0;
+    record2 = 0.0;
 
+    error2 = 0.0;
+    recordb1 = 0.0;
+    recordb2 = 0.0;
     for (i = 0; i < 1024; i++)
     {
-        X = Sr.rand(1.0, 2.0);
+        X = Sr.rand(lower, upper);
         x = X + delta;
         F.compute(input.array(), parameter.array(), output.array());
         y1 = output[0];
@@ -1565,17 +1578,35 @@ void static testsymbolic(ActivFunc& Af, const double delta, bool print)
 
         x = X;
         f.compute(input.array(), parameter.array(), output.array());
-        temp = std::fabs((y1 - y2) * 0.5 / delta - output[0]);
+        f_out = output[0];
+        temp = std::fabs((y1 - y2) * 0.5 / delta - f_out);
 
+        B.compute(input.array(), parameter.array(), output.array());
+        b_out = output[0];
+        temp2 = std::fabs(b_out - f_out);
+
+
+        record1 = error > temp ? y1 : record1;
+        record2 = error > temp ? y2 : record2;
         error = error > temp ? error : temp;
+
+        recordb1 = error2 > temp2 ? y1 : recordb1;
+        recordb2 = error2 > temp2 ? y2 : recordb2;
+        error2 = error2 > temp2 ? error2 : temp2;
+
         if (print)
         {
             std::cout << "X: " << X << ", y1: " << y1 << ", y2: " << y2 << ", Numer: ";
             std::cout << (y1 - y2) * 0.5 / delta << ", output[0]" << output[0] << std::endl;
         }
     }
+    std::cout << "\terror 1: " << error;
+    std::cout << ", record1: " << record1;
+    std::cout << ", record2: " << record2 << std::endl;
 
-    std::cout << "error: " << error << std::endl;
+    std::cout << "\terror 2: " << error2;
+    std::cout << ", recordb1: " << recordb1;
+    std::cout << ", recordb2: " << recordb2 << std::endl;
 }
 int static test14(const parameter& para)
 {
@@ -1665,7 +1696,7 @@ int static test14(const parameter& para)
             {
                 Exp.Differetial();
                 Exp.Simplify();
-                testsymbolic(Exp, 1.0E-7, false);
+                testsymbolic(Exp, 1.0E-7, false, 1.0, 2.0);
             }
         }
         ActivFunc Ac;
