@@ -674,14 +674,14 @@ int Pikachu::ActivFunc::construct(const char* source)
 
     error = LPMorpheneBuild(source, eme);
     if (error != 0) return error;
-    //eme.Demo(stdout);
+    eme.Demo(stdout);
 
     error = Tree.build<FuncPraser>(eme);
     if (error != 0)
     {
         return error;
     }
-    //Tree.Demo(stdout, eme, Exp::ExpPraser::RulesName);
+    Tree.Demo(stdout, eme, Exp::ExpPraser::RulesName);
     
     state.recount(FuncPraser::RulesCount);
     for (i = 0; i < state.count(); i++) state[i] = (int)i;
