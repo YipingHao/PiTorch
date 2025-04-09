@@ -1526,8 +1526,8 @@ int static test14(const parameter& para)
 {
     try
     {
-        Expres Exp;
-        Expres Diff;
+        ActivFunc Exp;
+        ActivFunc Diff;
         hyperlex::BufferChar BC;
         Exp.Example(0);
         Exp.demo(stdout);
