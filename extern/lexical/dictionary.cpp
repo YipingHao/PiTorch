@@ -9,7 +9,7 @@ static const char* Copy(const char* input);
 
 dictionary::dictionary()
 {
-    errorCode = buildUndone;
+    errorCode = NoError;
     errorInfor1 = 0;
     errorInfor2 = 0;
 }
@@ -27,7 +27,7 @@ void dictionary::clear(void)
     Content.clear();
     LexicalSource.clear();
 
-    errorCode = buildUndone;
+    errorCode = NoError;
     errorInfor1 = 0;
     errorInfor2 = 0;
 }
@@ -296,7 +296,6 @@ size_t dictionary::append(const char* key, dictionary::element value, dictionary
         if (eme[i].category == complex::_id___)
             storage.append(eme.GetWord(i));
     }
-    printf("????%d\n", (int)T);
     for (i = 1; i < storage.count(); i++)
     {
         for (j = 0; j < target->Content.count(); j++)
@@ -313,10 +312,8 @@ size_t dictionary::append(const char* key, dictionary::element value, dictionary
         }
         if(j == target->Content.count()) return site;
     }
-    printf("storage.count()%zu\n", storage.count());
     for (j = 0; j < target->Content.count(); j++)
         if (compare(storage[i - 1], target->Content[j].key)) return site;
-    printf("j%zu\n", j);
     site = target->Content.count();
     kv.key = (char*)Copy(storage[i - 1]);
     kv.setType(T);
@@ -416,6 +413,7 @@ void dictionary::ErrorDemo(FILE* fp) const
         }
         break;
     case hyperlex::dictionary::buildUndone:
+        fprintf(fp, "buildUndone!\n");
         break;
     default:
         break;
@@ -641,6 +639,7 @@ int dictionary::build(FILE* fp)
     //Morpheme eme;
     int error;
     clear();
+    errorCode = buildUndone;
     error = LexicalSource.Build<DictReg>(fp);
     if (error != 0)
     {
@@ -660,6 +659,7 @@ int dictionary::build(const char* input)
     //Morpheme eme;
     int error;
     clear();
+    errorCode = buildUndone;
     //initial();
     error = LexicalSource.Build<DictReg>(input);
     if (error != 0)
