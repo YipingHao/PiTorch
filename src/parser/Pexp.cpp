@@ -787,7 +787,7 @@ int Pikachu::ActivFunc::build(GLTree* Tree, hyperlex::Morpheme& eme, int* state)
                 SiteTemp_ = (LexSheet::SiteInfor*)GT->child(0)->root().infor;
                 if (SiteTemp_ == NULL) return -548348;
                 here = (Ele*)Ls[SiteTemp_];
-                if (here == NULL) return -45784537;
+                if (here == NULL) return -4784537;
                 free((void*)SiteTemp_);
                 break;
             case LP::FuncPraser::UNIT_call_:
@@ -832,7 +832,7 @@ int Pikachu::ActivFunc::build(GLTree* Tree, hyperlex::Morpheme& eme, int* state)
         }
         iterator.next();
     }
-
+    return 0;
 }
 
 namespace Rtensor
