@@ -328,7 +328,7 @@ size_t dictionary::append(const char* key, const char* value)
     Ktype T;
     T = string_;
     VV.ss = (char*)Copy(value);
-    return (key, value, T);
+    return append(key, VV, T);
 }
 size_t dictionary::append(const char* key, double value)
 {
@@ -336,7 +336,7 @@ size_t dictionary::append(const char* key, double value)
     Ktype T;
     T = float_;
     VV.ff = value;
-    return (key, value, T);
+    return append(key, VV, T);
 }
 size_t dictionary::append(const char* key, long int value)
 {
@@ -344,7 +344,7 @@ size_t dictionary::append(const char* key, long int value)
     Ktype T;
     T = int_;
     VV.ii = value;
-    return (key, value, T);
+    return append(key, VV, T);
 }
 size_t dictionary::append(const char* key, bool value)
 {
@@ -352,7 +352,7 @@ size_t dictionary::append(const char* key, bool value)
     Ktype T;
     T = bool_;
     VV.bb = value;
-    return (key, value, T);
+    return append(key, VV, T);
 }
 
 
