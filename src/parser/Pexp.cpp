@@ -179,6 +179,103 @@ namespace LP
         static const char* const RulesName[47];
         static const int Implicit[47];
     };
+    struct ManifPraser
+    {
+        enum type
+        {
+            accept = 0,
+            error = 1,
+            push = 2,
+            reduce = 3
+        };
+        enum rules
+        {
+            all_all_ = 0,
+            MANIFOLD_MANIFOLD_ = 1,
+            PARA_PARA_ = 2,
+            //<MANIFPARAS>_single_ = 3,
+            //<MANIFPARAS>_multi_ = 4,
+            MANIFPARA_input_ = 5,
+            MANIFPARA_para_ = 6,
+            MANIFPARA_output_ = 7,
+            //<MANIFWORD>_manifold_ = 8,
+            //<MANIFWORD>_manif_ = 9,
+            MANIFBODY_MANIFBODY_ = 10,
+            DELARATIONS_DELARATIONS_ = 11,
+            //<DELARATION*>_first_ = 12,
+            //<DELARATION*>_multi_ = 13,
+            DELARATION_DELARATION_ = 14,
+            EXPRESSIONS_EXPRESSIONS_ = 15,
+            //<EXPRESSION*>_first_ = 16,
+            //<EXPRESSION*>_multi_ = 17,
+            EXPRESSION_EXPRESSION_ = 18,
+            //EXP_RIGHT_<implicit>_ = 19,
+            EXP_RIGHT_add_ = 20,
+            //[operatas]_sub_ = 21,
+            //[operatas]_add_ = 22,
+            //EXP_MUL_<implicit>_ = 23,
+            EXP_MUL_multi_ = 24,
+            //[operatmd]_multi_ = 25,
+            //[operatmd]_div_ = 26,
+            //EXP_MINUS_<implicit>_ = 27,
+            EXP_MINUS_plus_ = 28,
+            UNIT_id_ = 29,
+            UNIT_call_ = 30,
+            UNIT_const_ = 31,
+            UNIT_complex_ = 32,
+            //[number]_integer_ = 33,
+            //[number]_realC_ = 34,
+            ID_array_ = 35,
+            ID_single_ = 36,
+            CALL_call_1_ = 37,
+            CALL_call_2_ = 38,
+            //[function1]_sin_ = 39,
+            //[function1]_cos_ = 40,
+            //[function1]_exp_ = 41,
+            //[function1]_ln_ = 42,
+            //[function1]_log_ = 43,
+            //[function1]_sqrt_ = 44,
+            //[function2]_pow_ = 45
+        };
+        enum nonterminal
+        {
+            _all_ = 0,
+            _MANIFOLD_ = 1,
+            _PARA_ = 2,
+            //_<MANIFPARAS>_ = 3,
+            _MANIFPARA_ = 4,
+            //_<MANIFWORD>_ = 5,
+            _MANIFBODY_ = 6,
+            _DELARATIONS_ = 7,
+            //_<DELARATION*>_ = 8,
+            _DELARATION_ = 9,
+            _EXPRESSIONS_ = 10,
+            //_<EXPRESSION*>_ = 11,
+            _EXPRESSION_ = 12,
+            _EXP_RIGHT_ = 13,
+            //_[operatas]_ = 14,
+            _EXP_MUL_ = 15,
+            //_[operatmd]_ = 16,
+            _EXP_MINUS_ = 17,
+            _UNIT_ = 18,
+            //_[number]_ = 19,
+            _ID_ = 20,
+            _CALL_ = 21,
+            //_[function1]_ = 22,
+            //_[function2]_ = 23
+        };
+        static const size_t StateCount;
+        static const size_t NonTerminalCount;
+        static const size_t TerminalCount;
+        static const size_t RulesCount;
+        static const int GOTO[77][24];
+        static const int ACTION[77][48];
+        static const int RulesToSymbol[46];
+        static const int RulesLength[46];
+        static const char* const RulesName[46];
+        static const int Implicit[46];
+    };
+
 
     int static  LPMorpheneBuild(const char* source, hyperlex::Morpheme& eme);
 
@@ -416,8 +513,10 @@ public:
         size_t length;
         Pikachu::vector<void*> infor;
         long int label;
+        bool scalar;
         item() { label = 0;
         length = 0;
+        scalar = true;
         }
         ~item() {}
         inline bool nameIs(const char* source)
@@ -438,6 +537,11 @@ public:
         }
         inline void* GetInfor(long int site) { return infor[site > 0 ? site : 0]; }
         inline size_t count(void) const { return infor.count(); }
+        inline bool checkIndex(long int index) const
+        {
+            if (scalar) return (index < 0L);
+            else return index >= 0L && index < infor.count();
+        }
     };
     struct IDInfor
     {
@@ -480,7 +584,7 @@ public:
         temp = items[source->site1];
         return temp->infor[source->site2];
     }
-    void append(size_t length, const char* Name, const char* Attri)
+    void append(long int length, const char* Name, const char* Attri)
     {
         item* New;
         long int temp;
@@ -488,7 +592,8 @@ public:
         New = new item;
         New->name = Name;
         New->attri = Attri;
-        New->length = length;
+        New->scalar = length < 0L;
+        New->length = New->scalar ? 1LU : length;
         New->infor.recount(length);
         New->infor.value(NULL);
         temp = 0;
@@ -703,6 +808,18 @@ static void RepeatDefID(hyperlex::dictionary* error, const char* func, const Lex
     error->append("line", (long int)IDTemp_->line);
     return;
 }
+static void RepeatSomething(hyperlex::dictionary* error, const char* func, const LexSheet::IDInfor* IDTemp_)
+{
+    error->append("ErrorType", "repeat definition of something");
+    error->append("something", func);
+    error->append("identifier", IDTemp_->name);
+    if (IDTemp_->num >= 0)
+        error->append("index", IDTemp_->num);
+    else
+        error->append("index", "none");
+    error->append("line", (long int)IDTemp_->line);
+    return;
+}
 int Pikachu::ActivFunc::construct(const char* source)
 {
     using namespace LP;
@@ -790,8 +907,12 @@ int Pikachu::ActivFunc::build(GLTree* Tree, hyperlex::Morpheme& eme, int* state)
                     ErrorWrongIndex(error, "MANIFPARA_input_", IDTemp_);
                     throw error;
                 }
+                if (ItemTemp_->label != 0) {
+                    RepeatSomething(error, "input", IDTemp_);
+                    throw error;
+                }
                 here = NewNode(Pikachu::_LeafX_, 0, 0);
-                Ls.append(1, IDTemp_->name, "input");
+                Ls.append(IDTemp_->num, IDTemp_->name, "input");
                 (*Ls[IDTemp_->name])[0] = (void*)here;
                 delete IDTemp_;
                 IDTemp_ = NULL;
@@ -808,8 +929,12 @@ int Pikachu::ActivFunc::build(GLTree* Tree, hyperlex::Morpheme& eme, int* state)
                     ErrorWrongIndex(error, "MANIFPARA_para_", IDTemp_);
                     throw error;
                 }
+                if (ItemTemp_->label != 0) {
+                    RepeatSomething(error, "para", IDTemp_);
+                    throw error;
+                }
                 temp_ = IDTemp_->num < 0 ? 1 : IDTemp_->num;
-                Ls.append(temp_, IDTemp_->name, "para");
+                Ls.append(IDTemp_->num, IDTemp_->name, "para");
                 ParameterCount += temp_;
                 site = Ls.count() - 1;
                 for (i = 0; i < temp_; i++)
@@ -836,7 +961,7 @@ int Pikachu::ActivFunc::build(GLTree* Tree, hyperlex::Morpheme& eme, int* state)
                     throw error;
                 }
                 temp_ = IDTemp_->num < 0 ? 1 : IDTemp_->num;
-                Ls.append(temp_, IDTemp_->name, "var");
+                Ls.append(IDTemp_->num, IDTemp_->name, "var");
                 delete IDTemp_;
                 IDTemp_ = NULL;
                 break;
@@ -858,11 +983,11 @@ int Pikachu::ActivFunc::build(GLTree* Tree, hyperlex::Morpheme& eme, int* state)
                     NosuchID(error, "EXPRESSION_EXPRESSION_", IDTemp_);
                     throw error;
                 }
-                temp_ = IDTemp_->num < 0 ? 0 : IDTemp_->num;
-                if (temp_ >= ItemTemp_->count()) {
+                if (!ItemTemp_->checkIndex(IDTemp_->num)) {
                     ErrorWrongIndex(error, "EXPRESSION_EXPRESSION_", IDTemp_);
                     throw error;
                 }
+                temp_ = IDTemp_->num < 0 ? 0 : IDTemp_->num;
                 ItemTemp_->infor[temp_] = (void*)right_;
                 here = right_;
                 delete IDTemp_;
@@ -889,12 +1014,12 @@ int Pikachu::ActivFunc::build(GLTree* Tree, hyperlex::Morpheme& eme, int* state)
                     NosuchID(error, "UNIT_id_", IDTemp_);
                     throw error;
                 }
-                temp_ = IDTemp_->num < 0 ? 0 : IDTemp_->num;
-                if (temp_ >= ItemTemp_->count())
+                if (!ItemTemp_->checkIndex(IDTemp_->num))
                 {
                     ErrorWrongIndex(error, "UNIT_id_", IDTemp_);
                     throw error;
                 }
+                temp_ = IDTemp_->num < 0 ? 0 : IDTemp_->num;
                 here = (Ele*)ItemTemp_->GetInfor(temp_);
                 if (here == NULL) 
                 {
@@ -925,6 +1050,14 @@ int Pikachu::ActivFunc::build(GLTree* Tree, hyperlex::Morpheme& eme, int* state)
                 site = GT->child(2)->root().site;
                 IDTemp_->num = (long int)eme.GetInt(site);
                 IDTemp_->line = eme[GT->child(0)->root().site].line;
+                if (IDTemp_->num < 0L)
+                {
+                    error->append("ID_array_", "index less than zero");
+                    error->append("index", IDTemp_->num);
+                    error->append("identifier", IDTemp_->name);
+                    error->append("line", (long int)IDTemp_->line);
+                    throw error;
+                }
                 break;
             case LP::FuncPraser::ID_single_:
                 IDTemp_ = new LexSheet::IDInfor;
@@ -980,13 +1113,15 @@ static void ManifoldMorpheneBuild(const char* source, hyperlex::Morpheme&eme, hy
         }
     }
     
-    error = Tree.build<FuncPraser>(eme);
+    error = Tree.build<ManifPraser>(eme);
     if (error != 0)
     {
         Error = new hyperlex::dictionary;
         Error->append("function", "void ManifoldMorpheneBuild");
-        Error->append("loaction", "error = Tree.build<FuncPraser>(eme);");
+        Error->append("loaction", "error = Tree.build<ManifPraser>(eme);");
         Error->append("error", (long int)(error / 4));
+        Error->append("line", (long int)eme[Tree.error_record01].line);
+        Error->append("lexicalUnit", (long int)Tree.error_record01);
         throw Error;
     }
     return;
@@ -1026,7 +1161,7 @@ void Pikachu::Expres::ManifoldBuild(GLTree* Tree, hyperlex::Morpheme& eme, int* 
     using namespace LP;
     GTIter iterator;
     GLTree* GT;
-    FuncPraser::rules RRR;
+    ManifPraser::rules RRR;
 
     Ele* left_;
     Ele* right_;
@@ -1034,25 +1169,214 @@ void Pikachu::Expres::ManifoldBuild(GLTree* Tree, hyperlex::Morpheme& eme, int* 
     Pikachu::function func__;
     Pikachu::operation op__;
     LexSheet Ls;
-    LexSheet::SiteInfor* SiteTemp_;
-    const char* name__;
-
+    LexSheet::IDInfor* IDTemp_;
+    LexSheet::item* ItemTemp_;
+    hyperlex::dictionary* error;
     size_t i, site, temp_;
+    error = new hyperlex::dictionary;
+    error->append("location", "Expres::ManifoldBuild");
     iterator.initial(Tree);
-
     while (iterator.still())
     {
         GT = iterator.target();
         if (iterator.state() != 0 && GT->root().rules)
         {
-            RRR = (FuncPraser::rules)state[GT->root().site];
+            RRR = (ManifPraser::rules)state[GT->root().site];
             here = NULL;
-            SiteTemp_ = NULL;
-            GT->root().infor = (here == NULL ? (void*)SiteTemp_ : (void*)here);
+            ItemTemp_ = NULL;
+            switch (RRR)
+            {
+            case LP::ManifPraser::MANIFPARA_input_:
+                IDTemp_ = (LexSheet::IDInfor*)GT->child(1)->root().infor;
+                ItemTemp_ = (LexSheet::item*)Ls[IDTemp_->name];
+                if (ItemTemp_ != NULL)
+                {
+                    RepeatDefID(error, "MANIFPARA_input_", IDTemp_);
+                    throw error;
+                }
+                if (IDTemp_->num == 0) {
+                    ErrorWrongIndex(error, "MANIFPARA_input_", IDTemp_);
+                    throw error;
+                }
+                if (ItemTemp_->label != 0) {
+                    RepeatSomething(error, "input", IDTemp_);
+                    throw error;
+                }
+                Ls.append(IDTemp_->num, IDTemp_->name, "input");
+                for (i = 0; i < temp_; i++)
+                {
+                    (*Ls[site])[i] = NewNode(Pikachu::_LeafX_, 0, i);
+                }
+                delete IDTemp_;
+                IDTemp_ = NULL;
+                break;
+            case LP::ManifPraser::MANIFPARA_para_:
+                IDTemp_ = (LexSheet::IDInfor*)GT->child(1)->root().infor;
+                error->append("MANIFPARA_para_", "should not def para");
+                error->append("line", (long int)IDTemp_->line);
+            case LP::ManifPraser::MANIFPARA_output_:
+                IDTemp_ = (LexSheet::IDInfor*)GT->child(1)->root().infor;
+                ItemTemp_ = (LexSheet::item*)Ls[IDTemp_->name];
+                if (ItemTemp_ != NULL)
+                {
+                    RepeatDefID(error, "MANIFPARA_output_", IDTemp_);
+                    throw error;
+                }
+                if (IDTemp_->num == 0) {
+                    ErrorWrongIndex(error, "MANIFPARA_output_", IDTemp_);
+                    throw error;
+                }
+                if (ItemTemp_->label != 0) {
+                    RepeatSomething(error, "output", IDTemp_);
+                    throw error;
+                }
+                Ls.append(IDTemp_->num, IDTemp_->name, "output");
+                temp_ = IDTemp_->num < 0 ? 1 : IDTemp_->num;
+                output.recount(temp_);
+                output.value(NULL);
+                delete IDTemp_;
+                IDTemp_ = NULL;
+                break;
+            case LP::ManifPraser::DELARATION_DELARATION_:
+                IDTemp_ = (LexSheet::IDInfor*)GT->child(1)->root().infor;
+                ItemTemp_ = (LexSheet::item*)Ls[IDTemp_->name];
+                if (ItemTemp_ != NULL) {
+                    RepeatDefID(error, "DELARATION_DELARATION_", IDTemp_);
+                    throw error;
+                }
+                if (IDTemp_->num == 0) {
+                    ErrorWrongIndex(error, "DELARATION_DELARATION_", IDTemp_);
+                    throw error;
+                }
+                Ls.append(IDTemp_->num, IDTemp_->name, "var");
+                delete IDTemp_;
+                IDTemp_ = NULL;
+                break;
+            case LP::ManifPraser::EXPRESSION_EXPRESSION_:
+                right_ = (Ele*)GT->child(2)->root().infor;
+                IDTemp_ = (LexSheet::IDInfor*)GT->child(0)->root().infor;
+                if (IDTemp_ == NULL) {
+                    error->append("EXPRESSION_EXPRESSION_", "Unexpected Error");
+                    error->append("Error", "compiler itself");
+                    throw error;
+                }
+                ItemTemp_ = (LexSheet::item*)Ls[IDTemp_->name];
+                if (ItemTemp_ == NULL) {
+                    NosuchID(error, "EXPRESSION_EXPRESSION_", IDTemp_);
+                    throw error;
+                }
+                temp_ = IDTemp_->num < 0 ? 0 : IDTemp_->num;
+                if (temp_ >= ItemTemp_->count()) {
+                    ErrorWrongIndex(error, "EXPRESSION_EXPRESSION_", IDTemp_);
+                    throw error;
+                }
+                ItemTemp_->infor[temp_] = (void*)right_;
+                if (ItemTemp_->attriIs("output")) output[temp_] = right_;
+                here = right_;
+                delete IDTemp_;
+                IDTemp_ = NULL;
+                break;
+            case LP::ManifPraser::EXP_RIGHT_add_:
+            case LP::ManifPraser::EXP_MUL_multi_:
+                left_ = (Ele*)GT->child(0)->root().infor;
+                right_ = (Ele*)GT->child(2)->root().infor;
+                op__ = FuncLexer::operationGet(eme[GT->child(1)].accept);
+                here = NewNode(left_, right_, op__);
+                break;
+            case LP::ManifPraser::EXP_MINUS_plus_:
+                left_ = (Ele*)GT->child(1)->root().infor;
+                op__ = FuncLexer::operationGet(eme[GT->child(0)].accept);
+                if (op__ == Pikachu::_sub_) here = NewNode(left_, _minus_);
+                else here = left_;
+                break;
+            case LP::ManifPraser::UNIT_id_:
+                IDTemp_ = (LexSheet::IDInfor*)GT->child(0)->root().infor;
+                ItemTemp_ = (LexSheet::item*)Ls[IDTemp_->name];
+                if (ItemTemp_ == NULL)
+                {
+                    NosuchID(error, "UNIT_id_", IDTemp_);
+                    throw error;
+                }
+                if (!ItemTemp_->checkIndex(IDTemp_->num))
+                {
+                    ErrorWrongIndex(error, "UNIT_id_", IDTemp_);
+                    throw error;
+                }
+                temp_ = IDTemp_->num < 0 ? 0 : IDTemp_->num;
+                here = (Ele*)ItemTemp_->GetInfor(temp_);
+                if (here == NULL)
+                {
+                    error->append("UNIT_id_", "identifier has not been valued");
+                    error->append("identifier", IDTemp_->name);
+                    error->append("line", (long int)IDTemp_->line);
+                    throw error;
+                }
+                delete IDTemp_;
+                IDTemp_ = NULL;
+                break;
+            case LP::ManifPraser::UNIT_call_:
+                here = (Ele*)GT->child(0)->root().infor;
+                break;
+            case LP::ManifPraser::UNIT_const_:
+                site = GT->child(0)->root().site;
+                if (eme[site].accept == (int)FuncLexer::regular::_integer_)
+                    here = NewNode(eme.GetInt(site));
+                else
+                    here = NewNode(eme.GetReal(site));
+                break;
+            case LP::ManifPraser::UNIT_complex_:
+                here = (Ele*)GT->child(1)->root().infor;
+                break;
+            case LP::ManifPraser::ID_array_:
+                IDTemp_ = new LexSheet::IDInfor;
+                IDTemp_->name = eme.GetWord(GT->child(0)->root().site);
+                site = GT->child(2)->root().site;
+                IDTemp_->num = (long int)eme.GetInt(site);
+                IDTemp_->line = eme[GT->child(0)->root().site].line;
+                if (IDTemp_->num < 0L)
+                {
+                    error->append("ID_array_", "index less than zero");
+                    error->append("index", IDTemp_->num);
+                    error->append("identifier", IDTemp_->name);
+                    error->append("line", (long int)IDTemp_->line);
+                    throw error;
+                }
+                break;
+            case LP::ManifPraser::ID_single_:
+                IDTemp_ = new LexSheet::IDInfor;
+                IDTemp_->name = eme.GetWord(GT->child(0)->root().site);
+                IDTemp_->num = -1;
+                IDTemp_->line = eme[GT->child(0)->root().site].line;
+                break;
+            case LP::ManifPraser::CALL_call_1_:
+                left_ = (Ele*)GT->child(2)->root().infor;
+                func__ = FuncLexer::functionGet(eme[GT->child(0)].accept);
+                here = NewNode(left_, func__);
+                break;
+            case LP::ManifPraser::CALL_call_2_:
+                left_ = (Ele*)GT->child(2)->root().infor;
+                right_ = (Ele*)GT->child(4)->root().infor;
+                here = NewNode(left_, right_, _pow_);
+                break;
+            default:
+                break;
+            }
+            GT->root().infor = (here == NULL ? (void*)ItemTemp_ : (void*)here);
         }
         iterator.next();
     }
+    for (i = 0; i < output.count(); i++)
+    {
+        if (output[i] == NULL)
+        {
+            error->append("error", "missing definition of output");
+            error->append("index", (long int)i);
+            throw error;
+        }
+    }
+    delete error;
 }
+
 
 namespace Rtensor
 {
@@ -1570,6 +1894,362 @@ namespace LP
     1, \
     1, \
     1 };
+
+    
+    const size_t ManifPraser::StateCount = 77;
+    const size_t ManifPraser::NonTerminalCount = 24;
+    const size_t ManifPraser::TerminalCount = 47;
+    const size_t ManifPraser::RulesCount = 46;
+    const int ManifPraser::GOTO[77][24] = { \
+    {1, 6, 1, 1, 1, 10, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1}, \
+    {1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1}, \
+    {1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1}, \
+    {1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1}, \
+    {1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1}, \
+    {1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1}, \
+    {1, 1, 30, 34, 38, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1}, \
+    {1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1}, \
+    {1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1}, \
+    {1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1}, \
+    {1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 78, 1, 1, 1}, \
+    {1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 74, 1, 1, 1}, \
+    {1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 54, 1, 1, 1}, \
+    {1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1}, \
+    {1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1}, \
+    {1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1}, \
+    {1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1}, \
+    {1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1}, \
+    {1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1}, \
+    {1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1}, \
+    {1, 1, 1, 1, 86, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1}, \
+    {1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1}, \
+    {1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1}, \
+    {1, 1, 1, 1, 1, 1, 98, 102, 106, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1}, \
+    {1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1}, \
+    {1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 126, 130, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1}, \
+    {1, 1, 1, 1, 1, 1, 1, 1, 1, 110, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1}, \
+    {1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1}, \
+    {1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 118, 1, 1, 1}, \
+    {1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1}, \
+    {1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1}, \
+    {1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1}, \
+    {1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 134, 1, 1, 1, 1, 1, 1, 1, 138, 1, 1, 1}, \
+    {1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1}, \
+    {1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1}, \
+    {1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 146, 150, 154, 1, 158, 162, 166, 170, 174, 178, 182}, \
+    {1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 238, 1, 1, 1, 1, 1, 1, 1, 1, 1}, \
+    {1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 298, 166, 170, 174, 178, 182}, \
+    {1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 250, 1, 1, 1, 1, 1, 1, 1}, \
+    {1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1}, \
+    {1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1}, \
+    {1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1}, \
+    {1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1}, \
+    {1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1}, \
+    {1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1}, \
+    {1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1}, \
+    {1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1}, \
+    {1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1}, \
+    {1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1}, \
+    {1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1}, \
+    {1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1}, \
+    {1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1}, \
+    {1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1}, \
+    {1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1}, \
+    {1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1}, \
+    {1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 234, 150, 154, 1, 158, 162, 166, 170, 174, 178, 182}, \
+    {1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1}, \
+    {1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1}, \
+    {1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 238, 1, 1, 1, 1, 1, 1, 1, 1, 1}, \
+    {1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 150, 246, 1, 158, 162, 166, 170, 174, 178, 182}, \
+    {1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1}, \
+    {1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 250, 1, 1, 1, 1, 1, 1, 1}, \
+    {1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 150, 1, 1, 262, 162, 166, 170, 174, 178, 182}, \
+    {1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1}, \
+    {1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1}, \
+    {1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1}, \
+    {1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 270, 150, 154, 1, 158, 162, 166, 170, 174, 178, 182}, \
+    {1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 238, 1, 1, 1, 1, 1, 1, 1, 1, 1}, \
+    {1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 278, 150, 154, 1, 158, 162, 166, 170, 174, 178, 182}, \
+    {1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 238, 1, 1, 1, 1, 1, 1, 1, 1, 1}, \
+    {1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1}, \
+    {1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 290, 150, 154, 1, 158, 162, 166, 170, 174, 178, 182}, \
+    {1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 238, 1, 1, 1, 1, 1, 1, 1, 1, 1}, \
+    {1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1}, \
+    {1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1}, \
+    {1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1}, \
+    {1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1} };
+    //==============================
+    const int ManifPraser::ACTION[77][48] = { \
+    {1, 1, 1, 1, 1, 14, 1, 18, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1}, \
+    {0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1}, \
+    {5, 22, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5}, \
+    {5, 35, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5}, \
+    {5, 39, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5}, \
+    {141, 141, 141, 141, 141, 141, 141, 141, 141, 141, 141, 141, 141, 141, 141, 141, 141, 141, 141, 141, 141, 141, 141, 141, 141, 141, 141, 141, 141, 141, 141, 141, 141, 141, 141, 26, 141, 141, 141, 141, 141, 141, 141, 141, 141, 141, 141, 141}, \
+    {1, 1, 1, 1, 1, 1, 1, 1, 1, 42, 46, 50, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1}, \
+    {145, 145, 145, 145, 145, 145, 145, 145, 145, 145, 145, 145, 145, 145, 145, 145, 145, 145, 145, 145, 145, 145, 145, 145, 145, 145, 145, 145, 145, 145, 145, 145, 145, 145, 145, 145, 90, 145, 145, 145, 145, 145, 145, 145, 145, 145, 145, 145}, \
+    {1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 82, 1, 1, 1, 11, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1}, \
+    {1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 15, 1, 1, 1, 15, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1}, \
+    {5, 58, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5}, \
+    {5, 58, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5}, \
+    {5, 58, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5}, \
+    {1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 27, 1, 1, 1, 27, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1}, \
+    {1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 147, 1, 1, 147, 1, 1, 1, 147, 62, 1, 1, 1, 1, 1, 147, 147, 147, 147, 147}, \
+    {9, 9, 66, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9}, \
+    {153, 153, 153, 153, 153, 153, 153, 153, 153, 153, 153, 153, 153, 153, 153, 153, 153, 153, 153, 153, 153, 153, 153, 153, 153, 153, 153, 153, 153, 153, 153, 153, 153, 153, 153, 153, 153, 153, 70, 153, 153, 153, 153, 153, 153, 153, 153, 153}, \
+    {1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 143, 1, 1, 143, 1, 1, 1, 143, 1, 1, 1, 1, 1, 1, 143, 143, 143, 143, 143}, \
+    {1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 31, 1, 1, 1, 31, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1}, \
+    {1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 23, 1, 1, 1, 23, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1}, \
+    {1, 1, 1, 1, 1, 1, 1, 1, 1, 42, 46, 50, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1}, \
+    {1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 19, 1, 1, 1, 19, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1}, \
+    {133, 133, 133, 133, 133, 133, 133, 133, 133, 133, 133, 133, 133, 133, 133, 133, 133, 133, 133, 133, 133, 133, 133, 133, 133, 133, 133, 133, 133, 133, 133, 133, 133, 94, 133, 133, 133, 133, 133, 133, 133, 133, 133, 133, 133, 133, 133, 133}, \
+    {1, 51, 1, 1, 1, 1, 1, 1, 51, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 51, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1}, \
+    {137, 137, 137, 137, 137, 137, 137, 137, 137, 137, 137, 137, 137, 137, 137, 137, 137, 137, 137, 137, 137, 137, 137, 137, 137, 137, 137, 137, 137, 137, 137, 137, 137, 137, 306, 137, 137, 137, 137, 137, 137, 137, 137, 137, 137, 137, 137, 137}, \
+    {1, 67, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 67, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1}, \
+    {1, 47, 1, 1, 1, 1, 1, 1, 114, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 47, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1}, \
+    {1, 55, 1, 1, 1, 1, 1, 1, 55, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 55, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1}, \
+    {5, 58, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5}, \
+    {117, 117, 117, 117, 117, 117, 117, 117, 117, 117, 117, 117, 117, 117, 117, 117, 117, 117, 117, 117, 117, 117, 117, 117, 117, 117, 117, 117, 117, 122, 117, 117, 117, 117, 117, 117, 117, 117, 117, 117, 117, 117, 117, 117, 117, 117, 117, 117}, \
+    {1, 59, 1, 1, 1, 1, 1, 1, 59, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 59, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1}, \
+    {137, 137, 137, 137, 137, 137, 137, 137, 137, 137, 137, 137, 137, 137, 137, 137, 137, 137, 137, 137, 137, 137, 137, 137, 137, 137, 137, 137, 137, 137, 137, 137, 137, 137, 43, 137, 137, 137, 137, 137, 137, 137, 137, 137, 137, 137, 137, 137}, \
+    {1, 58, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 63, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1}, \
+    {1, 71, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 71, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1}, \
+    {189, 189, 189, 189, 189, 189, 189, 189, 189, 189, 189, 189, 189, 189, 189, 189, 189, 189, 189, 189, 189, 189, 189, 189, 189, 189, 189, 189, 189, 189, 189, 189, 189, 189, 189, 189, 189, 189, 189, 189, 189, 189, 189, 189, 189, 189, 189, 142}, \
+    {1, 58, 186, 190, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 194, 198, 202, 206, 210, 214, 218, 1, 1, 1, 1, 1, 1, 1, 1, 1, 222, 1, 1, 1, 1, 1, 1, 1, 1, 1, 226, 230, 1}, \
+    {1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 302, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 226, 230, 1}, \
+    {1, 58, 186, 190, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 194, 198, 202, 206, 210, 214, 218, 1, 1, 1, 1, 1, 1, 1, 1, 1, 222, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1}, \
+    {1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 79, 1, 1, 79, 1, 1, 1, 79, 1, 1, 1, 1, 1, 1, 254, 258, 79, 79, 1}, \
+    {1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 95, 1, 1, 95, 1, 1, 1, 95, 1, 1, 1, 1, 1, 1, 95, 95, 95, 95, 1}, \
+    {1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 111, 1, 1, 111, 1, 1, 1, 111, 1, 1, 1, 1, 1, 1, 111, 111, 111, 111, 1}, \
+    {1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 127, 1, 1, 127, 1, 1, 1, 127, 1, 1, 1, 1, 1, 1, 127, 127, 127, 127, 1}, \
+    {1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 119, 1, 1, 119, 1, 1, 1, 119, 1, 1, 1, 1, 1, 1, 119, 119, 119, 119, 1}, \
+    {1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 123, 1, 1, 123, 1, 1, 1, 123, 1, 1, 1, 1, 1, 1, 123, 123, 123, 123, 1}, \
+    {141, 141, 141, 141, 141, 141, 141, 141, 141, 141, 141, 141, 141, 141, 141, 141, 141, 141, 141, 141, 141, 141, 141, 141, 141, 141, 141, 141, 141, 141, 141, 141, 141, 141, 141, 286, 141, 141, 141, 141, 141, 141, 141, 141, 141, 141, 141, 141}, \
+    {141, 141, 141, 141, 141, 141, 141, 141, 141, 141, 141, 141, 141, 141, 141, 141, 141, 141, 141, 141, 141, 141, 141, 141, 141, 141, 141, 141, 141, 141, 141, 141, 141, 141, 141, 266, 141, 141, 141, 141, 141, 141, 141, 141, 141, 141, 141, 141}, \
+    {1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 135, 1, 1, 135, 1, 1, 1, 135, 1, 1, 1, 1, 1, 1, 135, 135, 135, 135, 1}, \
+    {1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 139, 1, 1, 139, 1, 1, 1, 139, 1, 1, 1, 1, 1, 1, 139, 139, 139, 139, 1}, \
+    {141, 141, 141, 141, 141, 141, 141, 141, 141, 141, 141, 141, 141, 141, 141, 141, 141, 141, 141, 141, 141, 141, 141, 141, 141, 141, 141, 141, 141, 141, 141, 141, 141, 141, 141, 159, 141, 141, 141, 141, 141, 141, 141, 141, 141, 141, 141, 141}, \
+    {141, 141, 141, 141, 141, 141, 141, 141, 141, 141, 141, 141, 141, 141, 141, 141, 141, 141, 141, 141, 141, 141, 141, 141, 141, 141, 141, 141, 141, 141, 141, 141, 141, 141, 141, 163, 141, 141, 141, 141, 141, 141, 141, 141, 141, 141, 141, 141}, \
+    {141, 141, 141, 141, 141, 141, 141, 141, 141, 141, 141, 141, 141, 141, 141, 141, 141, 141, 141, 141, 141, 141, 141, 141, 141, 141, 141, 141, 141, 141, 141, 141, 141, 141, 141, 167, 141, 141, 141, 141, 141, 141, 141, 141, 141, 141, 141, 141}, \
+    {141, 141, 141, 141, 141, 141, 141, 141, 141, 141, 141, 141, 141, 141, 141, 141, 141, 141, 141, 141, 141, 141, 141, 141, 141, 141, 141, 141, 141, 141, 141, 141, 141, 141, 141, 171, 141, 141, 141, 141, 141, 141, 141, 141, 141, 141, 141, 141}, \
+    {141, 141, 141, 141, 141, 141, 141, 141, 141, 141, 141, 141, 141, 141, 141, 141, 141, 141, 141, 141, 141, 141, 141, 141, 141, 141, 141, 141, 141, 141, 141, 141, 141, 141, 141, 175, 141, 141, 141, 141, 141, 141, 141, 141, 141, 141, 141, 141}, \
+    {141, 141, 141, 141, 141, 141, 141, 141, 141, 141, 141, 141, 141, 141, 141, 141, 141, 141, 141, 141, 141, 141, 141, 141, 141, 141, 141, 141, 141, 141, 141, 141, 141, 141, 141, 179, 141, 141, 141, 141, 141, 141, 141, 141, 141, 141, 141, 141}, \
+    {141, 141, 141, 141, 141, 141, 141, 141, 141, 141, 141, 141, 141, 141, 141, 141, 141, 141, 141, 141, 141, 141, 141, 141, 141, 141, 141, 141, 141, 141, 141, 141, 141, 141, 141, 183, 141, 141, 141, 141, 141, 141, 141, 141, 141, 141, 141, 141}, \
+    {1, 58, 186, 190, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 194, 198, 202, 206, 210, 214, 218, 1, 1, 1, 1, 1, 1, 1, 1, 1, 222, 1, 1, 1, 1, 1, 1, 1, 1, 1, 226, 230, 1}, \
+    {1, 87, 87, 87, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 87, 87, 87, 87, 87, 87, 87, 1, 1, 1, 1, 1, 1, 1, 1, 1, 87, 1, 1, 1, 1, 1, 1, 1, 1, 1, 87, 87, 1}, \
+    {1, 91, 91, 91, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 91, 91, 91, 91, 91, 91, 91, 1, 1, 1, 1, 1, 1, 1, 1, 1, 91, 1, 1, 1, 1, 1, 1, 1, 1, 1, 91, 91, 1}, \
+    {1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 242, 1, 1, 1, 1, 1, 1, 1, 1, 226, 230, 1}, \
+    {1, 58, 186, 190, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 194, 198, 202, 206, 210, 214, 218, 1, 1, 1, 1, 1, 1, 1, 1, 1, 222, 1, 1, 1, 1, 1, 1, 1, 1, 1, 226, 230, 1}, \
+    {1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 131, 1, 1, 131, 1, 1, 1, 131, 1, 1, 1, 1, 1, 1, 131, 131, 131, 131, 1}, \
+    {1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 83, 1, 1, 83, 1, 1, 1, 83, 1, 1, 1, 1, 1, 1, 254, 258, 83, 83, 1}, \
+    {1, 58, 186, 190, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 194, 198, 202, 206, 210, 214, 218, 1, 1, 1, 1, 1, 1, 1, 1, 1, 222, 1, 1, 1, 1, 1, 1, 1, 1, 1, 226, 230, 1}, \
+    {1, 103, 103, 103, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 103, 103, 103, 103, 103, 103, 103, 1, 1, 1, 1, 1, 1, 1, 1, 1, 103, 1, 1, 1, 1, 1, 1, 1, 1, 1, 103, 103, 1}, \
+    {1, 107, 107, 107, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 107, 107, 107, 107, 107, 107, 107, 1, 1, 1, 1, 1, 1, 1, 1, 1, 107, 1, 1, 1, 1, 1, 1, 1, 1, 1, 107, 107, 1}, \
+    {1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 99, 1, 1, 99, 1, 1, 1, 99, 1, 1, 1, 1, 1, 1, 99, 99, 99, 99, 1}, \
+    {1, 58, 186, 190, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 194, 198, 202, 206, 210, 214, 218, 1, 1, 1, 1, 1, 1, 1, 1, 1, 222, 1, 1, 1, 1, 1, 1, 1, 1, 1, 226, 230, 1}, \
+    {1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 274, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 226, 230, 1}, \
+    {1, 58, 186, 190, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 194, 198, 202, 206, 210, 214, 218, 1, 1, 1, 1, 1, 1, 1, 1, 1, 222, 1, 1, 1, 1, 1, 1, 1, 1, 1, 226, 230, 1}, \
+    {1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 282, 1, 1, 1, 1, 1, 1, 1, 1, 226, 230, 1}, \
+    {1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 155, 1, 1, 155, 1, 1, 1, 155, 1, 1, 1, 1, 1, 1, 155, 155, 155, 155, 1}, \
+    {1, 58, 186, 190, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 194, 198, 202, 206, 210, 214, 218, 1, 1, 1, 1, 1, 1, 1, 1, 1, 222, 1, 1, 1, 1, 1, 1, 1, 1, 1, 226, 230, 1}, \
+    {1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 294, 1, 1, 1, 1, 1, 1, 1, 1, 226, 230, 1}, \
+    {1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 151, 1, 1, 151, 1, 1, 1, 151, 1, 1, 1, 1, 1, 1, 151, 151, 151, 151, 1}, \
+    {1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 115, 1, 1, 115, 1, 1, 1, 115, 1, 1, 1, 1, 1, 1, 115, 115, 115, 115, 1}, \
+    {1, 75, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 75, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1}, \
+    {7, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1} };
+    //==============================
+    const int ManifPraser::RulesToSymbol[46] = { \
+    0,\
+    1,\
+    2,\
+    3,\
+    3,\
+    4,\
+    4,\
+    4,\
+    5,\
+    5,\
+    6,\
+    7,\
+    8,\
+    8,\
+    9,\
+    10,\
+    11,\
+    11,\
+    12,\
+    13,\
+    13,\
+    14,\
+    14,\
+    15,\
+    15,\
+    16,\
+    16,\
+    17,\
+    17,\
+    18,\
+    18,\
+    18,\
+    18,\
+    19,\
+    19,\
+    20,\
+    20,\
+    21,\
+    21,\
+    22,\
+    22,\
+    22,\
+    22,\
+    22,\
+    22,\
+    23 };
+    //==============================
+    const int ManifPraser::RulesLength[46] = { \
+    1,\
+    8,\
+    1,\
+    1,\
+    3,\
+    2,\
+    2,\
+    2,\
+    1,\
+    1,\
+    2,\
+    1,\
+    0,\
+    2,\
+    3,\
+    1,\
+    0,\
+    2,\
+    4,\
+    1,\
+    3,\
+    1,\
+    1,\
+    1,\
+    3,\
+    1,\
+    1,\
+    1,\
+    2,\
+    1,\
+    1,\
+    1,\
+    3,\
+    1,\
+    1,\
+    4,\
+    1,\
+    4,\
+    6,\
+    1,\
+    1,\
+    1,\
+    1,\
+    1,\
+    1,\
+    1 };
+    //==============================
+    const char* const ManifPraser::RulesName[46] = { \
+    "all->MANIFOLD ",\
+    "MANIFOLD-><MANIFWORD> id left PARA right braceL MANIFBODY braceR ",\
+    "PARA-><MANIFPARAS> ",\
+    "<MANIFPARAS>->MANIFPARA ",\
+    "<MANIFPARAS>-><MANIFPARAS> comma MANIFPARA ",\
+    "MANIFPARA->input ID ",\
+    "MANIFPARA->para ID ",\
+    "MANIFPARA->output ID ",\
+    "<MANIFWORD>->manifold ",\
+    "<MANIFWORD>->manif ",\
+    "MANIFBODY->DELARATIONS EXPRESSIONS ",\
+    "DELARATIONS-><DELARATION*> ",\
+    "<DELARATION*>->epsilon ",\
+    "<DELARATION*>-><DELARATION*> DELARATION ",\
+    "DELARATION->def ID semicolon ",\
+    "EXPRESSIONS-><EXPRESSION*> ",\
+    "<EXPRESSION*>->epsilon ",\
+    "<EXPRESSION*>-><EXPRESSION*> EXPRESSION ",\
+    "EXPRESSION->ID value EXP_RIGHT semicolon ",\
+    "EXP_RIGHT->EXP_MUL ",\
+    "EXP_RIGHT->EXP_RIGHT [operatas] EXP_MUL ",\
+    "[operatas]->sub ",\
+    "[operatas]->add ",\
+    "EXP_MUL->EXP_MINUS ",\
+    "EXP_MUL->EXP_MUL [operatmd] EXP_MINUS ",\
+    "[operatmd]->multi ",\
+    "[operatmd]->div ",\
+    "EXP_MINUS->UNIT ",\
+    "EXP_MINUS->[operatas] UNIT ",\
+    "UNIT->ID ",\
+    "UNIT->CALL ",\
+    "UNIT->[number] ",\
+    "UNIT->left EXP_RIGHT right ",\
+    "[number]->integer ",\
+    "[number]->realC ",\
+    "ID->id squareL integer squareR ",\
+    "ID->id ",\
+    "CALL->[function1] left EXP_RIGHT right ",\
+    "CALL->[function2] left EXP_RIGHT comma EXP_RIGHT right ",\
+    "[function1]->sin ",\
+    "[function1]->cos ",\
+    "[function1]->exp ",\
+    "[function1]->ln ",\
+    "[function1]->log ",\
+    "[function1]->sqrt ",\
+    "[function2]->pow " };
+    //==============================
+    const int ManifPraser::Implicit[46] = { \
+    0, \
+    0, \
+    0, \
+    1, \
+    1, \
+    0, \
+    0, \
+    0, \
+    1, \
+    1, \
+    0, \
+    0, \
+    1, \
+    1, \
+    0, \
+    0, \
+    1, \
+    1, \
+    0, \
+    1, \
+    0, \
+    1, \
+    1, \
+    1, \
+    0, \
+    1, \
+    1, \
+    1, \
+    0, \
+    0, \
+    0, \
+    0, \
+    0, \
+    1, \
+    1, \
+    0, \
+    0, \
+    0, \
+    0, \
+    1, \
+    1, \
+    1, \
+    1, \
+    1, \
+    1, \
+    1 };
+
 
 
 
