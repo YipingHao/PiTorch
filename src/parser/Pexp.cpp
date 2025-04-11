@@ -891,7 +891,7 @@ int Pikachu::ActivFunc::build(GLTree* Tree, hyperlex::Morpheme& eme, int* state)
         if (iterator.state() != 0 && GT->root().rules)
         {
             RRR = (FuncPraser::rules)state[GT->root().site];
-            printf("label:%zu\n", GT->root().label);
+            printf("site:%zu, accept %d\n", GT->root().site, state[GT->root().site]);
             here = NULL;
             IDTemp_ = NULL;
             switch (RRR)
