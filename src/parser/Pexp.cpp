@@ -912,9 +912,13 @@ int Pikachu::ActivFunc::build(GLTree* Tree, hyperlex::Morpheme& eme, int* state)
                     RepeatSomething(error, "input", IDTemp_);
                     throw error;
                 }
+                printf("??????\n");
                 here = NewNode(Pikachu::_LeafX_, 0, 0);
+                printf("??????\n");
                 Ls.append(IDTemp_->num, IDTemp_->name, "input");
+                printf("??????\n");
                 (*Ls[IDTemp_->name])[0] = (void*)here;
+                printf("??????\n");
                 delete IDTemp_;
                 IDTemp_ = NULL;
                 break;
