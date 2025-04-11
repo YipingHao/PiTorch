@@ -1610,11 +1610,11 @@ void static testsymbolic(ActivFunc& Af, const double delta, bool print, double l
 }
 int static test14(const parameter& para)
 {
+    ActivFunc Exp;
+    ActivFunc Diff;
+    hyperlex::BufferChar BC;
     try
     {
-        ActivFunc Exp;
-        ActivFunc Diff;
-        hyperlex::BufferChar BC;
         Exp.Example(8);
         Exp.demo(stdout);
         Exp.demo(BC, true, 0);
@@ -1699,25 +1699,7 @@ int static test14(const parameter& para)
                 testsymbolic(Exp, 1.0E-7, false, 1.0, 2.0);
             }
         }
-        ActivFunc Ac;
-        std::string ss;
-        ss = "funct (input x, para w[5])\n";
-        ss += "{\n\tdef y;\n\tdef z;\n";
-        ss += "\ty = (w[0] + x * w[1] + x * x * w[2]);\n";
-        ss += "\ty = y + (x * x * x * w[3] + x * x * x * x * w[4]);\n";
-        ss += "\tz = exp(x*x);\n";
-        ss += "\treturn y * z;\n}\n";
-        std::cout << ss << std::endl;
-        std::cout << "error: " << Ac.construct(ss.c_str()) << std::endl;;
-        Ac.demo(stdout);
-        Ac.demo(BC, true, 0);
-        std::cout << BC.ptr() << std::endl; BC.clear();
-        Ac.differetial(0, 0, true);
-        Ac.demo(BC, true, 0);
-        std::cout << BC.ptr() << std::endl; BC.clear();
-        Ac.Simplify();
-        Ac.demo(BC, true, 0);
-        std::cout << BC.ptr() << std::endl; BC.clear();
+       
        
         
     }
@@ -1739,6 +1721,33 @@ int static test14(const parameter& para)
     dick.append("bb32", "NoNo");
     std::cout << "hyperlex::dictionary dick;" << std::endl;
     dick.print(stdout);
+    try
+    {
+        ActivFunc Ac;
+        std::string ss;
+        ss = "funct (input x, para w[5])\n";
+        ss += "{\n\tdef y;\n\tdef z;\n";
+        ss += "\ty = (w[0] + x * w[1] + x * x * w[2]);\n";
+        ss += "\ty = y + (x * x * x * w[3] + x * x * x * x * w[4]);\n";
+        ss += "\tz = exp(x*x);\n";
+        ss += "\treturn y * z;\n}\n";
+        std::cout << ss << std::endl;
+        std::cout << "error: " << Ac.construct(ss.c_str()) << std::endl;;
+        Ac.demo(stdout);
+        Ac.demo(BC, true, 0);
+        std::cout << BC.ptr() << std::endl; BC.clear();
+        Ac.differetial(0, 0, true);
+        Ac.demo(BC, true, 0);
+        std::cout << BC.ptr() << std::endl; BC.clear();
+        Ac.Simplify();
+        Ac.demo(BC, true, 0);
+        std::cout << BC.ptr() << std::endl; BC.clear();
+    }
+    catch (hyperlex::dictionary *Error)
+    {
+        Error->print(stderr);
+        delete Error;
+    }
     return 0;
 }
 int static test15(const parameter& para)

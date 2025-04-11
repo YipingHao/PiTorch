@@ -711,11 +711,17 @@ int Pikachu::ActivFunc::construct(const char* source)
     hyperlex::Morpheme eme;
     hyperlex::GrammarTree Tree;
     hyperlex::vector<int> state;
+    hyperlex::dictionary* Error = NULL;
     clear();
 
     error = LPMorpheneBuild(source, eme);
     if (error != 0) 
     {
+        Error = new hyperlex::dictionary();
+        Error->append("Error", "Morpheme Build");
+        Error->append("loaction", "int Pikachu::ActivFunc::construct(const char* source)");
+        Error->append("line", (long int)eme[eme.GetCount() - 1].line);
+        throw Error;
         return error;
     }
     eme.Demo(stdout);
@@ -723,12 +729,19 @@ int Pikachu::ActivFunc::construct(const char* source)
     error = Tree.build<FuncPraser>(eme);
     if (error != 0)
     {
+        Error = new hyperlex::dictionary();
+        Error->append("Error", "Tree.build<FuncPraser>(eme);");
+        Error->append("loaction", "int Pikachu::ActivFunc::construct(const char* source)");
+        Error->append("line", (long int)eme[Tree.error_record01].line);
+        Error->append("lexical unit", (long int)Tree.error_record01);
+        throw Error;
         return error;
     }
     Tree.Demo(stdout, eme, FuncPraser::RulesName);
     
     state.recount(FuncPraser::RulesCount);
     for (i = 0; i < state.count(); i++) state[i] = (int)i;
+
     error = build(Tree.GT, eme, state.ptr());
 
     InputDim.recount(1);
