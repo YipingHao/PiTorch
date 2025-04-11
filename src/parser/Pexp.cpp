@@ -841,7 +841,7 @@ int Pikachu::ActivFunc::construct(const char* source)
         throw Error;
         return error;
     }
-    eme.Demo(stdout);
+    //eme.Demo(stdout);
 
     error = Tree.build<FuncPraser>(eme);
     if (error != 0)
@@ -854,7 +854,7 @@ int Pikachu::ActivFunc::construct(const char* source)
         throw Error;
         return error;
     }
-    Tree.Demo(stdout, eme, FuncPraser::RulesName);
+    //Tree.Demo(stdout, eme, FuncPraser::RulesName);
     
     state.recount(FuncPraser::RulesCount);
     for (i = 0; i < state.count(); i++) state[i] = (int)i;
@@ -891,6 +891,7 @@ int Pikachu::ActivFunc::build(GLTree* Tree, hyperlex::Morpheme& eme, int* state)
         if (iterator.state() != 0 && GT->root().rules)
         {
             RRR = (FuncPraser::rules)state[GT->root().site];
+            printf("label:%zu\n", GT->root().label);
             here = NULL;
             IDTemp_ = NULL;
             switch (RRR)
