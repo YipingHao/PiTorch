@@ -889,12 +889,13 @@ int Pikachu::ActivFunc::build(GLTree* Tree, hyperlex::Morpheme& eme, int* state)
                     NosuchID(error, "UNIT_id_", IDTemp_);
                     throw error;
                 }
-                if (IDTemp_->num < 0 || IDTemp_->num >= (long int)ItemTemp_->count())
+                temp_ = IDTemp_->num < 0 ? 0 : IDTemp_->num;
+                if (temp_ >= ItemTemp_->count())
                 {
                     ErrorWrongIndex(error, "UNIT_id_", IDTemp_);
                     throw error;
                 }
-                here = (Ele*)ItemTemp_->GetInfor(IDTemp_->num);
+                here = (Ele*)ItemTemp_->GetInfor(temp_);
                 if (here == NULL) 
                 {
                     error->append("UNIT_id_", "identifier has not been valued");
