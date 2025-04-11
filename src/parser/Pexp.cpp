@@ -733,7 +733,7 @@ int Pikachu::ActivFunc::construct(const char* source)
         Error->append("Error", "Tree.build<FuncPraser>(eme);");
         Error->append("loaction", "int Pikachu::ActivFunc::construct(const char* source)");
         Error->append("line", (long int)eme[Tree.error_record01].line);
-        Error->append("lexical unit", (long int)Tree.error_record01);
+        Error->append("lexicalUnit", (long int)Tree.error_record01);
         throw Error;
         return error;
     }
