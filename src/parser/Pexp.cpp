@@ -594,7 +594,7 @@ public:
         New->attri = Attri;
         New->scalar = length < 0L;
         New->length = New->scalar ? 1LU : length;
-        New->infor.recount(length);
+        New->infor.recount(New->length);
         New->infor.value(NULL);
         temp = 0;
         for (i = 0; i < items.count(); i++)
