@@ -2416,6 +2416,14 @@ Expres::node::node(long int ele)
     src2 = 0;
     Output = false;
 }
+Expres::node::node(const FuncConst& ele)
+{
+    Type = _LeafConst_;
+    Fc.SetValue(ele);
+    src1 = 0;
+    src2 = 0;
+    Output = false;
+}
 Expres::node::node(operation opera_)
 {
     Type = _Operation_;
@@ -2606,6 +2614,59 @@ void Expres::copy(const Expres& source)
     for (i = 0; i < source.InputDim.count(); i++)
         InputDim[i] = source.InputDim[i];
     ParameterCount = source.ParameterCount;
+}
+void Expres::copy(const Expres& source, size_t OutNo)
+{
+    vector<vortex<node>*> sequence, label;
+    buffer<vortex<node>*> queue;
+    vector<bool> valid;
+    size_t i, length, site;
+    size_t Left_, Right_;
+    vortex<node>* here, * New;
+
+    if (source.output[OutNo] != NULL) queue.append(source.output[OutNo]);
+    else return;
+
+    source.formula.BFTbackward(valid, queue);
+    source.formula.TopoSortBFS(sequence);
+    source.formula.Shrink(valid, sequence);
+
+
+    length = sequence.count();
+    label.recount(source.formula.count());
+    label.value((vortex<node>*)NULL);
+    for (i = 0; i < length; i++)
+    {
+        here = sequence[i];
+        site = here->site();
+        switch (here->Type)
+        {
+        case _LeafX_:
+        case _LeafPara_:
+            label[site] = NewNode(here->Type, here->src1, here->src2);
+            break;
+        case  _LeafConst_:
+            label[site] = NewNode(here->Fc);
+            break;
+        case _Operation_:
+            Left_ = here->In(0)->site();
+            Right_ = here->In(1)->site();
+            label[site] = NewNode(label[Left_], label[Right_], (operation)here->Code);
+            break;
+        case _Funct_:
+            Left_ = here->In(0)->site();
+            label[site] = NewNode(label[Left_], (function)here->Code);
+            break;
+        case _Funct2_:
+            Left_ = here->In(0)->site();
+            Right_ = here->In(1)->site();
+            label[site] = NewNode(label[Left_], label[Right_], (function2)here->Code);
+            break;
+        default:
+            break;
+        }
+    }
+    OutputAppend(label[source.output[OutNo]->site()]);
 }
 bool Expres::Simplify(void)
 {
@@ -3085,6 +3146,13 @@ vortex<Expres::node>* Expres::NewNode(long int ele)
     return New;
 }
 vortex<Expres::node>* Expres::NewNode(double ele)
+{
+    vortex<Expres::node>* New;
+    New = new vortex<Expres::node>(ele);
+    formula.append(New);
+    return New;
+}
+vortex<Expres::node>* Expres::NewNode(const FuncConst&ele)
 {
     vortex<Expres::node>* New;
     New = new vortex<Expres::node>(ele);

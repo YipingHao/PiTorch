@@ -837,6 +837,107 @@ int Pikachu::ActivFunc::build(GLTree* Tree, hyperlex::Morpheme& eme, int* state)
     }
     return 0;
 }
+static void ManifoldMorpheneBuild(const char* source, hyperlex::Morpheme&eme, hyperlex::GrammarTree &Tree)
+{
+    using namespace LP;
+    int error;
+    hyperlex::dictionary* Error;
+    Error = NULL;
+    size_t i;
+    FuncLexer::regular T;
+    FuncLexer::group G;
+    error = eme.Build<FuncLexer>(source);
+    if (error != 0)
+    {
+        Error = new hyperlex::dictionary;
+        Error->append("function", "void ManifoldMorpheneBuild");
+        Error->append("loaction", "error = ExpMorpheneBuild(source, eme);");
+        Error->append("error", (long int)error);
+        throw Error;
+    }
+    for (i = 0; i < eme.GetCount(); i++)
+    {
+        T = (FuncLexer::regular)(eme[i].accept);
+        G = (FuncLexer::group)(eme[i].category);
+        if (G == FuncLexer::_format___ || G == FuncLexer::_anntation___)
+        {
+            eme.valid(i) = false;
+        }
+    }
+    
+    error = Tree.build<FuncPraser>(eme);
+    if (error != 0)
+    {
+        Error = new hyperlex::dictionary;
+        Error->append("function", "void ManifoldMorpheneBuild");
+        Error->append("loaction", "error = Tree.build<FuncPraser>(eme);");
+        Error->append("error", (long int)(error / 4));
+        throw Error;
+    }
+    return;
+}
+
+int Pikachu::Expres::ManifoldBuild(const char* source)
+{
+    using namespace LP;
+    hyperlex::Morpheme eme;
+    GTIter iterator;
+    hyperlex::GrammarTree Tree;
+    hyperlex::vector<int> state;
+    size_t i;
+    clear();
+    try { 
+        ManifoldMorpheneBuild(source, eme, Tree); 
+    }
+    catch (hyperlex::dictionary* Err){
+        Err->append("next location", "int Pikachu::Expres::ManifoldBuild(const char* source)");
+        throw Err;
+    }
+    state.recount(FuncPraser::RulesCount);
+    for (i = 0; i < state.count(); i++) state[i] = (int)i;
+    try
+    {
+        ManifoldBuild(Tree.GT, eme, state.ptr());
+    }
+    catch (hyperlex::dictionary* Err)
+    {
+        throw Err;
+    }
+    return 0;
+
+}
+void Pikachu::Expres::ManifoldBuild(GLTree* Tree, hyperlex::Morpheme& eme, int* state)
+{
+    using namespace LP;
+    GTIter iterator;
+    GLTree* GT;
+    FuncPraser::rules RRR;
+
+    Ele* left_;
+    Ele* right_;
+    Ele* here;
+    Pikachu::function func__;
+    Pikachu::operation op__;
+    LexSheet Ls;
+    LexSheet::SiteInfor* SiteTemp_;
+    const char* name__;
+
+    size_t i, site, temp_;
+    iterator.initial(Tree);
+
+    while (iterator.still())
+    {
+        GT = iterator.target();
+        if (iterator.state() != 0 && GT->root().rules)
+        {
+            RRR = (FuncPraser::rules)state[GT->root().site];
+            here = NULL;
+            SiteTemp_ = NULL;
+            GT->root().infor = (here == NULL ? (void*)SiteTemp_ : (void*)here);
+        }
+        iterator.next();
+    }
+}
 
 namespace Rtensor
 {

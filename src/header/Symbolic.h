@@ -279,6 +279,7 @@ namespace Pikachu
 			bool operator == (function Op) const;
 			node();
 			node(long int ele);
+			node(const FuncConst& ele);
 			node(operation Op);
 			node(function func_);
 			node(function2 func_);
@@ -291,6 +292,7 @@ namespace Pikachu
 		~Expres();
 		void clear(void);
 		void copy(const Expres& source);
+		void copy(const Expres& source, size_t OutNo);
 		bool Simplify(void);
 		void Example(size_t No);
 		int example(const char* source);
@@ -322,6 +324,7 @@ namespace Pikachu
 		vortex<node>* NewNode(type T, size_t S1, size_t S2);
 		vortex<node>* NewNode(long int ele);
 		vortex<node>* NewNode(double ele);
+		vortex<node>* NewNode(const FuncConst& ele);
 		vortex<node>* NewNode(operation Op);
 		vortex<node>* NewNode(vortex<node>* L, vortex<node>* R, operation Op);
 		vortex<node>* NewNode(function func_);
@@ -356,6 +359,8 @@ namespace Pikachu
 		void SimplifyMove(vortex<node>* target, vortex<node>* NewOne);
 		bool Simplify10(void);
 		//========================
+		int ManifoldBuild(const char * source);
+		void ManifoldBuild(GLTree* Tree, hyperlex::Morpheme& eme, int* state);
 	};
 
 	class activation : public expression
