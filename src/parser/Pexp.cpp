@@ -847,7 +847,7 @@ int Pikachu::ActivFunc::build(GLTree* Tree, hyperlex::Morpheme& eme, int* state)
                 break;
             case LP::FuncPraser::EXPRESSION_EXPRESSION_:
                 right_ = (Ele*)GT->child(2)->root().infor;
-                IDTemp_ = (LexSheet::IDInfor*)GT->child(1)->root().infor;
+                IDTemp_ = (LexSheet::IDInfor*)GT->child(0)->root().infor;
                 if (IDTemp_ == NULL) {
                     error->append("EXPRESSION_EXPRESSION_", "Unexpected Error");
                     error->append("Error", "compiler itself");
