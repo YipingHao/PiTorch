@@ -919,7 +919,7 @@ int Pikachu::ActivFunc::build(GLTree* Tree, hyperlex::Morpheme& eme, int* state)
                 here = NewNode(Pikachu::_LeafX_, 0, 0);
                 Ls.append(IDTemp_->num, IDTemp_->name, "input");
                 if (Ls.rear()->label != 0) {
-                    RepeatSomething(error, "para", IDTemp_);
+                    RepeatSomething(error, "input", IDTemp_);
                     throw error;
                 }
                 (*Ls[IDTemp_->name])[0] = (void*)here;
@@ -1210,7 +1210,7 @@ void Pikachu::Expres::ManifoldBuild(GLTree* Tree, hyperlex::Morpheme& eme, int* 
                 }
                 Ls.append(IDTemp_->num, IDTemp_->name, "input");
                 if (Ls.rear()->label != 0) {
-                    RepeatSomething(error, "para", IDTemp_);
+                    RepeatSomething(error, "input", IDTemp_);
                     throw error;
                 }
                 for (i = 0; i < temp_; i++)
@@ -1238,7 +1238,7 @@ void Pikachu::Expres::ManifoldBuild(GLTree* Tree, hyperlex::Morpheme& eme, int* 
                 }
                 Ls.append(IDTemp_->num, IDTemp_->name, "output");
                 if (Ls.rear()->label != 0) {
-                    RepeatSomething(error, "para", IDTemp_);
+                    RepeatSomething(error, "output", IDTemp_);
                     throw error;
                 }
                 temp_ = IDTemp_->num < 0 ? 1 : IDTemp_->num;
