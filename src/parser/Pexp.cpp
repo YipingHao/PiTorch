@@ -899,6 +899,11 @@ int Pikachu::ActivFunc::build(GLTree* Tree, hyperlex::Morpheme& eme, int* state)
             case LP::FuncPraser::MANIFPARA_input_:
                 printf("??????\n");
                 IDTemp_ = (LexSheet::IDInfor*)GT->child(1)->root().infor;
+                if (IDTemp_ == NULL) {
+                    error->append("MANIFPARA_input_", "Unexpected Error");
+                    error->append("Error", "compiler itself");
+                    throw error;
+                }
                 ItemTemp_ = (LexSheet::item*)Ls[IDTemp_->name];
                 printf("??????\n");
                 if (ItemTemp_ != NULL)
@@ -1063,6 +1068,7 @@ int Pikachu::ActivFunc::build(GLTree* Tree, hyperlex::Morpheme& eme, int* state)
                     error->append("index", IDTemp_->num);
                     error->append("identifier", IDTemp_->name);
                     error->append("line", (long int)IDTemp_->line);
+                    delete IDTemp_;
                     throw error;
                 }
                 break;
