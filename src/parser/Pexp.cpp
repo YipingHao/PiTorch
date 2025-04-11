@@ -584,6 +584,9 @@ public:
         temp = items[source->site1];
         return temp->infor[source->site2];
     }
+    inline item* rear(void)const {
+        return items[items.count() - 1];
+    }
     void append(long int length, const char* Name, const char* Attri)
     {
         item* New;
@@ -897,7 +900,6 @@ int Pikachu::ActivFunc::build(GLTree* Tree, hyperlex::Morpheme& eme, int* state)
             switch (RRR)
             {
             case LP::FuncPraser::MANIFPARA_input_:
-                printf("??????\n");
                 IDTemp_ = (LexSheet::IDInfor*)GT->child(1)->root().infor;
                 if (IDTemp_ == NULL) {
                     error->append("MANIFPARA_input_", "Unexpected Error");
@@ -905,7 +907,6 @@ int Pikachu::ActivFunc::build(GLTree* Tree, hyperlex::Morpheme& eme, int* state)
                     throw error;
                 }
                 ItemTemp_ = (LexSheet::item*)Ls[IDTemp_->name];
-                printf("??????\n");
                 if (ItemTemp_ != NULL)
                 {
                     RepeatDefID(error, "MANIFPARA_input_", IDTemp_);
@@ -915,17 +916,13 @@ int Pikachu::ActivFunc::build(GLTree* Tree, hyperlex::Morpheme& eme, int* state)
                     ErrorWrongIndex(error, "MANIFPARA_input_", IDTemp_);
                     throw error;
                 }
-                if (ItemTemp_->label != 0) {
-                    RepeatSomething(error, "input", IDTemp_);
+                here = NewNode(Pikachu::_LeafX_, 0, 0);
+                Ls.append(IDTemp_->num, IDTemp_->name, "input");
+                if (Ls.rear()->label != 0) {
+                    RepeatSomething(error, "para", IDTemp_);
                     throw error;
                 }
-                printf("??????\n");
-                here = NewNode(Pikachu::_LeafX_, 0, 0);
-                printf("??????\n");
-                Ls.append(IDTemp_->num, IDTemp_->name, "input");
-                printf("??????\n");
                 (*Ls[IDTemp_->name])[0] = (void*)here;
-                printf("??????\n");
                 delete IDTemp_;
                 IDTemp_ = NULL;
                 break;
@@ -941,12 +938,12 @@ int Pikachu::ActivFunc::build(GLTree* Tree, hyperlex::Morpheme& eme, int* state)
                     ErrorWrongIndex(error, "MANIFPARA_para_", IDTemp_);
                     throw error;
                 }
-                if (ItemTemp_->label != 0) {
+                temp_ = IDTemp_->num < 0 ? 1 : IDTemp_->num;
+                Ls.append(IDTemp_->num, IDTemp_->name, "para");
+                if (Ls.rear()->label != 0) {
                     RepeatSomething(error, "para", IDTemp_);
                     throw error;
                 }
-                temp_ = IDTemp_->num < 0 ? 1 : IDTemp_->num;
-                Ls.append(IDTemp_->num, IDTemp_->name, "para");
                 ParameterCount += temp_;
                 site = Ls.count() - 1;
                 for (i = 0; i < temp_; i++)
@@ -1211,11 +1208,11 @@ void Pikachu::Expres::ManifoldBuild(GLTree* Tree, hyperlex::Morpheme& eme, int* 
                     ErrorWrongIndex(error, "MANIFPARA_input_", IDTemp_);
                     throw error;
                 }
-                if (ItemTemp_->label != 0) {
-                    RepeatSomething(error, "input", IDTemp_);
+                Ls.append(IDTemp_->num, IDTemp_->name, "input");
+                if (Ls.rear()->label != 0) {
+                    RepeatSomething(error, "para", IDTemp_);
                     throw error;
                 }
-                Ls.append(IDTemp_->num, IDTemp_->name, "input");
                 for (i = 0; i < temp_; i++)
                 {
                     (*Ls[site])[i] = NewNode(Pikachu::_LeafX_, 0, i);
@@ -1239,11 +1236,11 @@ void Pikachu::Expres::ManifoldBuild(GLTree* Tree, hyperlex::Morpheme& eme, int* 
                     ErrorWrongIndex(error, "MANIFPARA_output_", IDTemp_);
                     throw error;
                 }
-                if (ItemTemp_->label != 0) {
-                    RepeatSomething(error, "output", IDTemp_);
+                Ls.append(IDTemp_->num, IDTemp_->name, "output");
+                if (Ls.rear()->label != 0) {
+                    RepeatSomething(error, "para", IDTemp_);
                     throw error;
                 }
-                Ls.append(IDTemp_->num, IDTemp_->name, "output");
                 temp_ = IDTemp_->num < 0 ? 1 : IDTemp_->num;
                 output.recount(temp_);
                 output.value(NULL);
