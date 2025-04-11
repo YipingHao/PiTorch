@@ -897,6 +897,7 @@ int Pikachu::ActivFunc::build(GLTree* Tree, hyperlex::Morpheme& eme, int* state)
             switch (RRR)
             {
             case LP::FuncPraser::MANIFPARA_input_:
+                printf("??????\n");
                 IDTemp_ = (LexSheet::IDInfor*)GT->child(1)->root().infor;
                 ItemTemp_ = (LexSheet::item*)Ls[IDTemp_->name];
                 if (ItemTemp_ != NULL)
