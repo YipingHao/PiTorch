@@ -1727,7 +1727,7 @@ int static test14(const parameter& para)
         std::string ss;
         ss = "funct gauss (input x, para w[5])\n";
         ss += "{\n\tdef y;\n\tdef z;\n";
-        ss += "\tw[0] = x;\n";
+        ss += "\tw[4] = x;\n";
         ss += "\ty = (w[0] + x * w[1] + x * x * w[2]);\n";
         ss += "\ty = y + (x * x * x * w[3] + x * x * x * x * w[4]);\n";
         ss += "\tz = exp(x*x);\n";
@@ -1751,9 +1751,144 @@ int static test14(const parameter& para)
     }
     return 0;
 }
+
+struct SwifLexer
+{
+    enum regular
+    {
+        _id_ = 1,
+        _integer_ = 2,
+        _switch_ = 3,
+        _enum_ = 4,
+        _case_ = 5,
+        _break_ = 6,
+        _spaces_ = 7,
+        _enters_ = 8,
+        _tab_ = 9,
+        _semicolon_ = 10,
+        _colon_ = 11,
+        _dot_ = 12,
+        _comma_ = 13,
+        _braceL_ = 14,
+        _braceR_ = 15,
+        _left_ = 16,
+        _right_ = 17,
+        _squareL_ = 18,
+        _squareR_ = 19,
+        _angleL_ = 20,
+        _angleR_ = 21,
+        _anntationS_ = 22,
+        _anntationM_ = 23,
+        _value_ = 24
+    };
+    enum group
+    {
+        _id___ = 1,
+        _number___ = 2,
+        _reserved___ = 3,
+        _format___ = 4,
+        _division___ = 5,
+        _braket___ = 6,
+        _anntation___ = 7,
+        _value___ = 8
+    };
+    static int next(int state, const char c);
+    static int action(int state);
+    static int GroupGet(int state);
+};
+struct SwifPraser
+{
+    enum type
+    {
+        accept = 0,
+        error = 1,
+        push = 2,
+        reduce = 3
+    };
+    enum rules
+    {
+        all_all_ = 0,
+        ENUM_ENUM_ = 1,
+        ITEMS_ITEMS_ = 2,
+        //<ITEM+>_first_ = 3,
+        //<ITEM+>_multi_ = 4,
+        ITEM_single_ = 5,
+        ITEM_multi_ = 6
+    };
+    enum nonterminal
+    {
+        _all_ = 0,
+        _ENUM_ = 1,
+        _ITEMS_ = 2,
+        //_<ITEM+>_ = 3,
+        _ITEM_ = 4
+    };
+    static const size_t StateCount;
+    static const size_t NonTerminalCount;
+    static const size_t TerminalCount;
+    static const size_t RulesCount;
+    static const int GOTO[13][5];
+    static const int ACTION[13][25];
+    static const int RulesToSymbol[7];
+    static const int RulesLength[7];
+    static const char* const RulesName[7];
+    static const int Implicit[7];
+};
+int static LPMorpheneBuild(const char* source, hyperlex::Morpheme& eme);
 int static test15(const parameter& para)
 {
+    int error;
+    hyperlex::Morpheme eme;
+    hyperlex::GrammarTree Tree;
+    CFile input;
+    hyperlex::BufferChar BC;
+    input.OpenRead("./data/key.txt");
+    BC << input.fp;
 
+    error = LPMorpheneBuild(BC.ptr(), eme);
+    std::cout << "input" << BC.ptr() << std::endl;
+    if (error != 0)
+    {
+        std::cout << "error" << error << std::endl;
+        return error;
+    }
+    eme.Demo(stdout);
+    error = Tree.build<SwifPraser>(eme);
+    Tree.Demo(stdout, eme, SwifPraser::RulesName);
+
+    GTIter iterator;
+    GLTree* GT;
+    SwifPraser::rules RRR;
+    size_t i;
+    std::string  sss;
+    const char * key;
+    iterator.initial(Tree.GT);
+    while (iterator.still())
+    {
+        GT = iterator.target();
+        if (iterator.state() != 0 && GT->root().rules)
+        {
+            RRR = (SwifPraser::rules)GT->root().site;
+            switch (RRR)
+            {
+            case SwifPraser::all_all_:
+                break;
+            case SwifPraser::ENUM_ENUM_:
+                sss = eme.GetWord(GT->child(1)->root().site);
+                break;
+            case SwifPraser::ITEMS_ITEMS_:
+                break;
+            case SwifPraser::ITEM_single_:
+            case SwifPraser::ITEM_multi_:
+                key = eme.GetWord(GT->child(0)->root().site);
+                printf("\tstate[%s::%s] = _%s_::%s;\n", sss.c_str(), key, sss.c_str(), key);
+                break;
+            default:
+                break;
+            }
+        }
+        iterator.next();
+    }
     return 0;
 }
 int static test16(const parameter& para)
@@ -1896,3 +2031,493 @@ std::string CFile::ChangeSuffix(const std::string& file, const char* new_one)
     else name += new_one;
     return name;
 }
+
+int static LPMorpheneBuild(const char* source, hyperlex::Morpheme& eme)
+{
+    int error;
+    size_t i;
+    SwifLexer::regular T;
+    SwifLexer::group G;
+    error = eme.Build<SwifLexer>(source);
+    if (error != 0)
+    {
+        //errorCode = ErrorinputLEXICAL;
+        return error;
+    }
+    for (i = 0; i < eme.GetCount(); i++)
+    {
+        T = (SwifLexer::regular)(eme[i].accept);
+        G = (SwifLexer::group)(eme[i].category);
+        if (G == SwifLexer::_format___ || G == SwifLexer::_anntation___)
+        {
+            eme.valid(i) = false;
+        }
+    }
+    return 0;
+}
+
+
+int SwifLexer::next(int state, const char c)
+{
+    switch (state)
+    {
+    case 0:
+        if (c == (char)9) return 9;
+        else if (c == (char)10) return 8;
+        else if (c == ' ') return 7;
+        else if (c == '(') return 16;
+        else if (c == ')') return 17;
+        else if (c == '+') return 25;
+        else if (c == ',') return 13;
+        else if (c == '-') return 25;
+        else if (c == '.') return 12;
+        else if (c == '/') return 42;
+        else if ('0' <= c && c <= '9') return 2;
+        else if (c == ':') return 11;
+        else if (c == ';') return 10;
+        else if (c == '<') return 20;
+        else if (c == '=') return 24;
+        else if (c == '>') return 21;
+        else if ('A' <= c && c <= 'Z') return 1;
+        else if (c == '[') return 18;
+        else if (c == ']') return 19;
+        else if (c == '_') return 1;
+        else if (c == 'a') return 1;
+        else if (c == 'b') return 33;
+        else if (c == 'c') return 35;
+        else if (c == 'd') return 1;
+        else if (c == 'e') return 39;
+        else if ('f' <= c && c <= 'r') return 1;
+        else if (c == 's') return 40;
+        else if ('t' <= c && c <= 'z') return 1;
+        else if (c == '{') return 14;
+        else if (c == '}') return 15;
+        else return 0;
+    case 1:
+        if ('0' <= c && c <= '9') return 1;
+        else if ('A' <= c && c <= 'Z') return 1;
+        else if (c == '_') return 1;
+        else if ('a' <= c && c <= 'z') return 1;
+        else return 0;
+    case 2:
+        if ('0' <= c && c <= '9') return 2;
+        else return 0;
+    case 3:
+        if ('0' <= c && c <= '9') return 1;
+        else if ('A' <= c && c <= 'Z') return 1;
+        else if (c == '_') return 1;
+        else if ('a' <= c && c <= 'z') return 1;
+        else return 0;
+    case 4:
+        if ('0' <= c && c <= '9') return 1;
+        else if ('A' <= c && c <= 'Z') return 1;
+        else if (c == '_') return 1;
+        else if ('a' <= c && c <= 'z') return 1;
+        else return 0;
+    case 5:
+        if ('0' <= c && c <= '9') return 1;
+        else if ('A' <= c && c <= 'Z') return 1;
+        else if (c == '_') return 1;
+        else if ('a' <= c && c <= 'z') return 1;
+        else return 0;
+    case 6:
+        if ('0' <= c && c <= '9') return 1;
+        else if ('A' <= c && c <= 'Z') return 1;
+        else if (c == '_') return 1;
+        else if ('a' <= c && c <= 'z') return 1;
+        else return 0;
+    case 7:
+        if (c == ' ') return 7;
+        else return 0;
+    case 8:
+        if (c == (char)10) return 8;
+        else return 0;
+    case 9:
+        return 0;
+    case 10:
+        return 0;
+    case 11:
+        return 0;
+    case 12:
+        return 0;
+    case 13:
+        return 0;
+    case 14:
+        return 0;
+    case 15:
+        return 0;
+    case 16:
+        return 0;
+    case 17:
+        return 0;
+    case 18:
+        return 0;
+    case 19:
+        return 0;
+    case 20:
+        return 0;
+    case 21:
+        return 0;
+    case 22:
+        return 0;
+    case 23:
+        if ((char)0 <= c && c <= ')') return 41;
+        else if (c == '*') return 44;
+        else if ('+' <= c && c <= (char)127) return 41;
+        else return 0;
+    case 24:
+        return 0;
+    case 25:
+        if ('0' <= c && c <= '9') return 2;
+        else return 0;
+    case 26:
+        if ('0' <= c && c <= '9') return 1;
+        else if ('A' <= c && c <= 'Z') return 1;
+        else if (c == '_') return 1;
+        else if ('a' <= c && c <= 'd') return 1;
+        else if (c == 'e') return 5;
+        else if ('f' <= c && c <= 'z') return 1;
+        else return 0;
+    case 27:
+        if ('0' <= c && c <= '9') return 1;
+        else if ('A' <= c && c <= 'Z') return 1;
+        else if (c == '_') return 1;
+        else if ('a' <= c && c <= 'g') return 1;
+        else if (c == 'h') return 3;
+        else if ('i' <= c && c <= 'z') return 1;
+        else return 0;
+    case 28:
+        if ('0' <= c && c <= '9') return 1;
+        else if ('A' <= c && c <= 'Z') return 1;
+        else if (c == '_') return 1;
+        else if ('a' <= c && c <= 'b') return 1;
+        else if (c == 'c') return 27;
+        else if ('d' <= c && c <= 'z') return 1;
+        else return 0;
+    case 29:
+        if ('0' <= c && c <= '9') return 1;
+        else if ('A' <= c && c <= 'Z') return 1;
+        else if (c == '_') return 1;
+        else if ('a' <= c && c <= 'j') return 1;
+        else if (c == 'k') return 6;
+        else if ('l' <= c && c <= 'z') return 1;
+        else return 0;
+    case 30:
+        if ('0' <= c && c <= '9') return 1;
+        else if ('A' <= c && c <= 'Z') return 1;
+        else if (c == '_') return 1;
+        else if (c == 'a') return 29;
+        else if ('b' <= c && c <= 'z') return 1;
+        else return 0;
+    case 31:
+        if ('0' <= c && c <= '9') return 1;
+        else if ('A' <= c && c <= 'Z') return 1;
+        else if (c == '_') return 1;
+        else if ('a' <= c && c <= 'd') return 1;
+        else if (c == 'e') return 30;
+        else if ('f' <= c && c <= 'z') return 1;
+        else return 0;
+    case 32:
+        if ('0' <= c && c <= '9') return 1;
+        else if ('A' <= c && c <= 'Z') return 1;
+        else if (c == '_') return 1;
+        else if ('a' <= c && c <= 'l') return 1;
+        else if (c == 'm') return 4;
+        else if ('n' <= c && c <= 'z') return 1;
+        else return 0;
+    case 33:
+        if ('0' <= c && c <= '9') return 1;
+        else if ('A' <= c && c <= 'Z') return 1;
+        else if (c == '_') return 1;
+        else if ('a' <= c && c <= 'q') return 1;
+        else if (c == 'r') return 31;
+        else if ('s' <= c && c <= 'z') return 1;
+        else return 0;
+    case 34:
+        if ('0' <= c && c <= '9') return 1;
+        else if ('A' <= c && c <= 'Z') return 1;
+        else if (c == '_') return 1;
+        else if ('a' <= c && c <= 'r') return 1;
+        else if (c == 's') return 26;
+        else if ('t' <= c && c <= 'z') return 1;
+        else return 0;
+    case 35:
+        if ('0' <= c && c <= '9') return 1;
+        else if ('A' <= c && c <= 'Z') return 1;
+        else if (c == '_') return 1;
+        else if (c == 'a') return 34;
+        else if ('b' <= c && c <= 'z') return 1;
+        else return 0;
+    case 36:
+        if ('0' <= c && c <= '9') return 1;
+        else if ('A' <= c && c <= 'Z') return 1;
+        else if (c == '_') return 1;
+        else if ('a' <= c && c <= 's') return 1;
+        else if (c == 't') return 28;
+        else if ('u' <= c && c <= 'z') return 1;
+        else return 0;
+    case 37:
+        if ('0' <= c && c <= '9') return 1;
+        else if ('A' <= c && c <= 'Z') return 1;
+        else if (c == '_') return 1;
+        else if ('a' <= c && c <= 'h') return 1;
+        else if (c == 'i') return 36;
+        else if ('j' <= c && c <= 'z') return 1;
+        else return 0;
+    case 38:
+        if ('0' <= c && c <= '9') return 1;
+        else if ('A' <= c && c <= 'Z') return 1;
+        else if (c == '_') return 1;
+        else if ('a' <= c && c <= 't') return 1;
+        else if (c == 'u') return 32;
+        else if ('v' <= c && c <= 'z') return 1;
+        else return 0;
+    case 39:
+        if ('0' <= c && c <= '9') return 1;
+        else if ('A' <= c && c <= 'Z') return 1;
+        else if (c == '_') return 1;
+        else if ('a' <= c && c <= 'm') return 1;
+        else if (c == 'n') return 38;
+        else if ('o' <= c && c <= 'z') return 1;
+        else return 0;
+    case 40:
+        if ('0' <= c && c <= '9') return 1;
+        else if ('A' <= c && c <= 'Z') return 1;
+        else if (c == '_') return 1;
+        else if ('a' <= c && c <= 'v') return 1;
+        else if (c == 'w') return 37;
+        else if ('x' <= c && c <= 'z') return 1;
+        else return 0;
+    case 41:
+        if ((char)0 <= c && c <= ')') return 41;
+        else if (c == '*') return 44;
+        else if ('+' <= c && c <= (char)127) return 41;
+        else return 0;
+    case 42:
+        if (c == '*') return 41;
+        else if (c == '/') return 43;
+        else return 0;
+    case 43:
+        if ((char)0 <= c && c <= (char)9) return 43;
+        else if (c == (char)10) return 22;
+        else if ((char)11 <= c && c <= (char)127) return 43;
+        else return 0;
+    case 44:
+        if ((char)0 <= c && c <= ')') return 41;
+        else if (c == '*') return 44;
+        else if ('+' <= c && c <= '.') return 41;
+        else if (c == '/') return 23;
+        else if ('0' <= c && c <= (char)127) return 41;
+        else return 0;
+    }
+    return 0;
+}
+int SwifLexer::action(int state)
+{
+    switch (state)
+    {
+    case 1:
+        return 1;//id: id
+    case 2:
+        return 2;//number: integer
+    case 3:
+        return 3;//reserved: switch
+    case 4:
+        return 4;//reserved: enum
+    case 5:
+        return 5;//reserved: case
+    case 6:
+        return 6;//reserved: break
+    case 7:
+        return 7;//format: spaces
+    case 8:
+        return 8;//format: enters
+    case 9:
+        return 9;//format: tab
+    case 10:
+        return 10;//division: semicolon
+    case 11:
+        return 11;//division: colon
+    case 12:
+        return 12;//division: dot
+    case 13:
+        return 13;//division: comma
+    case 14:
+        return 14;//braket: braceL
+    case 15:
+        return 15;//braket: braceR
+    case 16:
+        return 16;//braket: left
+    case 17:
+        return 17;//braket: right
+    case 18:
+        return 18;//braket: squareL
+    case 19:
+        return 19;//braket: squareR
+    case 20:
+        return 20;//braket: angleL
+    case 21:
+        return 21;//braket: angleR
+    case 22:
+        return 22;//anntation: anntationS
+    case 23:
+        return 23;//anntation: anntationM
+    case 24:
+        return 24;//value: value
+    case 26:
+        return 1;//id: id
+    case 27:
+        return 1;//id: id
+    case 28:
+        return 1;//id: id
+    case 29:
+        return 1;//id: id
+    case 30:
+        return 1;//id: id
+    case 31:
+        return 1;//id: id
+    case 32:
+        return 1;//id: id
+    case 33:
+        return 1;//id: id
+    case 34:
+        return 1;//id: id
+    case 35:
+        return 1;//id: id
+    case 36:
+        return 1;//id: id
+    case 37:
+        return 1;//id: id
+    case 38:
+        return 1;//id: id
+    case 39:
+        return 1;//id: id
+    case 40:
+        return 1;//id: id
+    }
+    return 0;
+}
+int SwifLexer::GroupGet(int accept)
+{
+    switch (accept)
+    {
+    case 1:
+        return 1;//id: id
+    case 2:
+        return 2;//number: integer
+    case 3:
+        return 3;//reserved: switch
+    case 4:
+        return 3;//reserved: enum
+    case 5:
+        return 3;//reserved: case
+    case 6:
+        return 3;//reserved: break
+    case 7:
+        return 4;//format: spaces
+    case 8:
+        return 4;//format: enters
+    case 9:
+        return 4;//format: tab
+    case 10:
+        return 5;//division: semicolon
+    case 11:
+        return 5;//division: colon
+    case 12:
+        return 5;//division: dot
+    case 13:
+        return 5;//division: comma
+    case 14:
+        return 6;//braket: braceL
+    case 15:
+        return 6;//braket: braceR
+    case 16:
+        return 6;//braket: left
+    case 17:
+        return 6;//braket: right
+    case 18:
+        return 6;//braket: squareL
+    case 19:
+        return 6;//braket: squareR
+    case 20:
+        return 6;//braket: angleL
+    case 21:
+        return 6;//braket: angleR
+    case 22:
+        return 7;//anntation: anntationS
+    case 23:
+        return 7;//anntation: anntationM
+    case 24:
+        return 8;//value: value
+    }
+    return 0;
+}
+const size_t SwifPraser::StateCount = 13;
+const size_t SwifPraser::NonTerminalCount = 5;
+const size_t SwifPraser::TerminalCount = 24;
+const size_t SwifPraser::RulesCount = 7;
+const int SwifPraser::GOTO[13][5] = { \
+{1, 6, 1, 1, 1}, \
+{1, 1, 1, 1, 1}, \
+{1, 1, 1, 1, 1}, \
+{1, 1, 1, 1, 1}, \
+{1, 1, 22, 26, 30}, \
+{1, 1, 1, 1, 1}, \
+{1, 1, 1, 1, 46}, \
+{1, 1, 1, 1, 1}, \
+{1, 1, 1, 1, 1}, \
+{1, 1, 1, 1, 1}, \
+{1, 1, 1, 1, 1}, \
+{1, 1, 1, 1, 1}, \
+{1, 1, 1, 1, 1} };
+//==============================
+const int SwifPraser::ACTION[13][25] = { \
+{17, 17, 17, 17, 10, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17}, \
+{0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1}, \
+{5, 14, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5}, \
+{57, 57, 57, 57, 57, 57, 57, 57, 57, 57, 57, 57, 57, 57, 18, 57, 57, 57, 57, 57, 57, 57, 57, 57, 57}, \
+{5, 34, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5}, \
+{61, 61, 61, 61, 61, 61, 61, 61, 61, 61, 61, 61, 61, 61, 61, 50, 61, 61, 61, 61, 61, 61, 61, 61, 61}, \
+{1, 34, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 11, 1, 1, 1, 1, 1, 1, 1, 1, 1}, \
+{1, 15, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 15, 1, 1, 1, 1, 1, 1, 1, 1, 1}, \
+{1, 23, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 23, 1, 1, 1, 1, 1, 1, 1, 1, 38}, \
+{9, 9, 42, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9}, \
+{1, 27, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 27, 1, 1, 1, 1, 1, 1, 1, 1, 1}, \
+{1, 19, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 19, 1, 1, 1, 1, 1, 1, 1, 1, 1}, \
+{7, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1} };
+//==============================
+const int SwifPraser::RulesToSymbol[7] = { \
+0,\
+1,\
+2,\
+3,\
+3,\
+4,\
+4 };
+//==============================
+const int SwifPraser::RulesLength[7] = { \
+1,\
+5,\
+1,\
+1,\
+2,\
+1,\
+3 };
+//==============================
+const char* const SwifPraser::RulesName[7] = { \
+"all->ENUM ",\
+"ENUM->enum id braceL ITEMS braceR ",\
+"ITEMS-><ITEM+> ",\
+"<ITEM+>->ITEM ",\
+"<ITEM+>-><ITEM+> ITEM ",\
+"ITEM->id ",\
+"ITEM->id value integer " };
+//==============================
+const int SwifPraser::Implicit[7] = { \
+0, \
+0, \
+0, \
+1, \
+1, \
+0, \
+0 };

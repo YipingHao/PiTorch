@@ -872,7 +872,15 @@ int Pikachu::ActivFunc::construct(const char* source)
     //Tree.Demo(stdout, eme, FuncPraser::RulesName);
     
     state.recount(FuncPraser::RulesCount);
-    for (i = 0; i < state.count(); i++) state[i] = (int)i;
+    for (i = 0; i < state.count(); i++) state[i] = 0;// (int)i;
+
+    //state[(size_t)LP::FuncPraser::all_all_] = LP::FuncPraser::all_all_;
+    //state[(size_t)LP::FuncPraser::FUNCTION_FUNCTION_] = LP::FuncPraser::FUNCTION_FUNCTION_;
+    //state[(size_t)LP::FuncPraser::PARA_PARA_] = LP::FuncPraser::PARA_PARA_;
+    //state[(size_t)LP::FuncPraser::MANIFPARA_input_] = LP::FuncPraser::MANIFPARA_input_;
+    //state[(size_t)LP::FuncPraser::MANIFPARA_para_] = LP::FuncPraser::MANIFPARA_para_;
+    //state[(size_t)LP::FuncPraser::MANIFPARA_output_] = LP::FuncPraser::MANIFPARA_output_;
+
 
     error = build(Tree.GT, eme, state.ptr());
 
