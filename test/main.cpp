@@ -1879,23 +1879,27 @@ int static test15(const parameter& para)
     while (iterator.still())
     {
         GT = iterator.target();
-        if (iterator.state() != 0 && GT->root().rules)
+        RRR = (SwifPraser::rules)GT->root().site;
+        if (iterator.state() == 0 && GT->root().rules)
         {
-            RRR = (SwifPraser::rules)GT->root().site;
+            
             //printf("site:%zu, accept %d\n");
             switch (RRR)
             {
-            case SwifPraser::all_all_:
-                break;
             case SwifPraser::ENUM_ENUM_:
                 sss = eme.GetWord(GT->child(1)->root().site);
                 break;
+            }
+        }
+        if (iterator.state() != 0 && GT->root().rules)
+        {
+            //printf("site:%zu, accept %d\n");
+            switch (RRR)
+            {
             case SwifPraser::ITEM_single_:
             case SwifPraser::ITEM_multi_:
                 key = eme.GetWord(GT->child(0)->root().site);
                 printf("\tstate[(size_t)%s::%s] = (int)_%s_::%s;\n", sss.c_str(), key, sss.c_str(), key);
-                break;
-            default:
                 break;
             }
         }
