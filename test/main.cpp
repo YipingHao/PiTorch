@@ -1809,31 +1809,38 @@ struct SwifPraser
     {
         all_all_ = 0,
         ENUM_ENUM_ = 1,
-        ITEMS_ITEMS_ = 2,
-        //<ITEM+>_first_ = 3,
-        //<ITEM+>_multi_ = 4,
-        ITEM_single_ = 5,
-        ITEM_multi_ = 6
+        ITEMS_single_ = 2,
+        ITEMS_multi_ = 3,
+        //[division]_semicolon_ = 4,
+        //[division]_colon_ = 5,
+        //[division]_dot_ = 6,
+        //[division]_comma_ = 7,
+        ITEM_single_ = 8,
+        ITEM_multi_ = 9,
+        DN_null_ = 10,
+        DN_ddd_ = 11
     };
     enum nonterminal
     {
         _all_ = 0,
         _ENUM_ = 1,
         _ITEMS_ = 2,
-        //_<ITEM+>_ = 3,
-        _ITEM_ = 4
+        //_[division]_ = 3,
+        _ITEM_ = 4,
+        _DN_ = 5
     };
     static const size_t StateCount;
     static const size_t NonTerminalCount;
     static const size_t TerminalCount;
     static const size_t RulesCount;
-    static const int GOTO[13][5];
-    static const int ACTION[13][25];
-    static const int RulesToSymbol[7];
-    static const int RulesLength[7];
-    static const char* const RulesName[7];
-    static const int Implicit[7];
+    static const int GOTO[20][6];
+    static const int ACTION[20][25];
+    static const int RulesToSymbol[12];
+    static const int RulesLength[12];
+    static const char* const RulesName[12];
+    static const int Implicit[12];
 };
+
 int static LPMorpheneBuild(const char* source, hyperlex::Morpheme& eme);
 int static test15(const parameter& para)
 {
@@ -1880,8 +1887,6 @@ int static test15(const parameter& para)
                 break;
             case SwifPraser::ENUM_ENUM_:
                 sss = eme.GetWord(GT->child(1)->root().site);
-                break;
-            case SwifPraser::ITEMS_ITEMS_:
                 break;
             case SwifPraser::ITEM_single_:
             case SwifPraser::ITEM_multi_:
@@ -2457,72 +2462,107 @@ int SwifLexer::GroupGet(int accept)
     }
     return 0;
 }
-const size_t SwifPraser::StateCount = 13;
-const size_t SwifPraser::NonTerminalCount = 5;
+const size_t SwifPraser::StateCount = 20;
+const size_t SwifPraser::NonTerminalCount = 6;
 const size_t SwifPraser::TerminalCount = 24;
-const size_t SwifPraser::RulesCount = 7;
-const int SwifPraser::GOTO[13][5] = { \
-{1, 6, 1, 1, 1}, \
-{1, 1, 1, 1, 1}, \
-{1, 1, 1, 1, 1}, \
-{1, 1, 1, 1, 1}, \
-{1, 1, 22, 26, 30}, \
-{1, 1, 1, 1, 1}, \
-{1, 1, 1, 1, 46}, \
-{1, 1, 1, 1, 1}, \
-{1, 1, 1, 1, 1}, \
-{1, 1, 1, 1, 1}, \
-{1, 1, 1, 1, 1}, \
-{1, 1, 1, 1, 1}, \
-{1, 1, 1, 1, 1} };
+const size_t SwifPraser::RulesCount = 12;
+const int SwifPraser::GOTO[20][6] = { \
+{1, 6, 1, 1, 1, 1}, \
+{1, 1, 1, 1, 1, 1}, \
+{1, 1, 1, 1, 1, 1}, \
+{1, 1, 1, 1, 1, 1}, \
+{1, 1, 22, 1, 26, 1}, \
+{1, 1, 1, 42, 1, 46}, \
+{1, 1, 1, 1, 1, 1}, \
+{1, 1, 1, 1, 1, 1}, \
+{1, 1, 1, 1, 1, 1}, \
+{1, 1, 1, 1, 1, 1}, \
+{1, 1, 1, 1, 78, 1}, \
+{1, 1, 1, 1, 1, 1}, \
+{1, 1, 1, 1, 1, 1}, \
+{1, 1, 1, 1, 1, 1}, \
+{1, 1, 1, 1, 1, 1}, \
+{1, 1, 1, 1, 1, 1}, \
+{1, 1, 1, 70, 1, 74}, \
+{1, 1, 1, 1, 1, 1}, \
+{1, 1, 1, 1, 1, 1}, \
+{1, 1, 1, 1, 1, 1} };
 //==============================
-const int SwifPraser::ACTION[13][25] = { \
+const int SwifPraser::ACTION[20][25] = { \
 {17, 17, 17, 17, 10, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17}, \
 {0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1}, \
 {5, 14, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5}, \
 {57, 57, 57, 57, 57, 57, 57, 57, 57, 57, 57, 57, 57, 57, 18, 57, 57, 57, 57, 57, 57, 57, 57, 57, 57}, \
-{5, 34, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5}, \
-{61, 61, 61, 61, 61, 61, 61, 61, 61, 61, 61, 61, 61, 61, 61, 50, 61, 61, 61, 61, 61, 61, 61, 61, 61}, \
-{1, 34, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 11, 1, 1, 1, 1, 1, 1, 1, 1, 1}, \
-{1, 15, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 15, 1, 1, 1, 1, 1, 1, 1, 1, 1}, \
-{1, 23, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 23, 1, 1, 1, 1, 1, 1, 1, 1, 38}, \
-{9, 9, 42, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9}, \
-{1, 27, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 27, 1, 1, 1, 1, 1, 1, 1, 1, 1}, \
-{1, 19, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 19, 1, 1, 1, 1, 1, 1, 1, 1, 1}, \
-{7, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1} };
+{5, 30, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5}, \
+{43, 1, 1, 1, 1, 1, 1, 1, 1, 1, 50, 54, 58, 62, 1, 43, 1, 1, 1, 1, 1, 1, 1, 1, 1}, \
+{1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 11, 11, 11, 11, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1}, \
+{1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 35, 35, 35, 35, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 34}, \
+{9, 9, 38, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9}, \
+{1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 39, 39, 39, 39, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1}, \
+{47, 30, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 47, 1, 1, 1, 1, 1, 1, 1, 1, 1}, \
+{61, 61, 61, 61, 61, 61, 61, 61, 61, 61, 61, 61, 61, 61, 61, 66, 61, 61, 61, 61, 61, 61, 61, 61, 61}, \
+{19, 19, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 19, 1, 1, 1, 1, 1, 1, 1, 1, 1}, \
+{23, 23, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 23, 1, 1, 1, 1, 1, 1, 1, 1, 1}, \
+{27, 27, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 27, 1, 1, 1, 1, 1, 1, 1, 1, 1}, \
+{31, 31, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 31, 1, 1, 1, 1, 1, 1, 1, 1, 1}, \
+{43, 1, 1, 1, 1, 1, 1, 1, 1, 1, 50, 54, 58, 62, 1, 43, 1, 1, 1, 1, 1, 1, 1, 1, 1}, \
+{47, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 47, 1, 1, 1, 1, 1, 1, 1, 1, 1}, \
+{7, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1}, \
+{1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 15, 15, 15, 15, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1} };
 //==============================
-const int SwifPraser::RulesToSymbol[7] = { \
+const int SwifPraser::RulesToSymbol[12] = { \
 0,\
 1,\
 2,\
+2,\
+3,\
+3,\
 3,\
 3,\
 4,\
-4 };
-//==============================
-const int SwifPraser::RulesLength[7] = { \
-1,\
+4,\
 5,\
-1,\
-1,\
-2,\
-1,\
-3 };
+5 };
 //==============================
-const char* const SwifPraser::RulesName[7] = { \
+const int SwifPraser::RulesLength[12] = { \
+1,\
+7,\
+1,\
+3,\
+1,\
+1,\
+1,\
+1,\
+1,\
+3,\
+0,\
+1 };
+//==============================
+const char* const SwifPraser::RulesName[12] = { \
 "all->ENUM ",\
-"ENUM->enum id braceL ITEMS braceR ",\
-"ITEMS-><ITEM+> ",\
-"<ITEM+>->ITEM ",\
-"<ITEM+>-><ITEM+> ITEM ",\
+"ENUM->enum id braceL ITEMS DN braceR DN ",\
+"ITEMS->ITEM ",\
+"ITEMS->ITEMS [division] ITEM ",\
+"[division]->semicolon ",\
+"[division]->colon ",\
+"[division]->dot ",\
+"[division]->comma ",\
 "ITEM->id ",\
-"ITEM->id value integer " };
+"ITEM->id value integer ",\
+"DN->epsilon ",\
+"DN->[division] " };
 //==============================
-const int SwifPraser::Implicit[7] = { \
+const int SwifPraser::Implicit[12] = { \
+0, \
 0, \
 0, \
 0, \
 1, \
 1, \
+1, \
+1, \
+0, \
+0, \
 0, \
 0 };
+
