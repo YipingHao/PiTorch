@@ -1849,6 +1849,12 @@ int static test15(const parameter& para)
     hyperlex::GrammarTree Tree;
     CFile input;
     hyperlex::BufferChar BC;
+    GTIter iterator;
+    GLTree* GT;
+    SwifPraser::rules RRR;
+    size_t i;
+    std::string  sss;
+    const char* key;
     input.OpenRead("./data/key.txt");
     BC << input.fp;
 
@@ -1867,13 +1873,8 @@ int static test15(const parameter& para)
         return error;
     }
     Tree.Demo(stdout, eme, SwifPraser::RulesName);
-
-    GTIter iterator;
-    GLTree* GT;
-    SwifPraser::rules RRR;
-    size_t i;
-    std::string  sss;
-    const char * key;
+    std::cout << "Tree.Demo(stdout, eme, SwifPraser::RulesName);" << std::endl;
+    
     iterator.initial(Tree.GT);
     while (iterator.still())
     {
