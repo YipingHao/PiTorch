@@ -847,7 +847,7 @@ int Pikachu::ActivFunc::construct(const char* source)
     clear();
 
     error = LPMorpheneBuild(source, eme);
-    if (error != 0) 
+    if (error != 0)
     {
         Error = new hyperlex::dictionary();
         Error->append("Error", "Morpheme Build");
@@ -870,19 +870,40 @@ int Pikachu::ActivFunc::construct(const char* source)
         return error;
     }
     //Tree.Demo(stdout, eme, FuncPraser::RulesName);
-    
+
     state.recount(FuncPraser::RulesCount);
+    if (true) {
     for (i = 0; i < state.count(); i++) state[i] = i;
-
-    //state[(size_t)LP::FuncPraser::all_all_] = LP::FuncPraser::all_all_;
-    //state[(size_t)LP::FuncPraser::FUNCTION_FUNCTION_] = LP::FuncPraser::FUNCTION_FUNCTION_;
-    //state[(size_t)LP::FuncPraser::PARA_PARA_] = LP::FuncPraser::PARA_PARA_;
-    //state[(size_t)LP::FuncPraser::MANIFPARA_input_] = LP::FuncPraser::MANIFPARA_input_;
-    //state[(size_t)LP::FuncPraser::MANIFPARA_para_] = LP::FuncPraser::MANIFPARA_para_;
-    //state[(size_t)LP::FuncPraser::MANIFPARA_output_] = LP::FuncPraser::MANIFPARA_output_;
-
-
     error = build(Tree.GT, eme, state.ptr());
+    }
+    else
+    {
+        for (i = 0; i < state.count(); i++) state[i] = 0;
+        state[(size_t)FuncPraser::rules::all_all_] = (int)ManifPraser::rules::all_all_;
+        state[(size_t)FuncPraser::rules::FUNCTION_FUNCTION_] = (int)ManifPraser::rules::MANIFOLD_MANIFOLD_;
+        state[(size_t)FuncPraser::rules::PARA_PARA_] = (int)ManifPraser::rules::PARA_PARA_;
+        state[(size_t)FuncPraser::rules::MANIFPARA_input_] = (int)ManifPraser::rules::MANIFPARA_input_;
+        state[(size_t)FuncPraser::rules::MANIFPARA_para_] = (int)ManifPraser::rules::MANIFPARA_para_;
+        state[(size_t)FuncPraser::rules::MANIFPARA_output_] = (int)ManifPraser::rules::MANIFPARA_output_;
+        state[(size_t)FuncPraser::rules::MANIFBODY_MANIFBODY_] = (int)ManifPraser::rules::MANIFBODY_MANIFBODY_;
+        state[(size_t)FuncPraser::rules::DELARATIONS_DELARATIONS_] = (int)ManifPraser::rules::DELARATIONS_DELARATIONS_;
+        state[(size_t)FuncPraser::rules::DELARATION_DELARATION_] = (int)ManifPraser::rules::DELARATION_DELARATION_;
+        state[(size_t)FuncPraser::rules::RETURN_RETURN_] = 0;
+        state[(size_t)FuncPraser::rules::EXPRESSIONS_EXPRESSIONS_] = (int)ManifPraser::rules::EXPRESSIONS_EXPRESSIONS_;
+        state[(size_t)FuncPraser::rules::EXPRESSION_EXPRESSION_] = (int)ManifPraser::rules::EXPRESSION_EXPRESSION_;
+        state[(size_t)FuncPraser::rules::EXP_RIGHT_add_] = (int)ManifPraser::rules::EXP_RIGHT_add_;
+        state[(size_t)FuncPraser::rules::EXP_MUL_multi_] = (int)ManifPraser::rules::EXP_MUL_multi_;
+        state[(size_t)FuncPraser::rules::EXP_MINUS_plus_] = (int)ManifPraser::rules::EXP_MINUS_plus_;
+        state[(size_t)FuncPraser::rules::UNIT_id_] = (int)ManifPraser::rules::UNIT_id_;
+        state[(size_t)FuncPraser::rules::UNIT_call_] = (int)ManifPraser::rules::UNIT_call_;
+        state[(size_t)FuncPraser::rules::UNIT_const_] = (int)ManifPraser::rules::UNIT_const_;
+        state[(size_t)FuncPraser::rules::UNIT_complex_] = (int)ManifPraser::rules::UNIT_complex_;
+        state[(size_t)FuncPraser::rules::ID_array_] = (int)ManifPraser::rules::ID_array_;
+        state[(size_t)FuncPraser::rules::ID_single_] = (int)ManifPraser::rules::ID_single_;
+        state[(size_t)FuncPraser::rules::CALL_call_1_] = (int)ManifPraser::rules::CALL_call_1_;
+        state[(size_t)FuncPraser::rules::CALL_call_2_] = (int)ManifPraser::rules::CALL_call_2_;
+        ManifoldBuild(Tree.GT, eme, state.ptr());
+    }
 
     InputDim.recount(1);
     InputDim[0] = 1;
