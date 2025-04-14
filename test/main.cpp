@@ -1872,7 +1872,7 @@ int static test15(const parameter& para)
         std::cout << "error" << error << std::endl;
         return error;
     }
-    //Tree.Demo(stdout, eme, SwifPraser::RulesName);
+    Tree.Demo(stdout, eme, SwifPraser::RulesName);
     std::cout << "Tree.Demo(stdout, eme, SwifPraser::RulesName);" << std::endl;
     
     iterator.initial(Tree.GT);
