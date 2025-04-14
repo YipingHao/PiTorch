@@ -1872,7 +1872,7 @@ int static test15(const parameter& para)
         std::cout << "error" << error << std::endl;
         return error;
     }
-    Tree.Demo(stdout, eme, SwifPraser::RulesName);
+    //Tree.Demo(stdout, eme, SwifPraser::RulesName);
     std::cout << "Tree.Demo(stdout, eme, SwifPraser::RulesName);" << std::endl;
     
     iterator.initial(Tree.GT);
@@ -1882,7 +1882,7 @@ int static test15(const parameter& para)
         if (iterator.state() != 0 && GT->root().rules)
         {
             RRR = (SwifPraser::rules)GT->root().site;
-            printf("site:%zu, accept %d\n");
+            //printf("site:%zu, accept %d\n");
             switch (RRR)
             {
             case SwifPraser::all_all_:
