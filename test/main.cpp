@@ -1881,6 +1881,7 @@ int static test15(const parameter& para)
         if (iterator.state() != 0 && GT->root().rules)
         {
             RRR = (SwifPraser::rules)GT->root().site;
+            printf("site:%zu, accept %d\n");
             switch (RRR)
             {
             case SwifPraser::all_all_:
