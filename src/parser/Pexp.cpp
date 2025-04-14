@@ -872,7 +872,7 @@ int Pikachu::ActivFunc::construct(const char* source)
     //Tree.Demo(stdout, eme, FuncPraser::RulesName);
 
     state.recount(FuncPraser::RulesCount);
-    if (true) {
+    if (false) {
     for (i = 0; i < state.count(); i++) state[i] = i;
     error = build(Tree.GT, eme, state.ptr());
     }
@@ -903,6 +903,15 @@ int Pikachu::ActivFunc::construct(const char* source)
         state[(size_t)FuncPraser::rules::CALL_call_1_] = (int)ManifPraser::rules::CALL_call_1_;
         state[(size_t)FuncPraser::rules::CALL_call_2_] = (int)ManifPraser::rules::CALL_call_2_;
         ManifoldBuild(Tree.GT, eme, state.ptr());
+        if (InputDim.count() != 1 || InputDim[0] != 1)
+        {
+            Error = new hyperlex::dictionary();
+            Error->append("ErrorType", "Too many input");
+            Error->append("InputDim", (long int)InputDim.count());
+            Error->append("InputDim0", (long int)InputDim[0]);
+            throw Error;
+        }
+        
     }
 
     InputDim.recount(1);
