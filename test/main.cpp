@@ -1854,6 +1854,11 @@ int static test15(const parameter& para)
     }
     eme.Demo(stdout);
     error = Tree.build<SwifPraser>(eme);
+    if (error != 0)
+    {
+        std::cout << "error" << error << std::endl;
+        return error;
+    }
     Tree.Demo(stdout, eme, SwifPraser::RulesName);
 
     GTIter iterator;
