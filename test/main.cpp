@@ -1881,7 +1881,7 @@ int static test15(const parameter& para)
             case SwifPraser::ITEM_single_:
             case SwifPraser::ITEM_multi_:
                 key = eme.GetWord(GT->child(0)->root().site);
-                printf("\tstate[%s::%s] = _%s_::%s;\n", sss.c_str(), key, sss.c_str(), key);
+                printf("\tstate[(size_t)%s::%s] = (int)_%s_::%s;\n", sss.c_str(), key, sss.c_str(), key);
                 break;
             default:
                 break;
