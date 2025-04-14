@@ -872,7 +872,7 @@ int Pikachu::ActivFunc::construct(const char* source)
     //Tree.Demo(stdout, eme, FuncPraser::RulesName);
 
     state.recount(FuncPraser::RulesCount);
-    if (false) {
+    if (true) {
     for (i = 0; i < state.count(); i++) state[i] = i;
     error = build(Tree.GT, eme, state.ptr());
     }
@@ -913,7 +913,6 @@ int Pikachu::ActivFunc::construct(const char* source)
         }
         
     }
-
     InputDim.recount(1);
     InputDim[0] = 1;
     return 0;
