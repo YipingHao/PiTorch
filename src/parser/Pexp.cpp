@@ -823,6 +823,18 @@ static void RepeatSomething(hyperlex::dictionary* error, const char* func, const
     error->append("line", (long int)IDTemp_->line);
     return;
 }
+static void ValueARightValue(hyperlex::dictionary* error, const char* func, const LexSheet::IDInfor* IDTemp_)
+{
+    error->append("ErrorType", "value a non left value");
+    error->append("something", func);
+    error->append("identifier", IDTemp_->name);
+    if (IDTemp_->num >= 0)
+        error->append("index", IDTemp_->num);
+    else
+        error->append("index", "none");
+    error->append("line", (long int)IDTemp_->line);
+    return;
+}
 int Pikachu::ActivFunc::construct(const char* source)
 {
     using namespace LP;
@@ -992,6 +1004,10 @@ int Pikachu::ActivFunc::build(GLTree* Tree, hyperlex::Morpheme& eme, int* state)
                     NosuchID(error, "EXPRESSION_EXPRESSION_", IDTemp_);
                     throw error;
                 }
+                if (ItemTemp_->attriIs("input") || ItemTemp_->attriIs("para")) {
+                    ValueARightValue(error, "EXPRESSION_EXPRESSION_", IDTemp_);
+                    throw error;
+                }
                 if (!ItemTemp_->checkIndex(IDTemp_->num)) {
                     ErrorWrongIndex(error, "EXPRESSION_EXPRESSION_", IDTemp_);
                     throw error;
@@ -1145,14 +1161,19 @@ int Pikachu::Expres::ManifoldBuild(const char* source)
     hyperlex::GrammarTree Tree;
     hyperlex::vector<int> state;
     size_t i;
+    hyperlex::dictionary* error;
+    error = new hyperlex::dictionary;
+    error->append("location", "int Pikachu::Expres::ManifoldBuild");
     clear();
     try { 
         ManifoldMorpheneBuild(source, eme, Tree); 
     }
     catch (hyperlex::dictionary* Err){
-        Err->append("next location", "int Pikachu::Expres::ManifoldBuild(const char* source)");
+        Err->append("next_location", "int Pikachu::Expres::ManifoldBuild(const char* source)");
+        delete error;
         throw Err;
     }
+    
     state.recount(FuncPraser::RulesCount);
     for (i = 0; i < state.count(); i++) state[i] = (int)i;
     try
@@ -1163,6 +1184,17 @@ int Pikachu::Expres::ManifoldBuild(const char* source)
     {
         throw Err;
     }
+    if (InputDim.count() != 0)
+    {
+        error->append("ErrorType", "Too many input");
+        error->append("InputDim", (long int)InputDim.count());
+    }
+    if (ParameterCount != 0)
+    {
+        error->append("ErrorType", "Too many input");
+        error->append("ParameterCount", (long int)ParameterCount);
+    }
+    delete error;
     return 0;
 
 }
@@ -1184,6 +1216,7 @@ void Pikachu::Expres::ManifoldBuild(GLTree* Tree, hyperlex::Morpheme& eme, int* 
     hyperlex::dictionary* error;
     size_t i, site, temp_;
     error = new hyperlex::dictionary;
+    clear();
     error->append("location", "Expres::ManifoldBuild");
     iterator.initial(Tree);
     while (iterator.still())
@@ -1209,21 +1242,42 @@ void Pikachu::Expres::ManifoldBuild(GLTree* Tree, hyperlex::Morpheme& eme, int* 
                     throw error;
                 }
                 Ls.append(IDTemp_->num, IDTemp_->name, "input");
-                if (Ls.rear()->label != 0) {
-                    RepeatSomething(error, "input", IDTemp_);
-                    throw error;
-                }
+                //if (Ls.rear()->label != 0) {
+                //    RepeatSomething(error, "input", IDTemp_);
+                 //   throw error;
+                //}
+                temp_ = IDTemp_->num < 0 ? 1 : IDTemp_->num;
                 for (i = 0; i < temp_; i++)
                 {
-                    (*Ls[site])[i] = NewNode(Pikachu::_LeafX_, 0, i);
+                    (*Ls[site])[i] = NewNode(Pikachu::_LeafX_, Ls.rear()->label, i);
                 }
+                InputDim.append(temp_);
                 delete IDTemp_;
                 IDTemp_ = NULL;
                 break;
             case LP::ManifPraser::MANIFPARA_para_:
                 IDTemp_ = (LexSheet::IDInfor*)GT->child(1)->root().infor;
-                error->append("MANIFPARA_para_", "should not def para");
-                error->append("line", (long int)IDTemp_->line);
+                ItemTemp_ = (LexSheet::item*)Ls[IDTemp_->name];
+                if (ItemTemp_ != NULL) {
+                    RepeatDefID(error, "MANIFPARA_para_", IDTemp_);
+                    throw error;
+                }
+                if (IDTemp_->num == 0)
+                {
+                    ErrorWrongIndex(error, "MANIFPARA_para_", IDTemp_);
+                    throw error;
+                }
+                temp_ = IDTemp_->num < 0 ? 1 : IDTemp_->num;
+                Ls.append(IDTemp_->num, IDTemp_->name, "para");
+                ParameterCount += temp_;
+                site = Ls.count() - 1;
+                for (i = 0; i < temp_; i++)
+                {
+                    (*Ls[site])[i] = NewNode(Pikachu::_LeafPara_, 0, i + ParameterCount);
+                }
+                delete IDTemp_;
+                IDTemp_ = NULL;
+                break;
             case LP::ManifPraser::MANIFPARA_output_:
                 IDTemp_ = (LexSheet::IDInfor*)GT->child(1)->root().infor;
                 ItemTemp_ = (LexSheet::item*)Ls[IDTemp_->name];
@@ -1273,6 +1327,10 @@ void Pikachu::Expres::ManifoldBuild(GLTree* Tree, hyperlex::Morpheme& eme, int* 
                 ItemTemp_ = (LexSheet::item*)Ls[IDTemp_->name];
                 if (ItemTemp_ == NULL) {
                     NosuchID(error, "EXPRESSION_EXPRESSION_", IDTemp_);
+                    throw error;
+                }
+                if (ItemTemp_ ->attriIs("input") || ItemTemp_->attriIs("para")) {
+                    ValueARightValue(error, "EXPRESSION_EXPRESSION_", IDTemp_);
                     throw error;
                 }
                 temp_ = IDTemp_->num < 0 ? 0 : IDTemp_->num;
