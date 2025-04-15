@@ -1213,9 +1213,9 @@ static void ManifoldMorpheneBuild(const char* source, hyperlex::Morpheme&eme, hy
     hyperlex::dictionary* Error;
     Error = NULL;
     size_t i;
-    ManifPraser::regular T;
-    ManifPraser::group G;
-    error = eme.Build<ManifPraser>(source);
+    ManifLexer::regular T;
+    ManifLexer::group G;
+    error = eme.Build<ManifLexer>(source);
     if (error != 0)
     {
         Error = new hyperlex::dictionary;
@@ -1226,9 +1226,9 @@ static void ManifoldMorpheneBuild(const char* source, hyperlex::Morpheme&eme, hy
     }
     for (i = 0; i < eme.GetCount(); i++)
     {
-        T = (ManifPraser::regular)(eme[i].accept);
-        G = (ManifPraser::group)(eme[i].category);
-        if (G == ManifPraser::_format___ || G == ManifPraser::_anntation___)
+        T = (ManifLexer::regular)(eme[i].accept);
+        G = (ManifLexer::group)(eme[i].category);
+        if (G == ManifLexer::_format___ || G == ManifLexer::_anntation___)
         {
             eme.valid(i) = false;
         }
