@@ -1324,16 +1324,16 @@ void Pikachu::Expres::ManifoldBuild(GLTree* Tree, hyperlex::Morpheme& eme, int* 
             ItemTemp_ = NULL;
             switch (RRR)
             {
-            case LP::ManifPraser::MANIFPARA_input_:
+            case LP::ManifPraser::SYMBOLICPARA_input_:
                 IDTemp_ = (LexSheet::IDInfor*)GT->child(1)->root().infor;
                 ItemTemp_ = (LexSheet::item*)Ls[IDTemp_->name];
                 if (ItemTemp_ != NULL)
                 {
-                    RepeatDefID(error, "MANIFPARA_input_", IDTemp_);
+                    RepeatDefID(error, "SYMBOLICPARA_input_", IDTemp_);
                     throw error;
                 }
                 if (IDTemp_->num == 0) {
-                    ErrorWrongIndex(error, "MANIFPARA_input_", IDTemp_);
+                    ErrorWrongIndex(error, "SYMBOLICPARA_input_", IDTemp_);
                     throw error;
                 }
                 Ls.append(IDTemp_->num, IDTemp_->name, "input");
@@ -1350,16 +1350,16 @@ void Pikachu::Expres::ManifoldBuild(GLTree* Tree, hyperlex::Morpheme& eme, int* 
                 delete IDTemp_;
                 IDTemp_ = NULL;
                 break;
-            case LP::ManifPraser::MANIFPARA_para_:
+            case LP::ManifPraser::SYMBOLICPARA_para_:
                 IDTemp_ = (LexSheet::IDInfor*)GT->child(1)->root().infor;
                 ItemTemp_ = (LexSheet::item*)Ls[IDTemp_->name];
                 if (ItemTemp_ != NULL) {
-                    RepeatDefID(error, "MANIFPARA_para_", IDTemp_);
+                    RepeatDefID(error, "SYMBOLICPARA_para_", IDTemp_);
                     throw error;
                 }
                 if (IDTemp_->num == 0)
                 {
-                    ErrorWrongIndex(error, "MANIFPARA_para_", IDTemp_);
+                    ErrorWrongIndex(error, "SYMBOLICPARA_para_", IDTemp_);
                     throw error;
                 }
                 temp_ = IDTemp_->num < 0 ? 1 : IDTemp_->num;
@@ -1373,16 +1373,16 @@ void Pikachu::Expres::ManifoldBuild(GLTree* Tree, hyperlex::Morpheme& eme, int* 
                 delete IDTemp_;
                 IDTemp_ = NULL;
                 break;
-            case LP::ManifPraser::MANIFPARA_output_:
+            case LP::ManifPraser::SYMBOLICPARA_output_:
                 IDTemp_ = (LexSheet::IDInfor*)GT->child(1)->root().infor;
                 ItemTemp_ = (LexSheet::item*)Ls[IDTemp_->name];
                 if (ItemTemp_ != NULL)
                 {
-                    RepeatDefID(error, "MANIFPARA_output_", IDTemp_);
+                    RepeatDefID(error, "SYMBOLICPARA_output_", IDTemp_);
                     throw error;
                 }
                 if (IDTemp_->num == 0) {
-                    ErrorWrongIndex(error, "MANIFPARA_output_", IDTemp_);
+                    ErrorWrongIndex(error, "SYMBOLICPARA_output_", IDTemp_);
                     throw error;
                 }
                 Ls.append(IDTemp_->num, IDTemp_->name, "output");
