@@ -1841,6 +1841,7 @@ struct SwifPraser
     static const int Implicit[12];
 };
 
+
 int static LPMorpheneBuild(const char* source, hyperlex::Morpheme& eme);
 int static test15(const parameter& para)
 {
