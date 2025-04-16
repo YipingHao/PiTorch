@@ -1382,28 +1382,28 @@ void Pikachu::Expres::ManifoldBuild(GLTree* Tree, hyperlex::Morpheme& eme, int* 
                     RepeatDefID(error, "SYMBOLICPARA_input_", IDTemp_);
                     throw error;
                 }
-                printf("\tIDTemp_->num: %ld\n", IDTemp_->num);
+                
                 if (IDTemp_->num == 0) {
                     ErrorWrongIndex(error, "SYMBOLICPARA_input_", IDTemp_);
                     throw error;
                 }
-                printf("\tIDTemp_->num: %ld\n", IDTemp_->num);
+                
                 Ls.append(IDTemp_->num, IDTemp_->name, "input");
                 //if (Ls.rear()->label != 0) {
                 //    RepeatSomething(error, "input", IDTemp_);
                  //   throw error;
                 //}
-                printf("\tIDTemp_->num: %ld\n", IDTemp_->num);
+                
                 temp_ = IDTemp_->num < 0 ? 1 : IDTemp_->num;
                 for (i = 0; i < temp_; i++)
                 {
                     (*Ls[site])[i] = NewNode(Pikachu::_LeafX_, Ls.rear()->label, i);
                 }
-                printf("\tIDTemp_->num: %ld\n", IDTemp_->num);
+                
                 InputDim.append(temp_);
                 delete IDTemp_;
                 IDTemp_ = NULL;
-                printf("\tIDTemp_->num: %ld\n", IDTemp_->num);
+                
                 break;
             case LP::ManifPraser::SYMBOLICPARA_para_:
                 IDTemp_ = (LexSheet::IDInfor*)GT->child(1)->root().infor;
@@ -1579,7 +1579,7 @@ void Pikachu::Expres::ManifoldBuild(GLTree* Tree, hyperlex::Morpheme& eme, int* 
             default:
                 break;
             }
-            GT->root().infor = (here == NULL ? (void*)ItemTemp_ : (void*)here);
+            GT->root().infor = (here == NULL ? (void*)IDTemp_ : (void*)here);
         }
         iterator.next();
     }
