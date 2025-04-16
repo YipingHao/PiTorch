@@ -1277,7 +1277,7 @@ static void ManifoldMorpheneBuild(const char* source, hyperlex::Morpheme&eme, hy
     }
     
     error = Tree.build<ManifPraser>(eme);
-    Tree.Demo(stdout, eme, FuncPraser::RulesName);
+    Tree.Demo(stdout, eme, ManifPraser::RulesName);
     
     if (error != 0)
     {
