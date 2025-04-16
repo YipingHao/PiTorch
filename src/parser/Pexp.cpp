@@ -629,6 +629,12 @@ public:
         long int num;
         const char* name;
         size_t line;
+        inline void demo(FILE* fp = stdout)
+        {
+            fprintf(fp, "num: %ld\n", num);
+            fprintf(fp, "name: %s\n", name);
+            fprintf(fp, "line: %zu\n", line);
+        }
     };
     struct SiteInfor
     {
@@ -1376,6 +1382,8 @@ void Pikachu::Expres::ManifoldBuild(GLTree* Tree, hyperlex::Morpheme& eme, int* 
                     error->append("Error", "compiler itself");
                     throw error;
                 }
+                IDTemp_->demo();
+                
                 ItemTemp_ = (LexSheet::item*)Ls[IDTemp_->name];
                 if (ItemTemp_ != NULL)
                 {
@@ -1387,23 +1395,23 @@ void Pikachu::Expres::ManifoldBuild(GLTree* Tree, hyperlex::Morpheme& eme, int* 
                     ErrorWrongIndex(error, "SYMBOLICPARA_input_", IDTemp_);
                     throw error;
                 }
-                
+                IDTemp_->demo();
                 Ls.append(IDTemp_->num, IDTemp_->name, "input");
                 //if (Ls.rear()->label != 0) {
                 //    RepeatSomething(error, "input", IDTemp_);
                  //   throw error;
                 //}
-                
+                IDTemp_->demo();
                 temp_ = IDTemp_->num < 0 ? 1 : IDTemp_->num;
                 for (i = 0; i < temp_; i++)
                 {
                     (*Ls[site])[i] = NewNode(Pikachu::_LeafX_, Ls.rear()->label, i);
                 }
-                
+                IDTemp_->demo();
                 InputDim.append(temp_);
                 delete IDTemp_;
                 IDTemp_ = NULL;
-                
+                IDTemp_->demo();
                 break;
             case LP::ManifPraser::SYMBOLICPARA_para_:
                 IDTemp_ = (LexSheet::IDInfor*)GT->child(1)->root().infor;
