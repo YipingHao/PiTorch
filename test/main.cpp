@@ -1755,12 +1755,12 @@ int static test14(const parameter& para)
         std::string ss;
         ss = "func gauss (input x, para w[5], output o)\n";
         ss += "{\n\tdef y;\n\tdef z;\n";
-        ss += "\tw[4] = x;\n";
+        ss += "\t//w[4] = x;\n";
         ss += "\ty = (w[0] + x * w[1] + x * x * w[2]);\n";
         ss += "\ty = y + (x * x * x * w[3] + x * x * x * x * w[4]);\n";
         ss += "\tz = exp(x*x);\n";
         ss += "\to = y * z;\n}\n";
-        std::cout << ss << std::endl;
+        std::cout << ss << std::endl;//
         Ac.build(ss.c_str());
         Ac.demo(stdout);
         Ac.demo(BC, true, 0);
