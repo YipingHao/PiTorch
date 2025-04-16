@@ -1313,7 +1313,7 @@ int Pikachu::Expres::ManifoldBuild(const char* source)
         throw Err;
     }
     
-    state.recount(FuncPraser::RulesCount);
+    state.recount(ManifPraser::RulesCount);
     for (i = 0; i < state.count(); i++) state[i] = (int)i;
     try
     {
@@ -1364,6 +1364,7 @@ void Pikachu::Expres::ManifoldBuild(GLTree* Tree, hyperlex::Morpheme& eme, int* 
         if (iterator.state() != 0 && GT->root().rules)
         {
             RRR = (ManifPraser::rules)state[GT->root().site];
+            printf("RRR: %d\n", (int)RRR);
             here = NULL;
             ItemTemp_ = NULL;
             switch (RRR)
