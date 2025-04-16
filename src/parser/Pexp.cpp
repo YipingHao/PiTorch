@@ -1421,7 +1421,7 @@ void Pikachu::Expres::ManifoldBuild(GLTree* Tree, hyperlex::Morpheme& eme, int* 
                 InputDim.append(temp_);
                 delete IDTemp_;
                 IDTemp_ = NULL;
-                IDTemp_->demo();
+                printf("site %zu, %zu\n", site, (size_t)Ls[site]);
                 break;
             case LP::ManifPraser::SYMBOLICPARA_para_:
                 IDTemp_ = (LexSheet::IDInfor*)GT->child(1)->root().infor;
