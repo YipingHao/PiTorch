@@ -1374,7 +1374,7 @@ void Pikachu::Expres::ManifoldBuild(GLTree* Tree, hyperlex::Morpheme& eme, int* 
         if (iterator.state() != 0 && GT->root().rules)
         {
             RRR = (ManifPraser::rules)state[GT->root().site];
-            printf("RRR: %d\n", (int)RRR);
+            //printf("RRR: %d\n", (int)RRR);
             here = NULL;
             ItemTemp_ = NULL;
             switch (RRR)
@@ -1386,7 +1386,7 @@ void Pikachu::Expres::ManifoldBuild(GLTree* Tree, hyperlex::Morpheme& eme, int* 
                     error->append("Error", "compiler itself");
                     throw error;
                 }
-                IDTemp_->demo();
+                //IDTemp_->demo();
                 
                 ItemTemp_ = (LexSheet::item*)Ls[IDTemp_->name];
                 if (ItemTemp_ != NULL)
@@ -1399,29 +1399,29 @@ void Pikachu::Expres::ManifoldBuild(GLTree* Tree, hyperlex::Morpheme& eme, int* 
                     ErrorWrongIndex(error, "SYMBOLICPARA_input_", IDTemp_);
                     throw error;
                 }
-                IDTemp_->demo();
+                //IDTemp_->demo();
                 Ls.append(IDTemp_->num, IDTemp_->name, "input");
                 //if (Ls.rear()->label != 0) {
                 //    RepeatSomething(error, "input", IDTemp_);
                  //   throw error;
                 //}
-                IDTemp_->demo();
-                Ls.demo(stdout);
+                //IDTemp_->demo();
+                //Ls.demo(stdout);
                 temp_ = IDTemp_->num < 0 ? 1 : IDTemp_->num;
                 site = Ls.count() - 1;
-                printf("site %zu, %zu\n", site, (size_t)Ls[site]);
+                //printf("site %zu, %zu\n", site, (size_t)Ls[site]);
                 for (i = 0; i < temp_; i++)
                 {
-                    printf("%ld\n", Ls.rear()->label);
+                    //printf("%ld\n", Ls.rear()->label);
                     here = NewNode(Pikachu::_LeafX_, Ls.rear()->label, i);
-                    printf("\tsite %zu, %zu\n", site, (size_t)Ls[site]);
+                    //printf("\tsite %zu, %zu\n", site, (size_t)Ls[site]);
                     (*Ls[site])[i] = here;
                 }
-                IDTemp_->demo();
+                //IDTemp_->demo();
                 InputDim.append(temp_);
                 delete IDTemp_;
                 IDTemp_ = NULL;
-                printf("site %zu, %zu\n", site, (size_t)Ls[site]);
+                //printf("site %zu, %zu\n", site, (size_t)Ls[site]);
                 break;
             case LP::ManifPraser::SYMBOLICPARA_para_:
                 IDTemp_ = (LexSheet::IDInfor*)GT->child(1)->root().infor;
