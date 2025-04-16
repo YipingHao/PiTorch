@@ -629,7 +629,7 @@ public:
         long int num;
         const char* name;
         size_t line;
-        inline void demo(FILE* fp = stdout)
+        inline void demo(FILE* fp = stdout) const
         {
             fprintf(fp, "num: %ld\n", num);
             fprintf(fp, "name: %s\n", name);
@@ -1408,10 +1408,11 @@ void Pikachu::Expres::ManifoldBuild(GLTree* Tree, hyperlex::Morpheme& eme, int* 
                 IDTemp_->demo();
                 Ls.demo(stdout);
                 temp_ = IDTemp_->num < 0 ? 1 : IDTemp_->num;
+                site = Ls.count() - 1;
                 for (i = 0; i < temp_; i++)
                 {
                     printf("%ld\n", Ls.rear()->label);
-                    (*ItemTemp_)[i] = NewNode(Pikachu::_LeafX_, Ls.rear()->label, i);
+                    (*Ls[site])[i] = NewNode(Pikachu::_LeafX_, Ls.rear()->label, i);
                 }
                 IDTemp_->demo();
                 InputDim.append(temp_);
