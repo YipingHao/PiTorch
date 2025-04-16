@@ -436,6 +436,7 @@ namespace Pikachu
 		bool Simplify(void);
 		int construct(const char * text);
 		int construct(FILE* fp);
+		int build(const char* text);
 		void Demo(hyperlex::BufferChar& out)const;
 		void Demo(FILE* fp)const;
 		void TestBackward(void);

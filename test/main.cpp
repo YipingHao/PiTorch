@@ -1749,6 +1749,34 @@ int static test14(const parameter& para)
         Error->print(stderr);
         delete Error;
     }
+    try
+    {
+        ActivFunc Ac;
+        std::string ss;
+        ss = "funct gauss (input x, para w[5], output o)\n";
+        ss += "{\n\tdef y;\n\tdef z;\n";
+        ss += "\tw[4] = x;\n";
+        ss += "\ty = (w[0] + x * w[1] + x * x * w[2]);\n";
+        ss += "\ty = y + (x * x * x * w[3] + x * x * x * x * w[4]);\n";
+        ss += "\tz = exp(x*x);\n";
+        ss += "\to = y * z;\n}\n";
+        std::cout << ss << std::endl;
+        Ac.build(ss.c_str());
+        Ac.demo(stdout);
+        Ac.demo(BC, true, 0);
+        std::cout << BC.ptr() << std::endl; BC.clear();
+        Ac.differetial(0, 0, true);
+        Ac.demo(BC, true, 0);
+        std::cout << BC.ptr() << std::endl; BC.clear();
+        Ac.Simplify();
+        Ac.demo(BC, true, 0);
+        std::cout << BC.ptr() << std::endl; BC.clear();
+    }
+    catch (hyperlex::dictionary* Error)
+    {
+        Error->print(stderr);
+        delete Error;
+    }
     return 0;
 }
 

@@ -522,7 +522,7 @@ namespace Exp
     };
 }
 
-
+static void ManifoldMorpheneBuild(const char* source, hyperlex::Morpheme& eme, hyperlex::GrammarTree& Tree);
 
 
 int Pikachu::matrixGet(FILE* fp, vector<double>& output, size_t& row, size_t& column)
@@ -1204,6 +1204,47 @@ int Pikachu::ActivFunc::build(GLTree* Tree, hyperlex::Morpheme& eme, int* state)
         iterator.next();
     }
     delete error;
+    return 0;
+}
+int Pikachu::ActivFunc::build(const char* text)
+{
+    using namespace LP;
+    size_t i;
+    int error;
+    hyperlex::Morpheme eme;
+    hyperlex::GrammarTree Tree;
+    hyperlex::vector<int> state;
+    hyperlex::dictionary* Error = NULL;
+    clear();
+    state.recount(FuncPraser::RulesCount);
+    for (i = 0; i < state.count(); i++) state[i] = i;
+    try
+    {
+        ManifoldMorpheneBuild(text, eme, Tree);
+    }
+    catch (hyperlex::dictionary* error)
+    {
+        error->append("loaction", "int Pikachu::ActivFunc::build(const char* text)");
+        throw error;
+    }
+    try
+    {
+        ManifoldBuild(Tree.GT, eme, state.ptr());
+    }
+    catch (hyperlex::dictionary* error)
+    {
+        error->append("loaction", "int Pikachu::ActivFunc::build(const char* text)");
+        throw error;
+    }
+    if (InputDim.count() != 0 && InputDim[0] != 1)
+    {
+        Error = new hyperlex::dictionary;
+        Error->append("ErrorType", "Too many input");
+        Error->append("InputDimCount", (long int)InputDim.count());
+        throw Error;
+    }
+    
+   
     return 0;
 }
 static void ManifoldMorpheneBuild(const char* source, hyperlex::Morpheme&eme, hyperlex::GrammarTree &Tree)
