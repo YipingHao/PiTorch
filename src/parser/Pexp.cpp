@@ -1413,7 +1413,9 @@ void Pikachu::Expres::ManifoldBuild(GLTree* Tree, hyperlex::Morpheme& eme, int* 
                 for (i = 0; i < temp_; i++)
                 {
                     printf("%ld\n", Ls.rear()->label);
-                    (*Ls[site])[i] = NewNode(Pikachu::_LeafX_, Ls.rear()->label, i);
+                    here = NewNode(Pikachu::_LeafX_, Ls.rear()->label, i);
+                    printf("\tsite %zu, %zu\n", site, (size_t)Ls[site]);
+                    (*Ls[site])[i] = here;
                 }
                 IDTemp_->demo();
                 InputDim.append(temp_);
