@@ -1402,6 +1402,7 @@ void Pikachu::Expres::ManifoldBuild(GLTree* Tree, hyperlex::Morpheme& eme, int* 
                  //   throw error;
                 //}
                 IDTemp_->demo();
+                Ls.demo(stdout);
                 temp_ = IDTemp_->num < 0 ? 1 : IDTemp_->num;
                 for (i = 0; i < temp_; i++)
                 {
