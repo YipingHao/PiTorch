@@ -1257,6 +1257,7 @@ static void ManifoldMorpheneBuild(const char* source, hyperlex::Morpheme&eme, hy
     ManifLexer::regular T;
     ManifLexer::group G;
     error = eme.Build<ManifLexer>(source);
+    eme.Demo(stdout);
     if (error != 0)
     {
         Error = new hyperlex::dictionary;
@@ -1276,6 +1277,8 @@ static void ManifoldMorpheneBuild(const char* source, hyperlex::Morpheme&eme, hy
     }
     
     error = Tree.build<ManifPraser>(eme);
+    Tree.Demo(stdout, eme, FuncPraser::RulesName);
+    
     if (error != 0)
     {
         Error = new hyperlex::dictionary;
