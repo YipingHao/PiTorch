@@ -1409,7 +1409,7 @@ void Pikachu::Expres::ManifoldBuild(GLTree* Tree, hyperlex::Morpheme& eme, int* 
                 Ls.demo(stdout);
                 temp_ = IDTemp_->num < 0 ? 1 : IDTemp_->num;
                 site = Ls.count() - 1;
-                printf("site %zu\n", site);
+                printf("site %zu, %zu\n", site, (size_t)Ls[site]);
                 for (i = 0; i < temp_; i++)
                 {
                     printf("%ld\n", Ls.rear()->label);
