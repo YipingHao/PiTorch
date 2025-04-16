@@ -1753,7 +1753,7 @@ int static test14(const parameter& para)
     {
         ActivFunc Ac;
         std::string ss;
-        ss = "funct gauss (input x, para w[5], output o)\n";
+        ss = "func gauss (input x, para w[5], output o)\n";
         ss += "{\n\tdef y;\n\tdef z;\n";
         ss += "\tw[4] = x;\n";
         ss += "\ty = (w[0] + x * w[1] + x * x * w[2]);\n";
