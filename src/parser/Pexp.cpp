@@ -1216,7 +1216,7 @@ int Pikachu::ActivFunc::build(const char* text)
     hyperlex::vector<int> state;
     hyperlex::dictionary* Error = NULL;
     clear();
-    state.recount(FuncPraser::RulesCount);
+    state.recount(ManifPraser::RulesCount);
     for (i = 0; i < state.count(); i++) state[i] = i;
     try
     {
@@ -1257,7 +1257,7 @@ static void ManifoldMorpheneBuild(const char* source, hyperlex::Morpheme&eme, hy
     ManifLexer::regular T;
     ManifLexer::group G;
     error = eme.Build<ManifLexer>(source);
-    eme.Demo(stdout);
+    //eme.Demo(stdout);
     if (error != 0)
     {
         Error = new hyperlex::dictionary;
@@ -1277,7 +1277,7 @@ static void ManifoldMorpheneBuild(const char* source, hyperlex::Morpheme&eme, hy
     }
     
     error = Tree.build<ManifPraser>(eme);
-    Tree.Demo(stdout, eme, ManifPraser::RulesName);
+    //Tree.Demo(stdout, eme, ManifPraser::RulesName);
     
     if (error != 0)
     {
