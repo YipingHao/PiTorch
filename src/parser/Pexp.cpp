@@ -705,6 +705,10 @@ public:
                 fprintf(fp, "items[%zu]: length: %zu\n", i, items[i]->length);
                 fprintf(fp, "\tname: %s\n", items[i]->name.ptr());
                 fprintf(fp, "\tattribute: %s\n", items[i]->attri.ptr());
+                if(items[i]->scalar)
+                    fprintf(fp, "\tscalar\n");
+                else
+                    fprintf(fp, "\tarray\n");
             }
         }
     }
