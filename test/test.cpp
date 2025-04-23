@@ -488,7 +488,7 @@ protected:
 struct recur : public Recur<recur>
 {
     int aa;
-    recur() { aa = 0; }
+    recur() { aa = 0; bb = 0; }
     inline void demo(FILE* fp = stdout) const
     {
         fprintf(fp, "here: %d\n", aa);
