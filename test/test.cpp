@@ -1,4 +1,5 @@
 #include"extern.h"
+#include<cmath>
 using namespace Pikachu;
 int static test14(const parameter& para);
 int static test15(const parameter& para);
