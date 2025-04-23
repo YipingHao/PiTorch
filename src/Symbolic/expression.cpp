@@ -3345,7 +3345,7 @@ void Expres::ClearOutput(void)
     output.clear();
 }
 
-void Expres::BackAccumulate(vector<vortex<node>*>& label, size_t target, vortex<node>* source)
+void Expres::BackAccumulate(vector<vortex<Expres::node>*>& label, size_t target, vortex<Expres::node>* source)
 {
     vortex<node>* New;
     if (label[target] == NULL) label[target] = source;

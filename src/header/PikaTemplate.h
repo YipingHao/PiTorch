@@ -1170,7 +1170,7 @@ namespace Pikachu
 		size_t i;
 		vortex<V>* head;
 		vortex<V>* now;
-		vortex<V>*next;
+		vortex<V>* next;
 		vector<size_t> label;
 		label.recount(content.count());
 		//compress();

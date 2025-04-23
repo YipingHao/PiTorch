@@ -15,7 +15,7 @@ SOFILE = $(ODIR)symbolic.o $(ODIR)SymbolicIR.o $(ODIR)expression.o $(ODIR)manifo
 POFILE = $(ODIR)Pexp.o 
 HFILE = $(HEAD)PikaType.h $(HEAD)PikaTemplate.h $(HEAD)Pikachu.h $(HEAD)Symbolic.h $(HEAD)parser.h
 Extern = -lHyperlex -lHyperAlgebra
-TestOFile = $(TEST)main.o
+TestOFile = $(TEST)main.o $(TEST)test.o
 
 #CC = icc -std=c++11
 CC = g++ -std=c++11
@@ -61,7 +61,8 @@ test.exe: $(COFILE) $(TestOFile) $(SOFILE) $(POFILE)   libHyperPes.a
 $(TEST)main.o: $(HFILE) $(TEST)main.cpp $(TEST)extern.h
 	$(CC) -o $(TEST)main.o -c $(Option) $(TEST)main.cpp
 
-
+$(TEST)test.o: $(HFILE) $(TEST)test.cpp $(TEST)extern.h
+	$(CC) -o $(TEST)test.o -c $(Option) $(TEST)test.cpp
 
 
 .PHONY: clean
