@@ -454,7 +454,7 @@ struct AA
 {
     int aa;
     AA() { aa = 0; }
-    inline void demo(FILE* fp = stdout)
+    inline void demo(FILE* fp = stdout) const
     {
         fprintf(fp, "here: %d\n", aa);
     }
@@ -479,11 +479,27 @@ public:
         b.demo(fp);
     }
 };
+struct recur : public trial<recur>
+{
+    int aa;
+    recur() { aa = 0; }
+    inline void demo(FILE* fp = stdout) const
+    {
+        fprintf(fp, "here: %d\n", aa);
+    }
+    inline void value(int a)
+    {
+        aa = a;
+    }
+};
 int static test16(const parameter& para)
 {
     trial<AA> here;
     here.value(12);
     here.demo();
+    recur done;
+    done.value(12);
+    done.demo();
     return 0;
 }
 
