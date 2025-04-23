@@ -452,10 +452,38 @@ int static test15(const parameter& para)
 }
 struct AA
 {
-
+    int aa;
+    AA() { aa = 0; }
+    inline void demo(FILE* fp = stdout)
+    {
+        fprintf(fp, "here: %d\n", aa);
+    }
+    inline void value(int a)
+    {
+        aa = a;
+    }
+};
+template <class T> class trial
+{
+    T a;
+    T b;
+public:
+    inline void value(int cc)
+    {
+        a.value(cc);
+        b.value(cc);
+    }
+    inline void demo(FILE* fp = stdout)
+    {
+        a.demo(fp);
+        b.demo(fp);
+    }
 };
 int static test16(const parameter& para)
 {
+    trial<AA> here;
+    here.value(12);
+    here.demo();
     return 0;
 }
 
