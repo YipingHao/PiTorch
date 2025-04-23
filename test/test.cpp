@@ -499,6 +499,7 @@ struct recur : public Recur<recur>
         aa = a;
         ww = this;
     }
+    int bb;
 };
 int static test16(const parameter& para)
 {
