@@ -302,7 +302,7 @@ namespace Pikachu
 
 		void differetial(size_t X1, size_t X2, bool Input);
 		void ParameterBackward(size_t No);
-		void backward(bool ExternOutput, size_t NewInputDim, size_t No, vector<vortex<node>*>& label, vector<vortex<node>*>& sequence);
+		void backward(bool ExternOutput, size_t NewInputDim, size_t No, vector<Ele*>& label, vector<Ele*>& sequence);
 	
 		void PrintForwardMiniOp(VISA1& instru, vector<size_t>& FreeReg)const;
 		void PrintForwardMiniReg(VISA1& instru, vector<size_t>& FreeReg)const;
@@ -313,7 +313,7 @@ namespace Pikachu
 	
 	protected:
 		graph<node> formula;
-		vector<vortex<node>*> output;
+		vector<Ele*> output;
 		vector<size_t> InputDim;
 		size_t ParameterCount;
 
@@ -321,33 +321,33 @@ namespace Pikachu
 		void PrintForwardInitial(vector<Ele*>& sequence, buffer<Ele*>& queue, vector<size_t>& output_)const;
 		void ForwardMiniOpCore(vector<size_t>& label, vector<size_t>& output_, VISA1& instru, vector<size_t>& FreeReg, size_t now, Ele* here)const;
 		//====================================================
-		vortex<node>* NewNode(type T, size_t S1, size_t S2);
-		vortex<node>* NewNode(long int ele);
-		vortex<node>* NewNode(double ele);
-		vortex<node>* NewNode(const FuncConst& ele);
-		vortex<node>* NewNode(operation Op);
-		vortex<node>* NewNode(vortex<node>* L, vortex<node>* R, operation Op);
-		vortex<node>* NewNode(function func_);
-		vortex<node>* NewNode(vortex<node>* L, function func_);
-		vortex<node>* NewNode(function2 func_);
-		vortex<node>* NewNode(vortex<node>* L, vortex<node>* R, function2 func_);
-		vortex<node>* OpForwardDiff(vector<vortex<node>*>& label, vortex<node>* here);
-		vortex<node>* FunctForwardDiff(vector<vortex<node>*>& label, vortex<node>* here);
-		vortex<node>* Funct2ForwardDiff(vector<vortex<node>*>& label, vortex<node>* here);
+		Ele* NewNode(type T, size_t S1, size_t S2);
+		Ele* NewNode(long int ele);
+		Ele* NewNode(double ele);
+		Ele* NewNode(const FuncConst& ele);
+		Ele* NewNode(operation Op);
+		Ele* NewNode(Ele* L, Ele* R, operation Op);
+		Ele* NewNode(function func_);
+		Ele* NewNode(Ele* L, function func_);
+		Ele* NewNode(function2 func_);
+		Ele* NewNode(Ele* L, Ele* R, function2 func_);
+		Ele* OpForwardDiff(vector<Ele*>& label, Ele* here);
+		Ele* FunctForwardDiff(vector<Ele*>& label, Ele* here);
+		Ele* Funct2ForwardDiff(vector<Ele*>& label, Ele* here);
 		void ClearOutput(void);
-		void BackAccumulate(vector<vortex<node>*>& label, size_t target, vortex<node>* source);
-		void OperationBackDiff(vector<vortex<node>*>& label, size_t now, vortex<node>* here);
-		void FunctBackAccumulate(vector<vortex<node>*>& label, size_t now, vortex<node>* source, int Code);
-		void FunctBackDiff(vector<vortex<node>*>& label, size_t now, vortex<node>* here);
-		void Funct2BackDiff(vector<vortex<node>*>& label, size_t now, vortex<node>* here);
+		void BackAccumulate(vector<Ele*>& label, size_t target, Ele* source);
+		void OperationBackDiff(vector<Ele*>& label, size_t now, Ele* here);
+		void FunctBackAccumulate(vector<Ele*>& label, size_t now, Ele* source, int Code);
+		void FunctBackDiff(vector<Ele*>& label, size_t now, Ele* here);
+		void Funct2BackDiff(vector<Ele*>& label, size_t now, Ele* here);
 		//====================================================
-		void OutputAppend(vortex<node>* src);
-		void OutputShift(vortex<node>* src, vortex<node>* dst);
+		void OutputAppend(Ele* src);
+		void OutputShift(Ele* src, Ele* dst);
 		void example01(void);
 		//========================Expression simplification
 		bool Simplify01(void);
-		void LiftLeft(vortex<node>* target);
-		void LiftRight(vortex<node>* target);
+		void LiftLeft(Ele* target);
+		void LiftRight(Ele* target);
 		bool Simplify02(void);
 		bool Simplify03(void);
 		bool Simplify04(void);
@@ -356,7 +356,7 @@ namespace Pikachu
 		bool Simplify07(void);
 		bool Simplify08(void);
 		bool Simplify09(void);
-		void SimplifyMove(vortex<node>* target, vortex<node>* NewOne);
+		void SimplifyMove(Ele* target, Ele* NewOne);
 		bool Simplify10(void);
 		//========================
 		int ManifoldBuild(const char * source);
