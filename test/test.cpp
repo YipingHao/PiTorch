@@ -479,17 +479,25 @@ public:
         b.demo(fp);
     }
 };
-struct recur : public trial<recur>
+template <class T> class Recur
+{
+protected:
+    T* ww;
+
+};
+struct recur : public Recur<recur>
 {
     int aa;
     recur() { aa = 0; }
     inline void demo(FILE* fp = stdout) const
     {
         fprintf(fp, "here: %d\n", aa);
+        fprintf(fp, "sizeof(recur): %d\n", (int)sizeof(recur));
     }
     inline void value(int a)
     {
         aa = a;
+        ww = this;
     }
 };
 int static test16(const parameter& para)
