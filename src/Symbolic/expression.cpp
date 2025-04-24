@@ -3984,7 +3984,9 @@ bool Expres::Simplify08(void)
     for (i = 0; i < formula.count(); i++)
     {
         here = formula[i];
+        std::cout << "here: " << i << std::endl;
         if (here == NULL) continue;
+        std::cout << "here: " << here->site() << std::endl;
         if (here->Type != _Operation_) continue;
         left_ = here->In(0);
         right_ = here->In(1);
@@ -4047,7 +4049,7 @@ bool Expres::Simplify08(void)
         if ((operation)here->Code == _div_)
         //if(false)
         {
-            std::cout << "Here: " << i << std::endl;
+            std::cout << "here: " << i << std::endl;
             for (j = 0; j < 4; j++)
             {
                 LL = j / 2;
