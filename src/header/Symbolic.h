@@ -284,6 +284,7 @@ namespace Pikachu
 			node(function func_);
 			node(function2 func_);
 			node(type T, size_t S1, size_t S2);
+			~node();
 			void Demo(int label, bufferC& output, bool single, bool braket) const;
 			void demo(FILE* fp) const;
 		};

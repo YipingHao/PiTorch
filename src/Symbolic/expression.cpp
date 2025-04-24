@@ -2457,6 +2457,11 @@ Expres::node::node(type T, size_t S1, size_t S2)
     src2 = S2;
     Output = false;
 }
+Expres::node::~node(void) 
+{
+    infor = (void*)this;
+}
+
 
 Expres::node* Expres::node::copy(void)const
 {

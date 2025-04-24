@@ -292,12 +292,15 @@ namespace Pikachu
 
 	template <class V> class graph;
 	//CRTP （Curiously Recurring Template Pattern）
+	// 开发者必须在派生类的析构函数中添加以下语句：infor = (void*)this;
+// Developer must add the following statement in the derived class destructor: infor = (void*)this;
 	template <class V> class vortex
 	{
 	protected:
 		size_t label_site;
 		vector<V*>out;
 		vector<V*>in;
+		V* all;
 	public:
 		int label_2;
 		bool label_3;
@@ -1313,16 +1316,18 @@ namespace Pikachu
 	template <class V> vortex<V>::~vortex()
 	{
 		size_t i, site;
+		Vextern* target;
 		try
 		{
+			target = (Vextern*)infor;
 			for (i = 0; i < in.count(); i++)
 			{
-				site = in[i]->SearchOutExcept(this);
+				site = in[i]->SearchOutExcept(target);
 				in[i]->ShrinkOut(site);
 			}
 			for (i = 0; i < out.count(); i++)
 			{
-				site = out[i]->SearchInExcept(this);
+				site = out[i]->SearchInExcept(target);
 				out[i]->ShrinkIn(site);
 			}
 		}
