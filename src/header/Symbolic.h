@@ -265,8 +265,8 @@ namespace Pikachu
 	{
 	public:
 		typedef hyperlex::BufferChar bufferC;
-		struct node
-		{
+		struct node : public vortex<node>
+		{//CRTP £¨Curiously Recurring Template Pattern£©
 			type Type;
 			int Code;
 			bool Output;
@@ -287,7 +287,7 @@ namespace Pikachu
 			void Demo(int label, bufferC& output, bool single, bool braket) const;
 			void demo(FILE* fp) const;
 		};
-		typedef vortex<node> Ele;
+		typedef node Ele;
 		Expres();
 		~Expres();
 		void clear(void);

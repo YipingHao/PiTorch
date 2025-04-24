@@ -74,6 +74,7 @@ expression::node* expression::node::copy(void)
     New->src1 = src1;
     New->src2 = src2;
     New->Fc.SetValue(Fc);
+    New->CopyCore(*this);
     return New;
 }
 void expression::node::Demo(size_t label, PikaString& output, bool single) const
@@ -2564,6 +2565,7 @@ void Expres::node::Demo(int label, bufferC& output, bool single, bool braket) co
 void Expres::node::demo(FILE* fp) const
 {
     PikaString output;
+    vortex<node>::demo(fp);
     switch (Type)
     {
     case Pikachu::_LeafX_:

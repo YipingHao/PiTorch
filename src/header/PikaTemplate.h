@@ -291,21 +291,22 @@ namespace Pikachu
 	};
 
 	template <class V> class graph;
-	template <class V> class vortex : public V
+	//CRTP £¨Curiously Recurring Template Pattern£©
+	template <class V> class vortex
 	{
 	protected:
 		size_t label_site;
-		vector<vortex*>out;
-		vector<vortex*>in;
+		vector<V*>out;
+		vector<V*>in;
 	public:
 		int label_2;
 		bool label_3;
 		void* infor;
 		size_t temp;
-		
+		typedef V Vextern;
 	public:
-		template <typename... Args>
-		vortex(Args&&... args) : V(std::forward<Args>(args)...)
+		//template <typename... Args>
+		vortex()//(Args&&... args) //: V(std::forward<Args>(args)...)
 		{
 			temp = 0;
 			label_site = 0;
@@ -315,30 +316,32 @@ namespace Pikachu
 		}
 		~vortex();
 		//void value(const V& source);
-		void copy(const vortex& source);
+		void CopyCore(const Vextern& source);
 		void demo(FILE* fp)const;
 		size_t site(void) const { return label_site;}
-		//void PushIn(vortex<V>* stack);
-		//void PushOut(vortex<V>* stack);
-		size_t AppendIn(vortex<V>* II);
-		size_t AppendOut(vortex<V>* II);
-		size_t SearchIn(vortex<V>* label) const;
-		size_t SearchOut(vortex<V>* label) const;
-		size_t SearchIn(vortex<V>* label, const char* error) const;
-		size_t SearchOut(vortex<V>* label, const char* error) const;
+		//void PushIn(Vextern* stack);
+		//void PushOut(Vextern* stack);
+		size_t AppendIn(Vextern* II);
+		size_t AppendOut(Vextern* II);
+		size_t SearchIn(Vextern* label) const;
+		size_t SearchOut(Vextern* label) const;
+		size_t SearchInExcept(Vextern* label) const;
+		size_t SearchOutExcept(Vextern* label) const;
 		void ShrinkIn(size_t site);
 		void ShrinkOut(size_t site);
-		vortex<V>* In(size_t site) { return in[site]; }
-		vortex<V>* Out(size_t site) { return out[site]; }
+		Vextern* In(size_t site) { return in[site]; }
+		Vextern* Out(size_t site) { return out[site]; }
 		size_t InDegree(void) const { return in.count(); }
 		size_t OutDegree(void)const { return out.count();}
 		friend class graph<V>;
-		static void BackNext(iteratorS<vortex<V>>& iter);
+		static void BackNext(iteratorS<Vextern>& iter);
 	};
 	template <class V> class graph
 	{
+	public:
+		typedef V VExtern;
 	protected:
-		vector<vortex<V>*> content;
+		vector<VExtern*> content;
 		vector<size_t> vain;
 	public:
 		graph();
@@ -346,29 +349,29 @@ namespace Pikachu
 		void copy(const graph<V>& src);
 		void clear(void);
 		size_t count(void) const { return content.count(); }
-		vortex<V>*& operator [](size_t site) {return content[site];}
-		vortex<V>* const & operator [](size_t site) const { return content[site]; }
+		VExtern*& operator [](size_t site) {return content[site];}
+		VExtern* const & operator [](size_t site) const { return content[site]; }
 
-		void ArcDelete(vortex<V>* src, vortex<V>* dst);
-		void ArcAdd(vortex<V>* src, vortex<V>* dst);
-		void ArcAdd(vortex<V>* srcL, vortex<V>* srcR, vortex<V>* dst);
-		void ArcAdd(vortex<V>* srcL, vortex<V>* srcM, vortex<V>* srcR, vortex<V>* dst);
-		void lift(vortex<V>* target, vortex<V>* src);// middle ,down
-		void lift(vortex<V>* dst, vortex<V>* target, vortex<V>* src);
+		void ArcDelete(VExtern* src, VExtern* dst);
+		void ArcAdd(VExtern* src, VExtern* dst);
+		void ArcAdd(VExtern* srcL, VExtern* srcR, VExtern* dst);
+		void ArcAdd(VExtern* srcL, VExtern* srcM, VExtern* srcR, VExtern* dst);
+		void lift(VExtern* target, VExtern* src);// middle ,down
+		void lift(VExtern* dst, VExtern* target, VExtern* src);
 		// dst:up, target:middle, src:down
 		void ruin(size_t i);
-		void operator << (vortex<V>* in);
-		void append(vortex<V>* in);
+		void operator << (VExtern* in);
+		void append(VExtern* in);
 		void append(graph<V>& in);
 		void compress(void);
 
-		void TopoSortDFS(vector<vortex<V>*>& sequence)const;
-		void TopoSortBFS(vector<vortex<V>*>& sequence)const;
-		void TopoSortDFSBack(vector<vortex<V>*>& sequence)const;
-		void TopoSortBFSBack(vector<vortex<V>*>& sequence)const;
+		void TopoSortDFS(vector<VExtern*>& sequence)const;
+		void TopoSortBFS(vector<VExtern*>& sequence)const;
+		void TopoSortDFSBack(vector<VExtern*>& sequence)const;
+		void TopoSortBFSBack(vector<VExtern*>& sequence)const;
 
-		void BFTbackward(vector<bool>& label, buffer<vortex<V>*>&queue)const;
-		void Shrink(const vector<bool>& label, vector<vortex<V>*>& sequence) const;
+		void BFTbackward(vector<bool>& label, buffer<VExtern*>&queue)const;
+		void Shrink(const vector<bool>& label, vector<VExtern*>& sequence) const;
 		
 		void OutputGive(vector<size_t>& label) const;
 		void OutputCut(vector<size_t>& label, size_t target)const;
@@ -953,7 +956,7 @@ namespace Pikachu
 		content[i] = NULL;
 		vain.append(i);
 	}
-	template <class V> void graph<V>::append(vortex<V>* src)
+	template <class V> void graph<V>::append(VExtern* src)
 	{
 		size_t site;
 		if (vain.pop(site) != 0)
@@ -967,7 +970,7 @@ namespace Pikachu
 		}
 		src->label_site = site;
 	}
-	template <class V> void graph<V>::operator<<(vortex<V>* src)
+	template <class V> void graph<V>::operator<<(VExtern* src)
 	{
 		append(src);
 	}
@@ -984,7 +987,7 @@ namespace Pikachu
 	template <class V> void graph<V>::compress(void)
 	{
 		size_t i, site;
-		//vortex<V>* now;
+		//VExtern* now;
 		vain.clear();
 		site = 0;
 		for (i = 0; i < content.count(); i++)
@@ -1000,7 +1003,7 @@ namespace Pikachu
 		return;
 	}
 
-	template <class V> void graph<V>::ArcDelete(vortex<V>* src, vortex<V>* dst)
+	template <class V> void graph<V>::ArcDelete(VExtern* src, VExtern* dst)
 	{
 		size_t T, F;
 		T = dst->SearchIn(src);
@@ -1013,12 +1016,12 @@ namespace Pikachu
 		dst->ShrinkIn(T);
 		src->ShrinkOut(F);
 	}
-	template <class V> void graph<V>::ArcAdd(vortex<V>* src, vortex<V>* dst)
+	template <class V> void graph<V>::ArcAdd(VExtern* src, VExtern* dst)
 	{
 		src->out.append(dst);
 		dst->in.append(src);
 	}
-	template <class V> void graph<V>::ArcAdd(vortex<V>* srcL, vortex<V>* srcR, vortex<V>* dst)
+	template <class V> void graph<V>::ArcAdd(VExtern* srcL, VExtern* srcR, VExtern* dst)
 	{
 		srcL->out.append(dst);
 		dst->in.append(srcL);
@@ -1026,7 +1029,7 @@ namespace Pikachu
 		srcR->out.append(dst);
 		dst->in.append(srcR);
 	}
-	template <class V> void graph<V>::ArcAdd(vortex<V>* srcL, vortex<V>* srcM, vortex<V>* srcR, vortex<V>* dst)
+	template <class V> void graph<V>::ArcAdd(VExtern* srcL, VExtern* srcM, VExtern* srcR, VExtern* dst)
 	{
 		srcL->out.append(dst);
 		dst->in.append(srcL);
@@ -1038,13 +1041,13 @@ namespace Pikachu
 		dst->in.append(srcR);
 	}
 
-	template <class V> void graph<V>::TopoSortDFS(vector<vortex<V>*>& sequence)const
+	template <class V> void graph<V>::TopoSortDFS(vector<VExtern*>& sequence)const
 	{
-		vector<vortex<V>*> stack;
+		vector<VExtern*> stack;
 		size_t i;
-		vortex<V>* now;
-		vortex<V>* head;
-		vortex<V>* next;
+		VExtern* now;
+		VExtern* head;
+		VExtern* next;
 		vector<size_t> label;
 		label.recount(content.count());
 		sequence.clear();
@@ -1077,13 +1080,13 @@ namespace Pikachu
 			}
 		}
 	}
-	template <class V> void graph<V>::TopoSortBFS(vector<vortex<V>*>& sequence)const
+	template <class V> void graph<V>::TopoSortBFS(vector<VExtern*>& sequence)const
 	{
-		buffer<vortex<V>*> stack;
+		buffer<VExtern*> stack;
 		size_t i;
-		vortex<V>* head;
-		vortex<V>* now;
-		vortex<V>* next;
+		VExtern* head;
+		VExtern* now;
+		VExtern* next;
 		vector<size_t> label;
 		label.recount(content.count());
 		//compress();
@@ -1119,13 +1122,13 @@ namespace Pikachu
 			}
 		}
 	}
-	template <class V> void graph<V>::TopoSortDFSBack(vector<vortex<V>*>& sequence)const
+	template <class V> void graph<V>::TopoSortDFSBack(vector<VExtern*>& sequence)const
 	{
-		vector<vortex<V>*> stack;
+		vector<VExtern*> stack;
 		size_t i;
-		vortex<V>* head;
-		vortex<V>* next;
-		vortex<V>* now;
+		VExtern* head;
+		VExtern* next;
+		VExtern* now;
 		vector<size_t> label;
 		label.recount(content.count());
 		//compress();
@@ -1164,13 +1167,13 @@ namespace Pikachu
 			}
 		}
 	}
-	template <class V> void graph<V>::TopoSortBFSBack(vector<vortex<V>*>& sequence)const
+	template <class V> void graph<V>::TopoSortBFSBack(vector<VExtern*>& sequence)const
 	{
-		buffer<vortex<V>*> stack;
+		buffer<VExtern*> stack;
 		size_t i;
-		vortex<V>* head;
-		vortex<V>* now;
-		vortex<V>* next;
+		VExtern* head;
+		VExtern* now;
+		VExtern* next;
 		vector<size_t> label;
 		label.recount(content.count());
 		//compress();
@@ -1205,11 +1208,11 @@ namespace Pikachu
 		}
 	}
 
-	template <class V> void graph<V>::BFTbackward(vector<bool> & label, buffer<vortex<V>*>& queue)const
+	template <class V> void graph<V>::BFTbackward(vector<bool> & label, buffer<VExtern*>& queue)const
 	{
 		size_t i;
-		vortex<V>* head;
-		vortex<V>* next;
+		VExtern* head;
+		VExtern* next;
 		label.recount(content.count());
 		label.value(false);
 		while (queue.dequeue(head))
@@ -1225,7 +1228,7 @@ namespace Pikachu
 			}
 		}
 	}
-	template <class V> void graph<V>::Shrink(const vector<bool>& label, vector<vortex<V>*>& sequence) const
+	template <class V> void graph<V>::Shrink(const vector<bool>& label, vector<VExtern*>& sequence) const
 	{
 		size_t new_count, i;
 		new_count = 0;
@@ -1241,10 +1244,10 @@ namespace Pikachu
 		sequence.recount(new_count);
 	}
 
-	template <class V> void graph<V>::lift(vortex<V>* target, vortex<V>* src)
+	template <class V> void graph<V>::lift(VExtern* target, VExtern* src)
 	{
 		size_t i;
-		vortex<V>* up;
+		VExtern* up;
 		size_t up_in;
 		try
 		{
@@ -1263,7 +1266,7 @@ namespace Pikachu
 		target->out.clear();
 	}
 	// dst:up, target:middle, src:down
-	template <class V> void graph<V>::lift(vortex<V>* dst, vortex<V>* target, vortex<V>* src)
+	template <class V> void graph<V>::lift(VExtern* dst, VExtern* target, VExtern* src)
 	{
 		size_t up_in;
 		//size_t middle_in;
@@ -1299,7 +1302,7 @@ namespace Pikachu
 	template <class V> void graph<V>::OutputCut(vector<size_t>& label, size_t target) const
 	{
 		size_t i;
-		vortex<V>* now;
+		VExtern* now;
 		now = content[target];
 		for (i = 0; i < now->InDegree(); i++)
 		{
@@ -1310,25 +1313,34 @@ namespace Pikachu
 	template <class V> vortex<V>::~vortex()
 	{
 		size_t i, site;
-		for (i = 0; i < in.count(); i++)
+		try
 		{
-			site = in[i]->SearchOut(this, "vortex<V>::~vortex()");
-			in[i]->ShrinkOut(site);
+			for (i = 0; i < in.count(); i++)
+			{
+				site = in[i]->SearchOutExcept(this);
+				in[i]->ShrinkOut(site);
+			}
+			for (i = 0; i < out.count(); i++)
+			{
+				site = out[i]->SearchInExcept(this);
+				out[i]->ShrinkIn(site);
+			}
 		}
-		for (i = 0; i < out.count(); i++)
+		catch (hyperlex::dictionary* error)
 		{
-			site = out[i]->SearchIn(this, "vortex<V>::~vortex()");
-			out[i]->ShrinkIn(site);
+			error->append("location", "vortex<V>::~vortex()");
+			error->append("i", i);
+			throw error;
 		}
 	}
-	template <class V> void vortex<V>::copy(const vortex& source)
+	template <class V> void vortex<V>::CopyCore(const Vextern& source)
 	{
 		temp = source.temp;
 		label_site = source.label_site;
 		label_2 = source.label_2;
 		label_3 = source.label_3;
 		infor = source.infor;
-		V::copy((const V)source);
+		//V::copy((const V)source);
 		out.copy(source.out);
 		in.copy(source.in);
 	}
@@ -1346,20 +1358,20 @@ namespace Pikachu
 		for (i = 1; i < out.count(); i++)
 			fprintf(fp, ", Out[%zu] = %zu", i, out[i]->label_site);
 		fprintf(fp, "\n");
-		V::demo(fp);
+		//V::demo(fp);
 	}
 
-	template<class V> size_t vortex<V>::AppendIn(vortex<V>* II)
+	template<class V> size_t vortex<V>::AppendIn(Vextern* II)
 	{
 		in.append(II);
 		return in.count() - 1;
 	}
-	template<class V> size_t vortex<V>::AppendOut(vortex<V>* II)
+	template<class V> size_t vortex<V>::AppendOut(Vextern* II)
 	{
 		out.append(II);
 		return out.count() - 1;
 	}
-	template<class V> size_t vortex<V>::SearchIn(vortex<V>* label) const
+	template<class V> size_t vortex<V>::SearchIn(Vextern* label) const
 	{
 		size_t T;
 		for (T = 0; T < in.count(); T++)
@@ -1368,7 +1380,7 @@ namespace Pikachu
 		}
 		return T;
 	}
-	template<class V> size_t vortex<V>::SearchOut(vortex<V>* label) const
+	template<class V> size_t vortex<V>::SearchOut(Vextern* label) const
 	{
 		size_t T;
 		for (T = 0; T < out.count(); T++)
@@ -1377,7 +1389,7 @@ namespace Pikachu
 		}
 		return T;
 	}
-	template<class V> size_t vortex<V>::SearchIn(vortex<V>* label, const char* error) const
+	template<class V> size_t vortex<V>::SearchInExcept(Vextern* label) const
 	{
 		size_t T;
 		for (T = 0; T < in.count(); T++)
@@ -1386,12 +1398,16 @@ namespace Pikachu
 		}
 		if (T == in.count())
 		{
-			printf("SearchIn::T == out.count()\n");
-			throw PikaError(error, "SearchIn: T == InDegree", T);
+			hyperlex::dictionary* error;
+			error = new dictionary;
+			error->append("location", "void vortex<V>::SearchIn");
+			error->append("error", "T == in.count()");
+			error->append("T", T);
+			throw error;
 		}
 		return T;
 	}
-	template<class V> size_t vortex<V>::SearchOut(vortex<V>* label, const char* error) const
+	template<class V> size_t vortex<V>::SearchOutExcept(Vextern* label) const
 	{
 		size_t T;
 		for (T = 0; T < out.count(); T++)
@@ -1400,8 +1416,12 @@ namespace Pikachu
 		}
 		if (T == out.count())
 		{
-			printf("SearchOut:: T == out.count()\n");
-			throw PikaError(error, "SearchOut: T == OutDegree", T);
+			hyperlex::dictionary* error;
+			error = new dictionary;
+			error->append("location", "void vortex<V>::SearchOut");
+			error->append("error", "T == out.count()");
+			error->append("T", T);
+			throw error;
 		}
 			
 		return T;
@@ -1409,17 +1429,33 @@ namespace Pikachu
 	template <class V> void vortex<V>::ShrinkIn(size_t site)
 	{
 		if (site >= in.count())
-			throw PikaError("graph2<V>::vortex::ShrinkIn", "site >= InDegree", site);
+		{
+			hyperlex::dictionary* error;
+			error = new dictionary;
+			error->append("location", "void vortex<V>::ShrinkIn");
+			error->append("error", "site >= in.count()");
+			error->append("site", site);
+			error->append("count", in.count());
+			throw error;
+		}
 		in.shrink(site);
 	}
 	template <class V> void vortex<V>::ShrinkOut(size_t site)
 	{
 		if (site >= out.count())
-			throw PikaError("graph2<V>::vortex::ShrinkOut", "site >= OutDegree", site);
+		{
+			hyperlex::dictionary* error;
+			error = new dictionary;
+			error->append("location", "void vortex<V>::ShrinkOut");
+			error->append("error", "site >= out.count()");
+			error->append("site", site);
+			error->append("count", out.count());
+			throw error;
+		}
 		out.shrink(site);
 	}
 
-	template <class V> void vortex<V>::BackNext(iteratorS<vortex<V>>& iter)
+	template <class V> void vortex<V>::BackNext(iteratorS<Vextern>& iter)
 	{
 		size_t i;
 		vortex<V>* now;
