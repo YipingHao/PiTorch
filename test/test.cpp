@@ -217,12 +217,10 @@ int static test14(const parameter& para)
 
 
     }
-    catch (Pikachu::PikaError& E)
+    catch (hyperlex::dictionary* Error)
     {
-        std::cout << "test14: " << std::endl;
-        E.show(stderr);
-        throw PikaError("test14", "???", 0);
-
+        Error->print(stderr);
+        delete Error;
     }
     std::cout << "hyperlex::dictionary dick;" << std::endl;
     hyperlex::dictionary dick;
