@@ -4250,15 +4250,17 @@ bool Expres::Simplify10(void)
         right_ = here->In(1);
         printf("akuiasdfhasiudfaddddsfs\n");
         if (left_->Type != _Operation_ && right_->Type != _Operation_) continue;
+        printf("akuiasd9999sfs\n");
         if ((operation)right_->Code == _div_ && right_->In(1) == left_)
         {
+            printf("akuiasdsfs\n");
             SimplifyMove(here, right_->In(0));
             changed_ = true;
             continue;
         }
         if ((operation)left_->Code == _div_ && left_->In(1) == right_)
         {
-            printf("akuiasdfhasiudfaddddsfs\n");
+            printf("udfaddddsfs\n");
             SimplifyMove(here, left_->In(0));
             changed_ = true;
             continue;
