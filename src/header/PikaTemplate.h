@@ -1278,7 +1278,8 @@ namespace Pikachu
 		}
 		catch (hyperlex::dictionary* error)
 		{
-			error->append("loaction", "graph<V>::lift");
+			printf("11111???\n");
+			//error->append("loaction", "graph<V>::lift");
 			throw error;
 		}
 		target->out.clear();
