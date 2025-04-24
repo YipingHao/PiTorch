@@ -908,7 +908,7 @@ namespace Pikachu
 	}
 	template <class V> void graph<V>::copy(const graph<V>& src)
 	{
-		vortex<V>* now, *srcV; 
+		VExtern* now, *srcV;
 		size_t i, j, site;
 		clear();
 		vain.recount(src.vain.count());
@@ -919,7 +919,7 @@ namespace Pikachu
 			srcV = src[i];
 			if (srcV != NULL)
 			{
-				now = new vortex<V>;
+				now = new VExtern;
 				now->copy(*srcV);
 				content[i] = now;
 				now->label_site = i;
@@ -1463,7 +1463,7 @@ namespace Pikachu
 	template <class V> void vortex<V>::BackNext(iteratorS<Vextern>& iter)
 	{
 		size_t i;
-		vortex<V>* now;
+		Vextern* now;
 		int SS;
 		if (!iter.still()) return;
 		now = iter.target();
