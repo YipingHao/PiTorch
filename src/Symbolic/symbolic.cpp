@@ -62,7 +62,8 @@ bool FuncConst::operator==(double ele) const
 }
 bool FuncConst::operator==(const FuncConst& ele) const
 {
-    return IfNan ? ele.IfNan : (IfInt ? (IntConst == ele.IntConst) : (RealConst == ele.RealConst));
+    if (IfNan) return ele.IfNan;
+    return IfInt != ele.IfInt ? false : (IfInt ? (IntConst == ele.IntConst) : (RealConst == ele.RealConst));
 }
 
 void FuncConst::operator=(long long int ele)
