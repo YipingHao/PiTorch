@@ -4052,7 +4052,7 @@ bool Expres::Simplify08(void)
                 {
                     //New = new Expres::Ele(_div_);
                     New = NewNode(left_->In((size_t)(!LL)), right_->In((size_t)(!RR)), _div_);
-                    //std::cout << "New->site(): " << New->site() << std::endl;
+                    std::cout << "New->site(): " << New->site() << std::endl;
                     //formula.ArcAdd(left_->In((size_t)(!LL)), right_->In((size_t)(!RR)), New);
                     //break;
                     SimplifyMove(here, New);
