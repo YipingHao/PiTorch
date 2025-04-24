@@ -4261,6 +4261,7 @@ bool Expres::Simplify10(void)
             continue;
         }
         judge = false;
+        printf("akuiasdfhasiudfaddddsfs\n");
         if (left_->Type == _LeafConst_ && (operation)right_->Code == _mul_)
         {
             LL = right_->In(0);
