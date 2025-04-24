@@ -1262,9 +1262,10 @@ namespace Pikachu
 				src->AppendOut(up);
 			}
 		}
-		catch (const PikaError& E)
+		catch (hyperlex::dictionary* error)
 		{
-			throw PikaError(E, "graph2<V>::lift");
+			error->append("loaction", "graph<V>::lift");
+			throw error;
 		}
 		target->out.clear();
 	}
@@ -1286,9 +1287,10 @@ namespace Pikachu
 			dst->in[up_in] = src;
 			target->ShrinkOut(middle_out);
 		}
-		catch (const PikaError& E)
+		catch (hyperlex::dictionary* error)
 		{
-			throw PikaError(E, "graph2<V>::lift");
+			error->append("loaction", "graph<V>::lift");
+			throw error;
 		}
 	}
 	
