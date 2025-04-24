@@ -3984,9 +3984,9 @@ bool Expres::Simplify08(void)
     for (i = 0; i < formula.count(); i++)
     {
         here = formula[i];
-        std::cout << "here: " << i << std::endl;
+        //std::cout << "here: " << i << std::endl;
         if (here == NULL) continue;
-        std::cout << "here: " << here->site() << std::endl;
+        //std::cout << "here: " << here->site() << std::endl;
         if (here->Type != _Operation_) continue;
         left_ = here->In(0);
         right_ = here->In(1);
@@ -4051,7 +4051,7 @@ bool Expres::Simplify08(void)
         if ((operation)here->Code == _div_)
         //if(false)
         {
-            std::cout << "here: " << i << std::endl;
+            //std::cout << "here: " << i << std::endl;
             for (j = 0; j < 4; j++)
             {
                 LL = j / 2;
@@ -4059,15 +4059,15 @@ bool Expres::Simplify08(void)
                 if (left_->In(LL) == right_->In(RR))
                 {
                     //New = new Expres::Ele(_div_);
-                    std::cout << "LL " << LL << "=============== RR " << RR << std::endl;
-                    demo(stdout);
+                    //std::cout << "LL " << LL << "=============== RR " << RR << std::endl;
+                    //demo(stdout);
                     New = NewNode(left_->In((size_t)(!LL)), right_->In((size_t)(!RR)), _div_);
-                    std::cout << "New->site(): " << New->site() << std::endl;
+                    //std::cout << "New->site(): " << New->site() << std::endl;
                     //formula.ArcAdd(left_->In((size_t)(!LL)), right_->In((size_t)(!RR)), New);
                     //break;
-                    std::cout << "here->site(): " << here->site() << std::endl;
+                    //std::cout << "here->site(): " << here->site() << std::endl;
                     SimplifyMove(here, New);
-                    std::cout << "New->site(): " << New->site() << std::endl;
+                    //std::cout << "New->site(): " << New->site() << std::endl;
                     changed_ = true;
                     break;
                 }
@@ -4163,13 +4163,13 @@ bool Expres::Simplify09(void)
 }
 void Expres::SimplifyMove(Expres::Ele* target, Expres::Ele* NewOne)
 {
-    printf("\t\t\t????target:%zu, NewOne:%zu\n", (size_t)target, (size_t)NewOne);
+    //printf("\t\t\t????target:%zu, NewOne:%zu\n", (size_t)target, (size_t)NewOne);
     formula.lift(target, NewOne);
-    printf("\t\t\t????\n");
+    //printf("\t\t\t????\n");
     OutputShift(target, NewOne);
-    printf("\t\t\t????\n");
+    //printf("\t\t\t????\n");
     formula.ruin(target->site());
-    printf("\t\t\t????\n");
+    //printf("\t\t\t????\n");
 }
 bool Expres::Simplify10(void)
 {
