@@ -3178,9 +3178,13 @@ Expres::Ele* Expres::NewNode(operation Op)
 Expres::Ele* Expres::NewNode(Expres::Ele* L, Expres::Ele* R, operation Op)
 {
     Expres::Ele* New;
+    printf("\t\t\t????\n");
     New = new Expres::Ele(Op);
+    printf("\t\t\t????\n");
     formula.append(New);
+    printf("\t\t\t????\n");
     formula.ArcAdd(L, R, New);
+    printf("\t\t\t????\n");
     return New;
 }
 Expres::Ele* Expres::NewNode(function func_)
