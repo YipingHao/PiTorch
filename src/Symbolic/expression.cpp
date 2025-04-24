@@ -3797,6 +3797,7 @@ bool Expres::Simplify03(void)
             now = formula[j];
             if (now == NULL) continue;
             if (here->Type != now->Type) continue;
+            printf("i: %zu, j: %zu\n", i, j);
             judge = false;
             if (here->Type == _LeafConst_)
                 judge = (here->Fc == now->Fc);
