@@ -277,6 +277,7 @@ namespace Pikachu
 			void copy(const node &source);
 			bool operator == (operation Op) const;
 			bool operator == (function Op) const;
+			bool operator == (long int num) const;
 			node();
 			node(long int ele);
 			node(const FuncConst& ele);

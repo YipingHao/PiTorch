@@ -2402,6 +2402,10 @@ bool Expres::node::operator == (function Op) const
 {
     return  Type == _Funct_ && Code == (int)Op;
 }
+bool Expres::node::operator == (long int num) const
+{
+    return  Type == _LeafConst_ && Fc == (long long int)num;
+}
 Expres::node::node(void)
 {
     Code = 0;
@@ -3661,6 +3665,7 @@ bool Expres::Simplify02(void)
     size_t i;
     Expres::Ele* here;
     Expres::Ele* left_, * right_;
+    function2 T2;
     bool changed_;
     changed_ = false;
     for (i = 0; i < formula.count(); i++)
@@ -3728,6 +3733,39 @@ bool Expres::Simplify02(void)
         }
         formula.ArcDelete(left_, here);
         changed_ = true;
+    }
+    for (i = 0; i < formula.count(); i++)
+    {
+        here = formula[i];
+        if (here == NULL) continue;
+        if (here->Type != _Funct2_) continue;
+        left_ = here->In(0);
+        right_ = here->In(1);
+        T2 = (function2)here->Code;
+        switch (T2)
+        {
+        case Pikachu::_pow_:
+            if (*right_ == (long int)0)
+            {
+                here->Type = _LeafConst_;
+                here->Fc = (long long int)1;
+                formula.ArcDelete(left_, here);
+                formula.ArcDelete(right_, here);
+                changed_ = true;
+            }
+            else if (*left_ == (long int)0)
+            {
+                here->Type = _LeafConst_;
+                here->Fc = (long long int)0;
+                formula.ArcDelete(left_, here);
+                formula.ArcDelete(right_, here);
+                changed_ = true;
+            }
+            break;
+        default:
+            break;
+        }
+        
     }
     return changed_;
 }
