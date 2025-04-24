@@ -186,7 +186,7 @@ int static test14(const parameter& para)
             Exp.demo(BC, true, 0);
             
             std::cout << BC.ptr() << std::endl; BC.clear();
-            for (j = 0; j < 2; j++)
+            for (j = 0; j < 4; j++)
             {
                 std::cout << "Differetial(";
                 std::cout << j;
@@ -208,7 +208,7 @@ int static test14(const parameter& para)
             Exp.Example(i + 1);
             Exp.demo(BC, true, 0);
             std::cout << BC.ptr() << std::endl; BC.clear();
-            for (j = 0; j < 2; j++)
+            for (j = 0; j < 4; j++)
             {
                 Exp.Differetial();
                 Exp.Simplify();
