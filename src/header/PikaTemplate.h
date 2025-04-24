@@ -1257,7 +1257,7 @@ namespace Pikachu
 			for (i = 0; i < target->OutDegree(); i++)
 			{
 				up = target->out[i];
-				up_in = up->SearchIn(target, "lift");
+				up_in = up->SearchIn(target);
 				up->in[up_in] = src;
 				src->AppendOut(up);
 			}
@@ -1277,9 +1277,9 @@ namespace Pikachu
 
 		try
 		{
-			middle_out = target->SearchOut(dst, "lift");
+			middle_out = target->SearchOut(dst);
 			//down_out = vertice[down].SearchOut(middle, "lift");
-			up_in = dst->SearchIn(target, "lift");
+			up_in = dst->SearchIn(target);
 			//middle_in = vertice[middle].SearchIn(down, "lift");
 
 			src->AppendOut(dst);
