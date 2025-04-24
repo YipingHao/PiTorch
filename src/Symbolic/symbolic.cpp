@@ -1823,8 +1823,14 @@ bool ActivFunc::Simplify(void)
         round_ += 1;
         changed_ = false;
         changed_ = changed_ || Simplify02();
+        demo(BC, true, 0);
+        std::cout << "Simplify02: " << BC.ptr() << std::endl; BC.clear();
         changed_ = changed_ || Simplify01();
+        demo(BC, true, 0);
+        std::cout << "Simplify01: " << BC.ptr() << std::endl; BC.clear();
         changed_ = changed_ || Simplify03();
+        demo(BC, true, 0);
+        std::cout << "Simplify03: " << BC.ptr() << std::endl; BC.clear();
         changed_ = changed_ || Simplify04();
         demo(BC, true, 0);
         std::cout << "Simplify04: " << BC.ptr() << std::endl; BC.clear();
