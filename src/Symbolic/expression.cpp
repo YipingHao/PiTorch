@@ -4282,6 +4282,7 @@ bool Expres::Simplify10(void)
             {
                 first_ = LL;
                 second_ = RR;
+                printf("akuiasdfhasiudfasfs\n");
                 judge = true;
             }
             else if (RR->Type == _LeafConst_)
