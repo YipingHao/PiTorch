@@ -3693,6 +3693,8 @@ bool Expres::Simplify02(void)
                 here->Fc = left_->Fc / right_->Fc;
                 break;
             }
+            if (here->Fc.IfInt) printf("here->Fc: %lld, here->Code: %d\n", here->Fc.IntConst, here->Code);
+            else printf("here->Fc: %lf, here->Code: %d\n", here->Fc.RealConst, here->Code);
             formula.ArcDelete(left_, here);
             formula.ArcDelete(right_, here);
             //formula.ArcDelete(formula[i].In[0], i);
