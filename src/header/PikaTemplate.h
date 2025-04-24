@@ -1270,7 +1270,7 @@ namespace Pikachu
 		{
 			for (i = 0; i < target->OutDegree(); i++)
 			{
-				printf("%zu:%zu\n", target->OutDegree(), i);
+				//printf("%zu:%zu\n", target->OutDegree(), i);
 				up = target->out[i];
 				up_in = up->SearchIn(target);
 				up->in[up_in] = src;

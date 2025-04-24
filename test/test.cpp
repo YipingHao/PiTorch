@@ -192,6 +192,7 @@ int static test14(const parameter& para)
                 std::cout << "):" << std::endl;
                 Exp.Differetial();
                 Exp.demo(BC, true, 0);
+                Exp.demo(stdout);
                 std::cout << '\t' << BC.ptr() << std::endl; BC.clear();
                 Exp.Simplify();
                 Exp.demo(BC, true, 0);
