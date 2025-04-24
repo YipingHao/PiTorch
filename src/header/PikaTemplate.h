@@ -1011,10 +1011,24 @@ namespace Pikachu
 		size_t T, F;
 		T = dst->SearchIn(src);
 		if (T == dst->in.count())
-			throw PikaError("graph<V>::ArcDelete", "T == vertice[to].InDegree", T);
+		{
+			hyperlex::dictionary* error;
+			error = new hyperlex::dictionary;
+			error->append("location", "graph<V>::ArcDelete");
+			error->append("error", "T == vertice[to].InDegree");
+			error->append("T", T);
+			throw error;
+		}
 		F = src->SearchOut(dst);
 		if (F == src->out.count())
-			throw PikaError("graph<V>::ArcDelete", "F == vertice[from].OutDegree", F);
+		{
+			hyperlex::dictionary* error;
+			error = new hyperlex::dictionary;
+			error->append("location", "graph<V>::ArcDelete");
+			error->append("error", "T == vertice[to].InDegree");
+			error->append("T", T);
+			throw error;
+		}
 		
 		dst->ShrinkIn(T);
 		src->ShrinkOut(F);
