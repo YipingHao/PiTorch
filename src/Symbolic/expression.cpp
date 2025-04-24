@@ -3582,10 +3582,9 @@ bool Expres::Simplify01(void)
             }
             break;
         case _mul_:
-            printf("i: %zu, %d\n", i, (int)changed_);
-            
             if (left_->Type == _LeafConst_)
             {
+                printf("i: %zu, %d\n", i, (int)changed_);
                 if (left_->Fc.IfInt) printf("left_->Fc: %lld\n", left_->Fc.IntConst);
                 else printf("left_->Fc: %lf\n", left_->Fc.RealConst);
                 if (left_->Fc.isZero())
@@ -3601,6 +3600,7 @@ bool Expres::Simplify01(void)
             }
             else if (right_->Type == _LeafConst_)
             {
+                printf("i: %zu, %d\n", i, (int)changed_);
                 if (right_->Fc.IfInt) printf("right_->Fc: %lld\n", right_->Fc.IntConst);
                 else printf("right_->Fc: %lf\n", right_->Fc.RealConst);
                 if (right_->Fc.isZero())
