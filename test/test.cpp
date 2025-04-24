@@ -184,6 +184,7 @@ int static test14(const parameter& para)
             std::cout << ")=========================" << std::endl;
             Exp.Example(i + 1);
             Exp.demo(BC, true, 0);
+            if (i == 7) Exp.demo(stdout);
             std::cout << BC.ptr() << std::endl; BC.clear();
             for (j = 0; j < 2; j++)
             {
