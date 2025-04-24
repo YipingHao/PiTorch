@@ -4256,6 +4256,7 @@ bool Expres::Simplify10(void)
         }
         if ((operation)left_->Code == _div_ && left_->In(1) == right_)
         {
+            printf("akuiasdfhasiudfaddddsfs\n");
             SimplifyMove(here, left_->In(0));
             changed_ = true;
             continue;
