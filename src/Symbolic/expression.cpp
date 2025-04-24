@@ -4060,6 +4060,7 @@ bool Expres::Simplify08(void)
                     std::cout << "New->site(): " << New->site() << std::endl;
                     //formula.ArcAdd(left_->In((size_t)(!LL)), right_->In((size_t)(!RR)), New);
                     //break;
+                    std::cout << "here->site(): " << here->site() << std::endl;
                     SimplifyMove(here, New);
                     std::cout << "New->site(): " << New->site() << std::endl;
                     changed_ = true;
