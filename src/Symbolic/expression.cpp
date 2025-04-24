@@ -4157,7 +4157,7 @@ bool Expres::Simplify09(void)
 }
 void Expres::SimplifyMove(Expres::Ele* target, Expres::Ele* NewOne)
 {
-    printf("\t\t\t????\n");
+    printf("\t\t\t????target:%zu, NewOne:%zu\n", (size_t)target, (size_t)NewOne);
     formula.lift(target, NewOne);
     printf("\t\t\t????\n");
     OutputShift(target, NewOne);
