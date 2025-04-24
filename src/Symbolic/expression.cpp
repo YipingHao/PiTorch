@@ -4239,6 +4239,7 @@ bool Expres::Simplify10(void)
     changed_ = false;
     for (i = 0; i < formula.count(); i++)
     {
+        printf("i: %zu, %d\n", i, (int)changed_);
         here = formula[i];
         if (here == NULL) continue;
         if (!(*here == _mul_)) continue;
