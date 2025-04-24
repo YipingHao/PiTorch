@@ -3597,6 +3597,7 @@ bool Expres::Simplify01(void)
                     LiftRight(here);
                     changed_ = true;
                 }
+                else printf("left_->site(): %zu\n", left_->site());
             }
             else if (right_->Type == _LeafConst_)
             {
