@@ -194,7 +194,7 @@ int static test14(const parameter& para)
                 Exp.Differetial();
                 Exp.demo(BC, true, 0);
                 std::cout << '\t' << BC.ptr() << std::endl; BC.clear();
-                if (i == 8) Exp.demo(stdout);
+                //if (i == 8) Exp.demo(stdout);
                 Exp.Simplify();
                 Exp.demo(BC, true, 0);
                 std::cout << '\t' << BC.ptr() << std::endl; BC.clear();
