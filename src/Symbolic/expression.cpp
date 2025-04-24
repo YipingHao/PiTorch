@@ -3808,9 +3808,9 @@ bool Expres::Simplify03(void)
             changed_ = judge || changed_;
             if (judge)
             {
-                printf("i: %zu, j: %zu\n", i, j);
-                here->demo(stdout);
-                now->demo(stdout);
+                //printf("i: %zu, j: %zu\n", i, j);
+                //here->demo(stdout);
+                //now->demo(stdout);
 
                 formula.lift(now, here);
                 OutputShift(now, here);
