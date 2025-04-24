@@ -4240,8 +4240,10 @@ bool Expres::Simplify10(void)
     for (i = 0; i < formula.count(); i++)
     {
         printf("i: %zu, %d\n", i, (int)changed_);
+        
         here = formula[i];
         if (here == NULL) continue;
+        if (i == 18) demo(stdout);
         if (!(*here == _mul_)) continue;
         left_ = here->In(0);
         right_ = here->In(1);
