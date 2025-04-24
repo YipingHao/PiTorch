@@ -14,7 +14,7 @@ void FuncConst::nan(void)
     RealConst = 0.0;
     IntConst = 0;
 }
-double FuncConst::value(void) const
+double FuncConst::Rvalue(void) const
 {
     return IfInt ? (double)IntConst : RealConst;
 }
@@ -91,7 +91,7 @@ FuncConst FuncConst::operator+(const FuncConst& right)
     else
     {
         double here;
-        here = RealConst + right.RealConst;
+        here = Rvalue() + right.Rvalue();
         result = here;
     }
     return result;
@@ -110,7 +110,7 @@ FuncConst FuncConst::operator-(const FuncConst& right)
     else
     {
         double here;
-        here = RealConst - right.RealConst;
+        here = Rvalue() - right.Rvalue();
         result = here;
     }
     return result;
@@ -129,7 +129,7 @@ FuncConst FuncConst::operator*(const FuncConst& right)
     else
     {
         double here;
-        here = RealConst * right.RealConst;
+        here = Rvalue() * right.Rvalue();
         result = here;
     }
     return result;
@@ -150,7 +150,7 @@ FuncConst FuncConst::operator/(const FuncConst& right)
     else
     {
         double here;
-        here = RealConst / right.RealConst;
+        here = Rvalue() / right.Rvalue();
         result = here;
     }
     return result;

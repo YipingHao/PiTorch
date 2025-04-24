@@ -43,7 +43,7 @@ namespace Pikachu
 		double RealConst;
 		long long int IntConst;
 
-		double value(void) const;
+		double Rvalue(void) const;
 		void nan(void);
 		void SetValue(double ele);
 		void SetValue(long long int ele);
