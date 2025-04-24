@@ -1816,6 +1816,7 @@ bool ActivFunc::Simplify(void)
     bool changed_;
     size_t round_;
     round_ = 0;
+    hyperlex::BufferChar BC;
     //printf("Simplify(void)\n");
     do
     {
@@ -1825,7 +1826,8 @@ bool ActivFunc::Simplify(void)
         changed_ = changed_ || Simplify01();
         changed_ = changed_ || Simplify03();
         changed_ = changed_ || Simplify04();
-        //printf("Simplify06\n");
+        demo(BC, true, 0);
+        std::cout << "Simplify04: " << BC.ptr() << std::endl; BC.clear();
         changed_ = changed_ || Simplify06();
         //printf("\tsub 07\n");
         changed_ = changed_ || Simplify07();
@@ -1835,11 +1837,14 @@ bool ActivFunc::Simplify(void)
         changed_ = changed_ || Simplify09();
         //printf("\tsub 07\n");
         changed_ = changed_ || Simplify10();
-        //printf("Simplify10\n");
+        demo(BC, true, 0);
+        std::cout << "Simplify10: " << BC.ptr() << std::endl; BC.clear();
         changed_ = changed_ || Simplify02();
         changed_ = changed_ || Simplify01();
         changed_ = changed_ || Simplify03();
         changed_ = changed_ || Simplify04();
+        demo(BC, true, 0);
+        std::cout << "Simplify04 2: " << BC.ptr() << std::endl; BC.clear();
     } while (changed_);
     changed_ = changed_ || Simplify05();
     if (round_ > 1)

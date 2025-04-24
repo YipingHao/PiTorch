@@ -3584,9 +3584,9 @@ bool Expres::Simplify01(void)
         case _mul_:
             if (left_->Type == _LeafConst_)
             {
-                printf("i: %zu, %d\n", i, (int)changed_);
-                if (left_->Fc.IfInt) printf("left_->Fc: %lld\n", left_->Fc.IntConst);
-                else printf("left_->Fc: %lf\n", left_->Fc.RealConst);
+                //printf("i: %zu, %d\n", i, (int)changed_);
+                //if (left_->Fc.IfInt) printf("left_->Fc: %lld\n", left_->Fc.IntConst);
+                //else printf("left_->Fc: %lf\n", left_->Fc.RealConst);
                 if (left_->Fc.isZero())
                 {
                     LiftLeft(here);
@@ -3597,13 +3597,13 @@ bool Expres::Simplify01(void)
                     LiftRight(here);
                     changed_ = true;
                 }
-                else printf("left_->site(): %zu\n", left_->site());
+                //else printf("left_->site(): %zu\n", left_->site());
             }
             else if (right_->Type == _LeafConst_)
             {
-                printf("i: %zu, %d\n", i, (int)changed_);
-                if (right_->Fc.IfInt) printf("right_->Fc: %lld\n", right_->Fc.IntConst);
-                else printf("right_->Fc: %lf\n", right_->Fc.RealConst);
+                //printf("i: %zu, %d\n", i, (int)changed_);
+                //if (right_->Fc.IfInt) printf("right_->Fc: %lld\n", right_->Fc.IntConst);
+                //else printf("right_->Fc: %lf\n", right_->Fc.RealConst);
                 if (right_->Fc.isZero())
                 {
                     LiftRight(here);
