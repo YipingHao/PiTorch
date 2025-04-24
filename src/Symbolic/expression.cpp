@@ -3178,13 +3178,13 @@ Expres::Ele* Expres::NewNode(operation Op)
 Expres::Ele* Expres::NewNode(Expres::Ele* L, Expres::Ele* R, operation Op)
 {
     Expres::Ele* New;
-    printf("\t\t\t????\n");
+    //printf("\t\t\t????\n");
     New = new Expres::Ele(Op);
-    printf("\t\t\t????\n");
+    //printf("\t\t\t????\n");
     formula.append(New);
-    printf("\t\t\t????\n");
+    //printf("\t\t\t????\n");
     formula.ArcAdd(L, R, New);
-    printf("\t\t\t????\n");
+    //printf("\t\t\t????\n");
     return New;
 }
 Expres::Ele* Expres::NewNode(function func_)
@@ -4061,6 +4061,7 @@ bool Expres::Simplify08(void)
                     //formula.ArcAdd(left_->In((size_t)(!LL)), right_->In((size_t)(!RR)), New);
                     //break;
                     SimplifyMove(here, New);
+                    std::cout << "New->site(): " << New->site() << std::endl;
                     changed_ = true;
                     break;
                 }
