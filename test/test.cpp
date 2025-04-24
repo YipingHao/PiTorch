@@ -129,7 +129,7 @@ int static test14(const parameter& para)
     hyperlex::BufferChar BC;
     try
     {
-        Exp.Example(8);
+        Exp.Example(3);
         Exp.demo(stdout);
         Exp.demo(BC, true, 0);
         std::cout << BC.ptr() << std::endl; BC.clear();
