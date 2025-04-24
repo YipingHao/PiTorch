@@ -4244,9 +4244,11 @@ bool Expres::Simplify10(void)
         here = formula[i];
         if (here == NULL) continue;
         if (i == 18) demo(stdout);
+        printf("akuiasdfhasiudfaddddsfs\n");
         if (!(*here == _mul_)) continue;
         left_ = here->In(0);
         right_ = here->In(1);
+        printf("akuiasdfhasiudfaddddsfs\n");
         if (left_->Type != _Operation_ && right_->Type != _Operation_) continue;
         if ((operation)right_->Code == _div_ && right_->In(1) == left_)
         {
