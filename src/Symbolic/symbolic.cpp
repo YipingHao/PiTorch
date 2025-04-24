@@ -158,13 +158,11 @@ FuncConst FuncConst::operator/(const FuncConst& right)
 
 bool FuncConst::isZero(void) const
 {
-    return IfInt ? IntConst == (long long int)0 : RealConst == 0.0;
-    return *this == (long long int)0 || *this == 0.0;
+    return IfInt ? (IntConst == (long long int)0) : (RealConst == 0.0);
 }
 bool FuncConst::isOne(void) const
 {
-    return IfInt ? IntConst == (long long int)1 : RealConst == 1.0;
-    return *this == (long long int)1 || *this == 1.0;
+    return IfInt ? (IntConst == (long long int)1) : (RealConst == 1.0);
 }
 
 void FuncConst::sin(void)
@@ -176,9 +174,9 @@ void FuncConst::sin(void)
     }   
     else
     {
-        IfInt = false;
-        RealConst = std::sin(RealConst);
+        RealConst = std::sin(IfInt ? (double)IntConst : RealConst);
         IntConst = (long long int)RealConst;
+        IfInt = false;
     }
 }
 void FuncConst::cos(void)
@@ -190,9 +188,9 @@ void FuncConst::cos(void)
     }
     else
     {
-        IfInt = false;
-        RealConst = std::cos(RealConst);
+        RealConst = std::cos(IfInt ? (double)IntConst : RealConst);
         IntConst = (long long int)RealConst;
+        IfInt = false;
     }
 }
 void FuncConst::opposite(void)
@@ -236,9 +234,9 @@ void FuncConst::exp(void)
     }
     else
     {
-        IfInt = false;
-        RealConst = std::exp(RealConst);
+        RealConst = std::exp(IfInt ? (double)IntConst : RealConst);
         IntConst = (long long int)RealConst;
+        IfInt = false;
     }
 }
 void FuncConst::sqrt(void)
@@ -254,7 +252,7 @@ void FuncConst::sqrt(void)
                 return;
             }
     }
-    SetValue(std::sqrt(RealConst));
+    SetValue(std::sqrt(IfInt ? (double)IntConst : RealConst));
 }
 void FuncConst::pow(const FuncConst& exponential)
 {
