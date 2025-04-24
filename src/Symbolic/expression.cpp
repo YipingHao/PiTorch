@@ -74,7 +74,7 @@ expression::node* expression::node::copy(void)
     New->src1 = src1;
     New->src2 = src2;
     New->Fc.SetValue(Fc);
-    New->CopyCore(*this);
+    
     return New;
 }
 void expression::node::Demo(size_t label, PikaString& output, bool single) const
@@ -2468,6 +2468,7 @@ Expres::node* Expres::node::copy(void)const
     New->src1 = src1;
     New->src2 = src2;
     New->Fc.SetValue(Fc);
+    New->CopyCore(*this);
     return New;
 }
 void Expres::node::copy(const node& source)
@@ -2478,6 +2479,7 @@ void Expres::node::copy(const node& source)
     src1 = source.src1;
     src2 = source.src2;
     Fc.SetValue(source.Fc);
+    CopyCore(source);
     return ;
 }
 void Expres::node::Demo(int label, bufferC& output, bool single, bool braket) const
