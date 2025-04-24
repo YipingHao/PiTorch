@@ -1819,9 +1819,13 @@ bool ActivFunc::Simplify(void)
         changed_ = changed_ || Simplify04();
         printf("Simplify06\n");
         changed_ = changed_ || Simplify06();
+        printf("\tsub 07\n");
         changed_ = changed_ || Simplify07();
+        printf("\tsub 07\n");
         changed_ = changed_ || Simplify08();
+        printf("\tsub 07\n");
         changed_ = changed_ || Simplify09();
+        printf("\tsub 07\n");
         changed_ = changed_ || Simplify10();
         printf("Simplify10\n");
         changed_ = changed_ || Simplify02();
