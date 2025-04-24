@@ -4047,7 +4047,7 @@ bool Expres::Simplify08(void)
             }
             break;
         }
-        if (here == NULL) { std::cout << "!!!!!!!!!!!" << std::endl; };
+        if (here == NULL) continue;
         if ((operation)here->Code == _div_)
         //if(false)
         {
