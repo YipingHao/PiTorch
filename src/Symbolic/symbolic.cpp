@@ -211,7 +211,7 @@ void FuncConst::ln(void)
         error->append("RealConst", RealConst);
         throw error;
     }
-    printf("??????%d, IntConst: %lld\n", (int)IfInt, IntConst);
+    printf("??????%d, IntConst: %lld, RealConst:%lf\n", (int)IfInt, IntConst, RealConst);
     if (IfInt && (IntConst == (long long)1))
     {
         IntConst = 0;
@@ -219,9 +219,11 @@ void FuncConst::ln(void)
     }
     else
     {
+
         RealConst = std::log(IfInt ? (double)IntConst : RealConst);
         IfInt = false;
         IntConst = (long long int)RealConst;
+        printf("??????%d, IntConst: %lld, RealConst:%lf\n", (int)IfInt, IntConst, RealConst);
     }
 }
 void FuncConst::exp(void)
