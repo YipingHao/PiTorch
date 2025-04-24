@@ -106,7 +106,7 @@ void VISA1::compute(double* const* X, const double* para, double* output) const
             else if (program[i].Op == (int)_LeafPara_)
                 reg[dst] = para[src2];
             else if (program[i].Op == (int)_LeafConst_)
-                reg[dst] = constant[src1].value();
+                reg[dst] = constant[src1].Rvalue();
             break;
         case _func2_:
             reg[dst] = ComputeFunction2(reg[src1], reg[src2], (function2)code);
