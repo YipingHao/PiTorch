@@ -1808,7 +1808,7 @@ bool ActivFunc::Simplify(void)
     bool changed_;
     size_t round_;
     round_ = 0;
-    printf("Simplify(void)\n");
+    //printf("Simplify(void)\n");
     do
     {
         round_ += 1;
@@ -1817,17 +1817,17 @@ bool ActivFunc::Simplify(void)
         changed_ = changed_ || Simplify01();
         changed_ = changed_ || Simplify03();
         changed_ = changed_ || Simplify04();
-        printf("Simplify06\n");
+        //printf("Simplify06\n");
         changed_ = changed_ || Simplify06();
-        printf("\tsub 07\n");
+        //printf("\tsub 07\n");
         changed_ = changed_ || Simplify07();
-        printf("\tsub 07\n");
+        //printf("\tsub 07\n");
         changed_ = changed_ || Simplify08();
-        printf("\tsub 07\n");
+        //printf("\tsub 07\n");
         changed_ = changed_ || Simplify09();
-        printf("\tsub 07\n");
+        //printf("\tsub 07\n");
         changed_ = changed_ || Simplify10();
-        printf("Simplify10\n");
+        //printf("Simplify10\n");
         changed_ = changed_ || Simplify02();
         changed_ = changed_ || Simplify01();
         changed_ = changed_ || Simplify03();
@@ -1838,9 +1838,9 @@ bool ActivFunc::Simplify(void)
     {
 
     }
-    printf("End\n");
+    //printf("End\n");
     formula.compress();
-    printf("End2\n");
+    //printf("End2\n");
     return round_ > 1;
 }
 
