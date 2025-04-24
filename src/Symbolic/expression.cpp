@@ -4249,11 +4249,13 @@ bool Expres::Simplify10(void)
         {
             SimplifyMove(here, right_->In(0));
             changed_ = true;
+            continue;
         }
         if ((operation)left_->Code == _div_ && left_->In(1) == right_)
         {
             SimplifyMove(here, left_->In(0));
             changed_ = true;
+            continue;
         }
         judge = false;
         if (left_->Type == _LeafConst_ && (operation)right_->Code == _mul_)
