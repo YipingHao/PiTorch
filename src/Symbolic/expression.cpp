@@ -4265,6 +4265,7 @@ bool Expres::Simplify10(void)
             changed_ = true;
             continue;
         }
+        printf("akuiasdfhasiudfaddddsfs\n");
         judge = false;
         printf("akuiasdfhasiudfaddddsfs\n");
         if (left_->Type == _LeafConst_ && (operation)right_->Code == _mul_)
