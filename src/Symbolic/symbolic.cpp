@@ -211,8 +211,8 @@ void FuncConst::ln(void)
         error->append("RealConst", RealConst);
         throw error;
     }
-    printf("??????\n");
-    if (IfInt && IntConst == (long long)1)
+    printf("??????%d, IntConst: %ll\n", (int)IfInt, IntConst);
+    if (IfInt && (IntConst == (long long)1))
     {
         IntConst = 0;
         RealConst = 0.0;
