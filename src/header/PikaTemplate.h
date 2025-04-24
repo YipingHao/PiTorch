@@ -1399,7 +1399,7 @@ namespace Pikachu
 		if (T == in.count())
 		{
 			hyperlex::dictionary* error;
-			error = new dictionary;
+			error = new hyperlex::dictionary;
 			error->append("location", "void vortex<V>::SearchIn");
 			error->append("error", "T == in.count()");
 			error->append("T", T);
@@ -1417,7 +1417,7 @@ namespace Pikachu
 		if (T == out.count())
 		{
 			hyperlex::dictionary* error;
-			error = new dictionary;
+			error = new hyperlex::dictionary;
 			error->append("location", "void vortex<V>::SearchOut");
 			error->append("error", "T == out.count()");
 			error->append("T", T);
@@ -1431,7 +1431,7 @@ namespace Pikachu
 		if (site >= in.count())
 		{
 			hyperlex::dictionary* error;
-			error = new dictionary;
+			error = new hyperlex::dictionary;
 			error->append("location", "void vortex<V>::ShrinkIn");
 			error->append("error", "site >= in.count()");
 			error->append("site", site);
@@ -1445,7 +1445,7 @@ namespace Pikachu
 		if (site >= out.count())
 		{
 			hyperlex::dictionary* error;
-			error = new dictionary;
+			error = new hyperlex::dictionary;
 			error->append("location", "void vortex<V>::ShrinkOut");
 			error->append("error", "site >= out.count()");
 			error->append("site", site);
