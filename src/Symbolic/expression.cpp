@@ -3731,6 +3731,8 @@ bool Expres::Simplify02(void)
             here->Fc.opposite();
             break;
         }
+        if (here->Fc.IfInt) printf("here->Fc: %lld\n", here->Fc.IntConst);
+        else printf("here->Fc: %lf\n", here->Fc.RealConst);
         formula.ArcDelete(left_, here);
         changed_ = true;
     }
