@@ -203,17 +203,23 @@ void FuncConst::ln(void)
     if (IntConst <= 0 || RealConst <= 0.0)
     {
         IfNan = true;
-        return;
+        hyperlex::dictionary* error;
+        error = new hyperlex::dictionary;
+        error->append("location", "void FuncConst::ln(void)");
+        error->append("error", "IntConst <= 0 || RealConst <= 0.0");
+        error->append("IntConst", (long int)IntConst);
+        error->append("RealConst", RealConst);
+        throw error;
     }
-    if (IfInt && IntConst == 1)
+    if (IfInt && IntConst == (long long)1)
     {
         IntConst = 0;
         RealConst = 0.0;
     }
     else
     {
+        RealConst = std::log(IfInt ? (double)IntConst : RealConst);
         IfInt = false;
-        RealConst = std::log(RealConst);
         IntConst = (long long int)RealConst;
     }
 }
