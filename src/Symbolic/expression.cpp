@@ -4239,22 +4239,22 @@ bool Expres::Simplify10(void)
     changed_ = false;
     for (i = 0; i < formula.count(); i++)
     {
-        printf("i: %zu, %d\n", i, (int)changed_);
+        //printf("i: %zu, %d\n", i, (int)changed_);
         
         here = formula[i];
         if (here == NULL) continue;
-        if (i == 18) demo(stdout);
-        printf("akuiasdfhasiudfaddddsfs\n");
+        //if (i == 18) demo(stdout);
+        //printf("akuiasdfhasiudfaddddsfs\n");
         if (!(*here == _mul_)) continue;
         left_ = here->In(0);
         right_ = here->In(1);
-        printf("akuiasdfhasiudfaddddsfs\n");
+       // printf("akuiasdfhasiudfaddddsfs\n");
         if (left_->Type != _Operation_ && right_->Type != _Operation_) continue;
-        printf("akuiasd9999sfs\n");
+        //printf("akuiasd9999sfs\n");
         if(*right_ == _div_)
             if (right_->In(1) == left_)
             {
-               printf("akuiasdsfs\n");
+               //printf("akuiasdsfs\n");
                SimplifyMove(here, right_->In(0));
               changed_ = true;
              continue;
@@ -4262,14 +4262,14 @@ bool Expres::Simplify10(void)
         if (*left_ == _div_)
             if (left_->In(1) == right_)
             {
-                printf("udfaddddsfs\n");
+                //printf("udfaddddsfs\n");
                 SimplifyMove(here, left_->In(0));
                 changed_ = true;
                 continue;
             }
-        printf("akuiasdfhasiudfaddddsfs\n");
+        //printf("akuiasdfhasiudfaddddsfs\n");
         judge = false;
-        printf("akuiasdfhasiudfaddddsfs\n");
+        //printf("akuiasdfhasiudfaddddsfs\n");
         if (left_->Type == _LeafConst_ && (operation)right_->Code == _mul_)
         {
             LL = right_->In(0);
@@ -4291,7 +4291,7 @@ bool Expres::Simplify10(void)
             {
                 first_ = LL;
                 second_ = RR;
-                printf("akuiasdfhasiudfasfs\n");
+                //printf("akuiasdfhasiudfasfs\n");
                 judge = true;
             }
             else if (RR->Type == _LeafConst_)
