@@ -1687,7 +1687,6 @@ bool expression::Simplify01(void)
     changed_ = false;
     for (i = 0; i < formula.capacity(); i++)
     {
-        printf("i: %zu, %d\n", i, (int)changed_);
         if (!formula[i].IfValid()) continue;
         here = formula[i].content;
         if (here->Type != _Operation_) continue;
@@ -3546,6 +3545,7 @@ bool Expres::Simplify01(void)
     changed_ = false;
     for (i = 0; i < formula.count(); i++)
     {
+        printf("i: %zu, %d\n", i, (int)changed_);
         here = formula[i];
         if (here == NULL) continue;
         
