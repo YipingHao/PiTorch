@@ -4011,7 +4011,7 @@ bool Expres::Simplify08(void)
                     formula.ArcAdd(left_->In(LL), temp_, New);
 
                     SimplifyMove(here, New);
-
+                    here = NULL;
                     changed_ = true;
                     break;
                 }
@@ -4040,12 +4040,14 @@ bool Expres::Simplify08(void)
                     formula.ArcAdd(temp1_, temp_, New);
 
                     SimplifyMove(here, New);
+                    here = NULL;
                     changed_ = true;
                     break;
                 }
             }
             break;
         }
+        if (here == NULL) { std::cout << "!!!!!!!!!!!" << std::endl; };
         if ((operation)here->Code == _div_)
         //if(false)
         {
