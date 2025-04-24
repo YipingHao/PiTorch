@@ -4251,20 +4251,22 @@ bool Expres::Simplify10(void)
         printf("akuiasdfhasiudfaddddsfs\n");
         if (left_->Type != _Operation_ && right_->Type != _Operation_) continue;
         printf("akuiasd9999sfs\n");
-        if ((operation)right_->Code == _div_ && right_->In(1) == left_)
-        {
-            printf("akuiasdsfs\n");
-            SimplifyMove(here, right_->In(0));
-            changed_ = true;
-            continue;
-        }
-        if ((operation)left_->Code == _div_ && left_->In(1) == right_)
-        {
-            printf("udfaddddsfs\n");
-            SimplifyMove(here, left_->In(0));
-            changed_ = true;
-            continue;
-        }
+        if(*right_ == _div_)
+            if (right_->In(1) == left_)
+            {
+               printf("akuiasdsfs\n");
+               SimplifyMove(here, right_->In(0));
+              changed_ = true;
+             continue;
+            }
+        if (*left_ == _div_)
+            if (left_->In(1) == right_)
+            {
+                printf("udfaddddsfs\n");
+                SimplifyMove(here, left_->In(0));
+                changed_ = true;
+                continue;
+            }
         printf("akuiasdfhasiudfaddddsfs\n");
         judge = false;
         printf("akuiasdfhasiudfaddddsfs\n");
