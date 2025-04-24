@@ -4041,7 +4041,7 @@ bool Expres::Simplify08(void)
             break;
         }
         if ((operation)here->Code == _div_)
-        //if(false)
+        if(false)
         {
             //std::cout << "Here: " << i << std::endl;
             for (j = 0; j < 4; j++)
