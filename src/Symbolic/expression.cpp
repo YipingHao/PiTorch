@@ -3093,7 +3093,7 @@ void Expres::backward(bool ExternOutput, size_t NewInputDim, size_t No, vector<E
     formula.BFTbackward(valid, queue);
     //formula.path(label, queue, input, output);
     formula.TopoSortBFSBack(sequence);
-
+    formula.Shrink(valid, sequence);
 
 
     length = sequence.count();

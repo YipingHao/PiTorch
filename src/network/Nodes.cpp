@@ -31,6 +31,12 @@ LeafNode::LeafNode()
 {
 	Type = _leaf_;
 }
+LeafNode::LeafNode(NetWork* context, Node::LeafType t)
+{
+	Type = _leaf_;
+	Op = (int)t;
+	network = context;
+}
 LeafNode::~LeafNode()
 {
 
@@ -214,6 +220,173 @@ Node* NonlinearNode::copy(void) const
 		break;
 	}
 	return node;
+}
+
+void LeafNode::backward(bool dYdX, vector<Node*>& label)
+{
+	return;
+}
+void ElementwiseNode::backward(bool dYdX, vector<Node*>& label) 
+{
+	Node::ElementwiseType ET;
+	ET = (Node::ElementwiseType)Op;
+	double alpha;
+	alpha = (ET == _sub_ ? -1.0 : 1.0);
+	switch (ET)
+	{
+	case Pikachu::Node::_add_:
+	case Pikachu::Node::_sub_:
+		//BackCore1(true, 1.0, No, label, workspace);
+		//BackCore1(false, alpha, No, label, workspace);
+		break;
+	case Pikachu::Node::_mul_:
+		//BackCore2(true, No, label, workspace);
+		//BackCore2(false, No, label, workspace);
+		break;
+	default:
+	{
+		hyperlex::dictionary* error;
+		error = new hyperlex::dictionary;
+		error->append("location", "ElementwiseNode::backward");
+		error->append("error", "switch (ET) unknown type");
+		error->append("Op", Op);
+		throw error;
+		break;
+	}
+		
+	}
+}
+void TransformNode::backward(bool dYdX, vector<Node*>& label) 
+{
+	Node::TransformType TT;
+	Node* dst;
+	Node* original;
+	Transform* New;
+	TT = (Node::TransformType)Op;
+	dst = in[0];
+	original = label[label_site];
+	switch (TT)
+	{
+	case Pikachu::Node::_identity_:
+		//workspace.BackwardAppend(dst, original, label);
+		break;
+	case Pikachu::Node::_condense_:
+		//site = workspace.append(_tansform_, _dispatch_);
+		//New = (Transform*)(workspace.net[site].content);
+		//New->DisDesc1.backward(Src->descriptor, CondenDesc2);
+		//workspace.net.append(original, site);
+		//workspace.SetDesc(site);
+		//workspace.BackwardAppend(dst, site, label);
+		break;
+	case Pikachu::Node::_dispatch_:
+		//site = workspace.append(_tansform_, _condense_);
+		//New = (Transform*)(workspace.net[site].content);
+		//New->CondenDesc2.backward(Src->descriptor, DisDesc1);
+		//workspace.net.append(original, site);
+		//workspace.SetDesc(site);
+		//workspace.BackwardAppend(dst, site, label);
+		break;
+	default:
+	{
+		hyperlex::dictionary* error;
+		error = new hyperlex::dictionary;
+		error->append("location", "TransformNode::backward");
+		error->append("error", "switch (ET) unknown type");
+		error->append("Op", Op);
+		throw error;
+		break;
+	}
+	}
+}
+void LinearNode::backward(bool dYdX, vector<Node*>& label) 
+{
+	LinearType LT;
+	LT = (LinearType)Op;
+	switch (LT)
+	{
+	case Pikachu::Node::_contraction_:
+		//ContracBack1(true, No, label, workspace);
+		//ContracBack1(false, No, label, workspace);
+		break;
+	default:
+	{
+		hyperlex::dictionary* error;
+		error = new hyperlex::dictionary;
+		error->append("location", "LinearNode::backward");
+		error->append("error", "switch (ET) unknown type");
+		error->append("Op", Op);
+		throw error;
+		break;
+	}
+	}
+	return;
+}
+void NonlinearNode::backward(bool dYdX, vector<Node*>& label) 
+{
+	NonlinearType NT;
+	NT = (NonlinearType)Op;
+	//if (next == _uintMax_) SetNext(No, workspace);
+	switch (NT)
+	{
+	case Pikachu::GraphNode::_activation_:
+		//BackCore1A(No, label, workspace);
+		//if (!dYdX) BackCore1AdLdW(No, label, workspace);
+		break;
+	case Pikachu::GraphNode::_cluster_:
+		//BackCore2C(No, label, workspace);
+		break;
+		//case Pikachu::GraphNode::_activationBack_:
+		//	throw PikaError("Nonlinear::backward", "case Pikachu::GraphNode::_manifold_", Op);
+		//	break;
+		//case Pikachu::GraphNode::_activationHv_:
+		//	throw PikaError("Nonlinear::backward", "case Pikachu::GraphNode::_manifold_", Op);
+		//	break;
+	default:
+	{
+		hyperlex::dictionary* error;
+		error = new hyperlex::dictionary;
+		error->append("location", "NonlinearNode::backward");
+		error->append("error", "switch (ET) unknown type");
+		error->append("Op", Op);
+		throw error;
+		break;
+	}
+	}
+	return;
+}
+
+void LeafNode::Initial(const tensor& desc)
+{
+	size_t i, L;
+	FuncConst one_;
+	//zero_.SetValue((long long)0);
+	one_.SetValue((long long)1);
+	Op = (int)_leafConst_;
+	DataExpand = false;
+	if (desc.GetOrder() == 0)
+	{
+		descriptor.ChangeOrder(1);
+		descriptor.ChangeDim(0, 1);
+		value.append(one_);
+	}
+	else if (desc.GetOrder() == 1 && desc[0] == 1)
+	{
+		descriptor.Set(desc);
+		value.append(one_);
+	}
+	else
+	{
+		descriptor.Clear();
+		for (i = 0; i < desc.GetOrder(); i++) descriptor.AppendDim(desc[i]);
+		for (i = 0; i < desc.GetOrder(); i++) descriptor.AppendDim(desc[i]);
+		L = desc.GetCount();
+		value.recount(descriptor.GetCount());
+		for (i = 0; i < value.count(); i++)
+			value[i].SetValue((long long)0);
+		for (i = 0; i < L; i++)
+			value[i * L + i].SetValue((long long)1);
+	}
+	return;
 }
 
 

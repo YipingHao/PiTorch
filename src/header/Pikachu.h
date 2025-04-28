@@ -289,13 +289,14 @@ namespace Pikachu
 	class Node : public vortex<Node>
 	{
 	public:
-		friend class network;
+		friend class NetWork;
 		friend class LeafNode;
 		friend class ElementwiseNode;
 		friend class TransformNode;
 		friend class LinearNode;
 		friend class NonlinearNode;
 		
+
 		Node();
 		~Node();
 		enum Affiliation
@@ -349,7 +350,7 @@ namespace Pikachu
 		};
 		virtual Node* copy(void)const  = 0;
 		//virtual void copy(Node& source) = 0;
-
+		virtual void backward(bool dYdX, vector<Node*>& label) = 0;
 	protected:
 		Affiliation Affi;
 		VortexType Type;
@@ -368,15 +369,20 @@ namespace Pikachu
 		size_t Label;
 	public:
 		LeafNode();
+		LeafNode(NetWork* context, Node::LeafType t);
 		~LeafNode();
 		Node* copy(void) const;
+		void backward(bool dYdX, vector<Node*>& label);
+		void Initial(const tensor& desc);
+
 	};
 	class ElementwiseNode : public Node
 	{
 	public:
 		ElementwiseNode();
 		~ElementwiseNode();
-		Node* copy(void) const;
+		Node* copy(void) const; 
+		void backward(bool dYdX, vector<Node*>& label);
 	protected:
 		elementwise descE;
 	};
@@ -386,6 +392,7 @@ namespace Pikachu
 		TransformNode();
 		~TransformNode();
 		Node* copy(void) const;
+		void backward(bool dYdX, vector<Node*>& label);
 	protected:
 		double alpha;
 		dispatch DisDesc1;
@@ -398,6 +405,7 @@ namespace Pikachu
 		LinearNode();
 		~LinearNode();
 		Node* copy(void) const;
+		void backward(bool dYdX, vector<Node*>& label);
 	protected:
 		contract Desc;
 
@@ -407,9 +415,10 @@ namespace Pikachu
 	public:
 		NonlinearNode();
 		~NonlinearNode();
-
-	private:
 		Node* copy(void) const;
+		void backward(bool dYdX, vector<Node*>& label);
+	private:
+		
 		void* formula;
 		//cluster*cl;
 		//manifolds*man;
@@ -439,6 +448,8 @@ namespace Pikachu
 
 		vector<Node*> input;
 		vector<Node*> output;
+		vector<tensor*> descriptor;
+
 
 		vector<Node*> parameter;
 
