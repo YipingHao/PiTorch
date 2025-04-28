@@ -11,7 +11,7 @@
 ## 五种类型的介绍
 ### `class Node`
 
-### `class LeafNode`
+### 叶子节点 `class LeafNode`
 这个类对应叶子节点，所有可能叶子节点有三类，分别是常数张量，输入张量和权重（偏置）张量。
 ```
 		enum LeafType
@@ -69,10 +69,9 @@ $${dst}[{indice}_1] = {src}[{indice}_2]$$
 举例子如下
 $$a[i,j, k, l]=b[i,k]$$
 
-我们将这三种例子统一起来有，这种例子也可以拥有反例
-
+我们将这三种例子统一起来有，
 $${dst}[{indice}_1] = \sum_{indice}{src}[{indice}_2]$$
-举例子如下
+转换赋值操作可以看成是一种单张量的缩并，举例子如下
 $$b[i,k,m,n]=\sum_{jl} a[i,j, k, l]$$
 
 
@@ -80,15 +79,24 @@ $$b[i,k,m,n]=\sum_{jl} a[i,j, k, l]$$
 
 是张量的缩并，未来如果实现卷积功能，也会在此模块中。缩并的最常见特例就是矩阵乘法。
 
-缩并的公式是
-
+缩并的公式是 
+$${dst}[{indice}_1] = \sum_{indice}{srcL}[{indice}_2]{srcR}[{indice}_3]$$
+常见的例子有
+$${A}[ij] = \sum_{k}{A}[ik]{B}[kj]$$
+$${A}[ij] = \sum_{k}{A}[ki]{B}[kj]$$
+$${x}[ijk] = \sum_{a}{W}[ia]{y}[ajk]$$
+$$out_2[a,c,d,H]=\sum_{be}\frac{\partial O[H]}{\partial Y[a, b,c,d,e]} X_1[a,b,c,e] $$
 ### 非线性运算`class NonlinearNode`
 
 本框架的精髓与独到的地方。类似激活函数等由初等函数复合得到的非线性变换对应的模块。本框架使用符号微分的地方。
 
-## 不同种类张量进行反向传播微分的结果
+## 不同种类节点进行反向传播微分
 
-反向传播时由指定输出的对当前张量导数，计算指定输出的对当前张量的源张量的导数。
+反向传播时由指定输出的对当前张量导数，计算指定输出的对当前张量的源操作张量的导数。
+
+### 叶子节点 `class LeafNode`
+
+叶子节点没有源操作张量，所以什么也不用动。
 
 ### 逐元素操作 `class ElementwiseNode` 
 
@@ -116,14 +124,64 @@ $$b[i,k,m,n]=\sum_{jl} a[i,j, k, l]$$
 
 $$out[i,j, k, l,H]=\frac{\partial O[H]}{\partial a[i,j, k, l]}=\sum_{mn}\frac{\partial O[H]}{\partial b[i,k,m,n]} \frac{\partial b[i,k,m,n]}{\partial a[i,j, k, l]}=\sum_{mn}\frac{\partial O[H]}{\partial b[i,k,m,n]} $$
 
-扩展指标$m$,$n$变成了哑指标，哑指标$j$,$l$变成了扩展指标
+从例子中可以发现扩展指标$m$,$n$变成了微分中的哑指标，哑指标$j$,$l$变成了微分中的扩展指标。
 ### 线性运算`class LinearNode`
+
+举例子如下:
+
+$${x}[i,j,k] = \sum_{a}{\omega}[i,a]y[a,j,k]$$
+有反向传播微分:
+
+$$out_1[i,a,H]=\frac{\partial O[H]}{\partial \omega[i,a]}=\sum_{jk}\frac{\partial O[H]}{\partial{x}[i,j,k]} \frac{\partial {x}[i,j,k]}{\partial \omega[i,a]}=\sum_{jk}\frac{\partial O[H]}{\partial x[i,j,k]} y[a,j,k]$$
+
+
+$$out_2[a,j,k,H]=\frac{\partial O[H]}{\partial y[a,j,k]}=\sum_{jk}\frac{\partial O[H]}{\partial{x}[ijk]} \frac{\partial {x}[ijk]}{\partial y[a,j,k]}=\sum_{jk}\frac{\partial O[H]}{\partial x[ijk]} \omega[i,a]$$
 
 ### 非线性运算`class NonlinearNode`
 
 
+## 不同种类节点进行前向传播微分
+
+前传播时由当前张量的源操作张量对指定输入张量的导数，计算当前张量对指定输入张量的导数。
+
+### 叶子节点 `class LeafNode`
+
+叶子节点没有源操作张量，但是却是前向微分的起点。
+如果当前叶子张量就是微分的指定输入张量，那么它的前向微分是一个对角张量，否则它是一个零张量。
+如果指定输入张量是一个标量,所有叶子节点的微分维度不变，
+$$diff[a,b,c]=\frac{\partial Leaf[a,b,c]}{\partial X}$$
+反之后向扩展维度为输入张量的维度。
+
+$$diff[a,b,c,H]=\frac{\partial Leaf[a,b,c]}{\partial X[H]}$$
+
+### 逐元素操作 `class ElementwiseNode` 
+
+举个例子,对于
+
+$$Y[a,b,c,d,e] = X_1[a,b,c,e]\quad + \quad X_2[a,c,d]$$
+有前向传播微分:
+$$out[a,b,c,d,e, H]=\frac{\partial Y[a,b,c,d,e]}{\partial In[H]}=\frac{\partial X_1[a,b,c,e]}{\partial In[H]}\quad + \quad \frac{\partial X_2[a,c,d]}{\partial In[H]}$$
+对于加减法的前向微分是平凡的。
+
+对于
+$$Y[a,b,c,d,e] = X_1[a,b,c,e]\quad \times \quad X_2[a,c,d]$$
+有前向传播微分:
+$$out[a,b,c,d,e, H]=\frac{\partial Y[a,b,c,d,e]}{\partial In[H]}=\frac{\partial X_1[a,b,c,e]}{\partial In[H]} X_2[a,c,d]\quad + \quad \frac{\partial X_2[a,c,d]}{\partial In[H]}X_1[a,b,c,e]$$
+对于乘法的前向微分略微复杂但是也只是单纯的扩展然后求和。
 
 
+### 转换赋值操作`class TransformNode` 
+
+举例子如下，对于
+$$b[i,k,m,n]=\sum_{jl} a[i,j, k, l]$$
+有前向传播微分:
+
+$$out[i,k,m,n,H]=\frac{\partial b[i,k,m,n]}{\partial In[H]}=\sum_{jl}\frac{\partial a[i,j, k, l]}{\partial In[H]}  $$
+
+从例子中可以发现转换赋值的前向微分也比反向传播微分要简单的多。
+### 线性运算`class LinearNode`
+
+### 非线性运算`class NonlinearNode`
 
 
 
