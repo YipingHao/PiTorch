@@ -280,8 +280,171 @@ namespace Pikachu
 
 	
 	
+	class NetWork;
+	class LeafNode;
+	class ElementwiseNode;
+	class TransformNode;
+	class LinearNode;
+	class NonlinearNode;
+	class Node : public vortex<Node>
+	{
+	public:
+		friend class network;
+		friend class LeafNode;
+		friend class ElementwiseNode;
+		friend class TransformNode;
+		friend class LinearNode;
+		friend class NonlinearNode;
+		
+		Node();
+		~Node();
+		enum Affiliation
+		{
+			unknown = 0,
+			initial = 1,
+			dYdX = 2,
+			dLdW = 3,
+			Hdv = 4,
+		};
+		enum VortexType
+		{
+			_leaf_ = 0,
+			_tansform_ = 1,
+			_elementwise_ = 2,
+			_nonlinear_ = 3,
+			_linear_ = 4,
+			_extra_ = 5,
+		};
+		enum LeafType
+		{
+			_leafIn_ = 0,
+			_leafPara_ = 1,
+			_leafConst_ = 2,
+		};
+		enum ElementwiseType
+		{
+			_add_ = 0,
+			_sub_ = 1,
+			_mul_ = 2,
+		};
+		enum TransformType
+		{
+			_identity_ = 0,
+			_condense_ = 1,
+			_dispatch_ = 2,
+		};
+		enum LinearType
+		{
+			_contraction_ = 0,
+
+		};
+		enum NonlinearType
+		{
+			_activation_ = 0,
+			_manifold_ = 1,
+			_cluster_ = 2,
+			_activationBack_ = 3,
+			_activationHv_ = 4,
+			_HvFinal_ = 5,
+		};
+		virtual Node* copy(void)const  = 0;
+		//virtual void copy(Node& source) = 0;
+
+	protected:
+		Affiliation Affi;
+		VortexType Type;
+		int Op;
+		bool IfOutput;
+		bool DataExpand;
+		tensor descriptor;
+		NetWork* network;
+
+		void CopyCoreN(Node& dst) const;
+	};
+	class LeafNode : public Node
+	{
+	protected:
+		vector<FuncConst> value;
+		size_t Label;
+	public:
+		LeafNode();
+		~LeafNode();
+		Node* copy(void) const;
+	};
+	class ElementwiseNode : public Node
+	{
+	public:
+		ElementwiseNode();
+		~ElementwiseNode();
+		Node* copy(void) const;
+	protected:
+		elementwise descE;
+	};
+	class TransformNode : public Node
+	{
+	public:
+		TransformNode();
+		~TransformNode();
+		Node* copy(void) const;
+	protected:
+		double alpha;
+		dispatch DisDesc1;
+		condensation CondenDesc2;
+
+	};
+	class LinearNode : public Node
+	{	
+	public:
+		LinearNode();
+		~LinearNode();
+		Node* copy(void) const;
+	protected:
+		contract Desc;
+
+	};
+	class NonlinearNode : public Node
+	{
+	public:
+		NonlinearNode();
+		~NonlinearNode();
+
+	private:
+		Node* copy(void) const;
+		void* formula;
+		//cluster*cl;
+		//manifolds*man;
+		//activation*ac;
+		//ActiParaBackward*apb;
+		//ActiHvForward*ahf;
+		//HvForwardFinal*hff;
+
+		size_t next;
+		size_t SrcDim;
+	};
+
 	
 	
+	
+
+	class NetWork
+	{
+	public:
+		NetWork();
+		~NetWork();
+		void copy(NetWork& source);
+		void forward(size_t No);
+		void backward(size_t No);
+	protected:
+		graph<Node> net;
+
+		vector<Node*> input;
+		vector<Node*> output;
+
+		vector<Node*> parameter;
+
+
+		vector<Node*> hahahah;
+	};
 }
 
 

@@ -6,6 +6,215 @@
 
 using namespace Pikachu;
 
+Node::Node()
+{
+	IfOutput = false;
+	DataExpand = true;
+	Affi = unknown;
+	network = NULL;
+}
+Node::~Node()
+{
+
+}
+void Node::CopyCoreN(Node& dst) const
+{
+	dst.Type = Type;
+	dst.Op = Op;
+	dst.IfOutput = IfOutput;
+	dst.descriptor.Set(descriptor);
+	CopyToCore(dst);
+	return;
+}
+
+LeafNode::LeafNode()
+{
+	Type = _leaf_;
+}
+LeafNode::~LeafNode()
+{
+
+}
+ElementwiseNode::ElementwiseNode()
+{
+	Type = _elementwise_;
+}
+ElementwiseNode::~ElementwiseNode()
+{
+}
+TransformNode::TransformNode()
+{
+	Type = _tansform_;
+	alpha = 1.0;
+}
+TransformNode::~TransformNode()
+{
+}
+LinearNode::LinearNode()
+{
+	Type = _linear_;
+}
+LinearNode::~LinearNode()
+{
+}
+NonlinearNode::NonlinearNode()
+{
+	formula = NULL;
+	Type = _nonlinear_;
+	next = _uintMax_;
+	SrcDim = 0;
+}
+NonlinearNode::~NonlinearNode()
+{
+	NonlinearType NT;
+	NT = (NonlinearType)Op;
+	switch (NT)
+	{
+	case Pikachu::Node::_activation_:
+	{
+		cluster*cl;
+		cl = (cluster*)formula;
+		delete cl;
+		break;
+	}
+	case Pikachu::Node::_manifold_:
+	{
+		manifolds*man;
+		man = (manifolds*)formula;
+		delete man;
+		break;
+	}
+	case Pikachu::Node::_cluster_:
+	{
+		activation* ac;
+		ac = (activation*)formula;
+		delete ac;
+		break;
+	}
+	case Pikachu::Node::_activationBack_:
+	{
+		ActiParaBackward* apb;
+		apb = (ActiParaBackward*)formula;
+		delete apb;
+		break;
+	}
+	case Pikachu::Node::_activationHv_:
+	{
+		ActiHvForward*ahf;
+		ahf = (ActiHvForward*)formula;
+		delete ahf;
+		break;
+	}
+	case Pikachu::Node::_HvFinal_:
+	{
+		HvForwardFinal*hff;
+		hff = (HvForwardFinal*)formula;
+		delete hff;
+		break;
+	}
+	default:
+		break;
+	}
+	formula = NULL;
+}
+
+Node* LeafNode::copy(void) const
+{
+	Node* node;
+	node = new LeafNode;
+	//node->CopyCore(*this);
+	CopyCoreN(*node);
+	//node->Desc.Set(Desc);
+	return node;
+}
+Node* ElementwiseNode::copy(void) const
+{
+	ElementwiseNode* node;
+	node = new ElementwiseNode();
+	CopyCoreN(*node);
+	node->descE.Set(descE);
+	return node;
+}
+Node* TransformNode::copy(void) const
+{
+	TransformNode* node;
+	node = new TransformNode();
+	CopyCoreN(*node);
+	node->DisDesc1.Set(DisDesc1);
+	node->CondenDesc2.Set(CondenDesc2);
+	node->alpha = alpha;
+	return node;
+}
+Node* LinearNode::copy(void) const
+{
+	LinearNode* node;
+	node = new LinearNode();
+	CopyCoreN(*node);
+	node->Desc.Set(Desc);
+	return node;
+}
+Node* NonlinearNode::copy(void) const
+{
+	NonlinearNode* node;
+	node = new NonlinearNode();
+	CopyCoreN(*node);
+	NonlinearType NT;
+	NT = (NonlinearType)Op;
+	switch (NT)
+	{
+	case Pikachu::Node::_activation_:
+	{
+		cluster* cl;
+		cl = new cluster;
+		cl->copy(*((cluster*)formula));
+		node->formula = (void*)cl;
+		break;
+	}
+	case Pikachu::Node::_manifold_:
+	{
+		manifolds* man;
+		man = new manifolds;
+		man->copy(*((manifolds*)formula));
+		node->formula = (void*)man;
+		break;
+	}
+	case Pikachu::Node::_cluster_:
+	{
+		activation* ac;
+		ac = new activation;
+		ac->copy(*((activation*)formula));
+		node->formula = (void*)ac;
+		break;
+	}
+	case Pikachu::Node::_activationBack_:
+	{
+		ActiParaBackward* apb;
+		apb = new ActiParaBackward;
+		apb->copy(*((ActiParaBackward*)formula));
+		node->formula = (void*)apb;
+		break;
+	}
+	case Pikachu::Node::_activationHv_:
+	{
+		ActiHvForward* ahf;
+		ahf = new ActiHvForward;
+		ahf->copy(*((ActiHvForward*)formula));
+		node->formula = (void*)ahf;
+		break;
+	}
+	case Pikachu::Node::_HvFinal_:
+	{
+		HvForwardFinal* hff;
+		hff = new HvForwardFinal;
+		hff->copy(*((HvForwardFinal*)formula));
+		node->formula = (void*)hff;
+		break;
+	}
+	default:
+		break;
+	}
+	return node;
+}
 
 
 GraphNode::GraphNode()

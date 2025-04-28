@@ -320,6 +320,7 @@ namespace Pikachu
 		~vortex();
 		//void value(const V& source);
 		void CopyCore(const Vextern& source);
+		void CopyToCore(Vextern& dst) const;
 		void demo(FILE* fp)const;
 		size_t site(void) const { return label_site;}
 		//void PushIn(Vextern* stack);
@@ -919,8 +920,9 @@ namespace Pikachu
 			srcV = src[i];
 			if (srcV != NULL)
 			{
-				now = new VExtern;
-				now->copy(*srcV);
+				//now = new VExtern;
+				//now->copy(*srcV);
+				now = srcV->copy();
 				content[i] = now;
 				now->label_site = i;
 			}
@@ -1366,6 +1368,17 @@ namespace Pikachu
 		//V::copy((const V)source);
 		out.copy(source.out);
 		in.copy(source.in);
+	}
+	template <class V> void vortex<V>::CopyToCore(Vextern& dst) const
+	{
+		dst.temp = temp;
+		dst.label_site = label_site;
+		dst.label_2 = label_2;
+		dst.label_3 = label_3;
+		dst.infor = infor;
+		//V::copy((const V)source);
+		dst.out.copy(out);
+		dst.in.copy(in);
 	}
 	template <class V> void vortex<V>::demo(FILE* fp)const
 	{

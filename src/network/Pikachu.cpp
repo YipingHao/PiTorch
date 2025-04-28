@@ -5,6 +5,27 @@ using namespace Pikachu;
 #define _uintMax_ 0xffffffffffffffff
 #endif
 
+NetWork::NetWork()
+{
+
+}
+NetWork::~NetWork()
+{
+
+}
+void NetWork::copy(NetWork& source)
+{
+
+}
+void NetWork::forward(size_t No)
+{
+
+}
+void NetWork::backward(size_t No)
+{
+
+}
+
 network::network()
 {
 	Initialized = false;
