@@ -57,7 +57,7 @@ size_t NewIndex;
 size_t RepeatedIndex;
 ```
 
-其中`indexDst`，和`indexSrc`存储了源操作和目的操作张量的指标。这两个数组的长度正是对应张量的维数。其中每个不同的指标会分配到不同的整数。相同的整数对应到相同的指标。其中如果一个指标同时出现在了源操作和目的操作张量的指标的指标中，这个指标用正数表示，(大于零)，反之则用负数表示。换言之了源张量的被求和的哑指标是负数，目的操作张量中新出现的指标是也是负数。 源操作张量的任意两个指标和其对应的整数不能相同，同理目的张量的的任意两个指标和其对应的整数不能相同。`DummyIndex`是哑指标的数量，`NewIndex`是目的张量中新出现的指标的数量。 `RepeatedIndex`，则是同时在源操作和目的操作张量中出现的指标。`DummyIndex + RepeatedIndex`是`indexSrc.count()`，`NewIndex + RepeatedIndex`是`indexDst.count()`。
+其中`indexDst`，和`indexSrc`存储了源操作和目的操作张量的指标。这两个数组的长度正是对应张量的维数。其中每个不同的指标会分配到不同的整数。相同的整数对应到相同的指标。其中如果一个指标同时出现在了源操作和目的操作张量的指标的指标中，这个指标用正数表示，(大于零)，反之则用负数表示。换言之源张量的被求和的哑指标是负数，目的操作张量中新出现的指标是也是负数。 源操作张量的任意两个指标和其对应的整数不能相同，同理目的张量的的任意两个指标和其对应的整数不能相同。`DummyIndex`是哑指标的数量，`NewIndex`是目的张量中新出现的指标的数量。 `RepeatedIndex`，则是同时在源操作和目的操作张量中出现的指标。`DummyIndex + RepeatedIndex`是`indexSrc.count()`，`NewIndex + RepeatedIndex`是`indexDst.count()`。
 
 对于例子
 $$b[i,k,m,n]=\alpha \sum_{jl} a[i,j, k, l]$$
@@ -80,15 +80,15 @@ $Op$一共有三种类型分别是加减乘。
 举一些例子:
 
 $$Y[a,b,c,d,e] = X_1[a,c,d]\quad + \quad X_2[a,b,c,e]$$
-$$Y[a,b,d,e] = \sum_{c}{X_1[a,c,d]\quad - \quad X_2[a,b,c,e]}$$
+$$Y[a,b,d,e] = \sum_{c}{(X_1[a,c,d]\quad - \quad X_2[a,b,c,e])}$$
 $$Y[i] = {X_1}[i]\quad \times \quad X_2[i]$$
 
 
 
-$${A}[ij] = \sum_{k}{A}[ik]{B}[kj]$$
-$${A}[ij] = \sum_{k}{A}[ki]{B}[kj]$$
-$${x}[ijk] = \sum_{a}{W}[ia]{y}[ajk]$$
-$${x}[ij] = \sum_{a}{W}[ia]{y}[aji]$$
+$${A}[i,j] = \sum_{k}{A}[i,k]{B}[k,j]$$
+$${A}[i,j] = \sum_{k}{A}[k,i]{B}[k,j]$$
+$${x}[i,j,k] = \sum_{a}{W}[i,a]Y[a,j,k]$$
+$${x}[i,j] = \sum_{a}{W}[i,a]Y[a,j,i]$$
 
 这是一个双张量运算模块，它实际能实现的功能很多。
 首先此模块能实现张量的缩并，缩并的最常见实例就是矩阵乘法。
@@ -97,11 +97,24 @@ $${x}[ij] = \sum_{a}{W}[ia]{y}[aji]$$
 $${dst}[{indice}_1] = \sum_{indice}{srcL}[{indice}_2]{srcR}[{indice}_3]$$
 常见的例子有
 
-$${x}[ijk] = \sum_{a}{W}[ia]{y}[ajk]$$
+$${x}[ijk] = \sum_{a}{W}[ia]Y[ajk]$$
+$${x}[ij] = \sum_{a}{W}[ia]Y[aji]$$
+
 $$out_2[a,c,d,H]=\sum_{be}\frac{\partial O[H]}{\partial Y[a, b,c,d,e]} X_1[a,b,c,e] $$
 
-其次它能实现两个张量的加法和减法。
+我们可以用三个整形数组来记录这种操作，分别是
 
+```
+vector<long int> indexDst;
+vector<long int> indexSrcL;
+vector<long int> indexSrcR;
+size_t DummyIndex;
+size_t RepeatedIndex;
+```
+
+其中`indexDst`，存储了目的操作张量的指标。其中`indexSrcL`，和`indexSrcR`存储了源操作张量的指标。这两个数组的长度正是对应张量的维数。其中每个不同的指标会分配到不同的整数。相同的整数对应到相同的指标。
+其中如果一个指标同时出现在了某个源操作和目的操作张量的指标的指标中，这个指标用正数表示，(大于零)，反之则用负数表示。换言之源张量的被求和的哑指标是负数，目的操作张量中新出现的指标是也是负数。 源操作张量的任意两个指标和其对应的整数不能相同，同理目的张量的的任意两个指标和其对应的整数不能相同。
+`DummyIndex`是哑指标的数量，`RepeatedIndex`是同时在三个张量中的指标的数量，换言之同时出现在两个源操作张量中但是没有拿来求和的指标。
 
 
 
