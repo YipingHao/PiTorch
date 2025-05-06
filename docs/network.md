@@ -156,8 +156,8 @@ RepeatedIndex= 2;
 ```
 得到的微分实质上是先将`DummyIndex`和`RepeatedIndex`对调，`NewIndex`加上`H`的维数。再将`indexDst`和`indexSrc`对调,并补充上`H`对应的指标，我们假设`H`是三维的。那么我们有
 ```
-indexDst = [1, -1, 2, -2， 4， 5， 6];
-indexSrc = [1, 2, -1, -2， 4， 5， 6];
+indexDst = [1, -1, 2, -2, 4， 5， 6]\\[1, -1, 2, -2, H];
+indexSrc = [1, 2, -1, -2, 4， 5， 6]\\[1, -1, 2, -2, H];
 DummyIndex = 2;
 NewIndex = 2 + 3;
 RepeatedIndex= 2;
@@ -170,19 +170,77 @@ RepeatedIndex= 2;
 举个例子,对于
 
 $$Y[a,b,c,d,e] = X_1[a,b,c,e]\quad - \quad X_2[a,c,d]$$
+
+```
+vector<long int> indexDst = [1, 2, 3, 4, 5];
+vector<long int> indexSrcL = [1, 2, 3, 5];
+vector<long int> indexSrcR = [1, 3, 4];
+size_t DummyIndex = 0;
+size_t RepeatedIndex = 2;
+```
+
 有反向传播微分:
-$$out_1[a,b,c,e,H]=\frac{\partial O[H]}{\partial X1[a, b,c,e]}=\sum_d\frac{\partial O[H]}{\partial Y[a, b,c,d,e]} \frac{\partial Y[a, b,c,d,e]}{\partial X1[a, b,c,e]}=\sum_d\frac{\partial O[H]}{\partial Y[a, b,c,d,e]}  $$
-$$out_2[a,c,d,H]=\frac{\partial O[H]}{\partial X2[a,c,d]}=\sum_{be}\frac{\partial O[H]}{\partial Y[a, b,c,d,e]} \frac{\partial Y[a, b,c,d,e]}{\partial X2[a,c,d]}=-\sum_{be}\frac{\partial O[H]}{\partial Y[a, b,c,d,e]}  $$
+$$out_1[a,b,c,e,H]=\frac{\partial O[H]}{\partial X1[a, b,c,e]}=\sum_d\frac{\partial O[H]}{\partial Y[a, b,c,d,e]} \frac{\partial Y[a, b,c,d,e]}{\partial X1[a, b,c,e]}=\sum_d\frac{\partial O[H]}{\partial Y[a, b,c,d,e]} $$
+
+微分的结果是一个单张量基本操作。
+```
+indexDst = [1, 2, 3, 5, H];
+indexSrc = [1, 2, 3, -4, 5, H];
+DummyIndex = 1;
+NewIndex = 0;
+RepeatedIndex = 4;
+```
+
+$$out_2[a,c,d,H]=\frac{\partial O[H]}{\partial X2[a,c,d]}=\sum_{be}\frac{\partial O[H]}{\partial Y[a, b,c,d,e]} \frac{\partial Y[a, b,c,d,e]}{\partial X2[a,c,d]}=-\sum_{be}\frac{\partial O[H]}{\partial Y[a, b,c,d,e]} $$
+
+微分的结果是一个单张量基本操作。
+```
+indexDst = [1, 3, 4, H];
+indexSrc = [1, -2, 3, 4, -5, H];
+DummyIndex = 2;
+NewIndex = 0;
+RepeatedIndex = 4;
+```
+
 
 举个例子,对于
 
 $$Y[a,b,d,e] = \sum_{c}{\left(X_1[a,b,c,e]\quad - \quad X_2[a,c,d]\right)}$$
+```
+vector<long int> indexDst = [1, 2, 4, 5];
+vector<long int> indexSrcL = [1, 2, -3, 5];
+vector<long int> indexSrcR = [1, -3, 4];
+size_t DummyIndex = 1;
+size_t RepeatedIndex = 1;
+```
 有反向传播微分:
 $$out_1[a,b,c,e,H]=\frac{\partial O[H]}{\partial X1[a, b,c,e]}=\sum_d\frac{\partial O[H]}{\partial Y[a, b,d,e]} \frac{\partial Y[a, b,d,e]}{\partial X1[a, b,c,e]}=\sum_d\frac{\partial O[H]}{\partial Y[a, b,d,e]}  $$
+
+微分的结果是一个单张量基本操作。
+```
+indexDst = [1, 2, -3, 5, H];
+indexSrc = [1, 2, -4, 5, H];
+DummyIndex = 1;
+NewIndex = 1;
+RepeatedIndex = 3 + |H|;
+alpha = 1.0;
+```
+
 $$out_2[a,c,d,H]=\frac{\partial O[H]}{\partial X2[a,c,d]}=\sum_{be}\frac{\partial O[H]}{\partial Y[a, b,d,e]} \frac{\partial Y[a, b,d,e]}{\partial X2[a,c,d]}=-\sum_{be}\frac{\partial O[H]}{\partial Y[a, b,d,e]}  $$
 
+微分的结果是一个单张量基本操作。
+```
+indexDst = [1, -3, 4, H];
+indexSrc = [1, -2, 4, -5, H];
+DummyIndex = 2;
+NewIndex = 1;
+RepeatedIndex = 2 + |H|;
+alpha = -1.0;
+```
 
-对于加法和减法的反向传播微分变成了转换赋值操作。
+对左源张量的求导就是将`indexDst`变成`indexSrc`,将`indexSrcL`变成`indexDst`，随后加上H。对左源张量的求导同理，注意加号和减号造成的右源张量的alpha的区别。
+
+
 对于
 $$Y[a,b,c,d,e] = X_1[a,b,c,e]\quad \times \quad X_2[a,c,d]$$
 有反向传播微分:
