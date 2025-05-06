@@ -113,8 +113,11 @@ size_t RepeatedIndex;
 ```
 
 其中`indexDst`，存储了目的操作张量的指标。其中`indexSrcL`，和`indexSrcR`存储了源操作张量的指标。这两个数组的长度正是对应张量的维数。其中每个不同的指标会分配到不同的整数。相同的整数对应到相同的指标。
-其中如果一个指标同时出现在了某个源操作和目的操作张量的指标的指标中，这个指标用正数表示，(大于零)，反之则用负数表示。换言之源张量的被求和的哑指标是负数，与单张量基本操作不同，目的操作张量中不能有新出现的指标。这是因为一旦如此，反向传播中的求导操作的结果就不再是此操作，需要引入新的算子。如果出现需要出现新的指标可以用单张量基本运算和双张量基本运算来达成。 源操作张量的任意两个指标和其对应的整数不能相同，同理目的张量的的任意两个指标和其对应的整数不能相同。
-`DummyIndex`是哑指标的数量，`RepeatedIndex`是同时在三个张量中的指标的数量，换言之同时出现在两个源操作张量中但是没有拿来求和的指标。
+其中如果一个指标同时出现在了某个源操作和目的操作张量的指标的指标中，这个指标用正数表示，(大于零)，反之则用负数表示。换言之源张量的被求和的哑指标是负数，与单张量基本操作不同，目的操作张量中不能有新出现的指标。这是因为一旦如此，反向传播中的求导操作的结果就不再是单张量基础运算或者双张量基础运算，需要引入新的算子。如果出现需要出现新的指标可以用单张量基本运算和双张量基本运算来达成。 源操作张量的任意两个指标和其对应的整数不能相同，同理目的张量的的任意两个指标和其对应的整数不能相同。
+`DummyIndex`是哑指标的数量，`RepeatedIndex`是同时在三个张量中的指标的数量，换言之同时出现在两个源操作张量中但是没有拿来求和的指标。这种操作也是允许的。
+
+
+双张量基本操作是交换的，可以讲左右输入和指标同时交换不改变输出。
 
 
 
@@ -166,10 +169,10 @@ RepeatedIndex= 2;
 
 举个例子,对于
 
-$$Y[a,b,c,d,e] = X_1[a,b,c,e]\quad + \quad X_2[a,c,d]$$
+$$Y[a,b,c,d,e] = X_1[a,b,c,e]\quad - \quad X_2[a,c,d]$$
 有反向传播微分:
 $$out_1[a,b,c,e,H]=\frac{\partial O[H]}{\partial X1[a, b,c,e]}=\sum_d\frac{\partial O[H]}{\partial Y[a, b,c,d,e]} \frac{\partial Y[a, b,c,d,e]}{\partial X1[a, b,c,e]}=\sum_d\frac{\partial O[H]}{\partial Y[a, b,c,d,e]}  $$
-$$out_2[a,c,d,H]=\frac{\partial O[H]}{\partial X2[a,c,d]}=\sum_{be}\frac{\partial O[H]}{\partial Y[a, b,c,d,e]} \frac{\partial Y[a, b,c,d,e]}{\partial X2[a,c,d]}=\sum_{be}\frac{\partial O[H]}{\partial Y[a, b,c,d,e]}  $$
+$$out_2[a,c,d,H]=\frac{\partial O[H]}{\partial X2[a,c,d]}=\sum_{be}\frac{\partial O[H]}{\partial Y[a, b,c,d,e]} \frac{\partial Y[a, b,c,d,e]}{\partial X2[a,c,d]}=-\sum_{be}\frac{\partial O[H]}{\partial Y[a, b,c,d,e]}  $$
 
 对于加法和减法的反向传播微分变成了转换赋值操作。
 对于
