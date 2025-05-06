@@ -238,7 +238,7 @@ RepeatedIndex = 2 + |H|;
 alpha = -1.0;
 ```
 
-对左源张量的求导就是将`indexDst`变成`indexSrc`,将`indexSrcL`变成`indexDst`，随后加上H。对左源张量的求导同理，注意加号和减号造成的右源张量的alpha的区别。
+对左源张量的求导就是将`indexDst`变成单张量操作的`indexSrc`,将`indexSrcL`变成单张量操作的`indexDst`，随后加上H。将`indexDst`变成单张量操作的`indexSrc`之后对于为出现在单张量操作的`indexDst`中的指标视为哑指标随后讲之符号反转。对左源张量的求导同理，注意加号和减号造成的右源张量的alpha的区别。
 
 
 对于
