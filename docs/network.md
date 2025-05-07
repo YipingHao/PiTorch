@@ -312,7 +312,9 @@ RepeatedIndex= 2 + |H|;
 
 ### 双张量基础运算 `class ElementwiseNode` 
 
-举个例子,对于
+#### 例子1
+
+对于
 
 $$Y[a,b,c,d,e] = X_1[a,b,c,e]\quad \pm \quad X_2[a,c,d]$$
 
@@ -342,6 +344,8 @@ descriptor diff
     size_t RepeatedIndex = 2 + |H|;
 }
 ```
+
+#### 例子2
 
 
 对于
@@ -400,7 +404,7 @@ descriptor diff_sum
     size_t RepeatedIndex = |source::indexDst| + |H|;
 }
 ```
-
+#### 例子3
 
 对于
 $$Y[a,b,d,e] = \sum_{c}\left(X_1[a,b,c,e]\quad \times \quad X_2[a,c,d]\right)$$
