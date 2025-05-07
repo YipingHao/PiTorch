@@ -171,6 +171,8 @@ RepeatedIndex= 2;
 
 ### 双张量基础运算 `class ElementwiseNode` 
 
+#### 例子1
+
 举个例子,对于
 
 $$Y[a,b,c,d,e] = X_1[a,b,c,e]\quad - \quad X_2[a,c,d]$$
@@ -206,6 +208,7 @@ NewIndex = 0;
 RepeatedIndex = 4;
 ```
 
+#### 例子2
 
 举个例子,对于
 
@@ -451,6 +454,7 @@ descriptor diff_right
     size_t RepeatedIndex = 2 + |H|;
 }
 ```
+
 ```
 descriptor diff_sum
 {
