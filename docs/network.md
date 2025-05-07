@@ -277,11 +277,41 @@ $$diff[a,b,c]=\frac{\partial Leaf[a,b,c]}{\partial X}$$
 
 $$diff[a,b,c,H]=\frac{\partial Leaf[a,b,c]}{\partial X[H]}$$
 
-### 逐元素操作 `class ElementwiseNode` 
+### 单张量基础运算`class TransformNode` 
+
+
+举例子如下，对于
+$$b[i,k,m,n]=\sum_{jl} a[i, j, k, l]$$
+
+```
+indexDst = [1, 2, -1, -2];
+indexSrc = [1, -1, 2, -2];
+DummyIndex = 2;
+NewIndex = 2;
+RepeatedIndex= 2;
+```
+
+有前向传播微分:
+
+$$out[i, k, m, n, H]=\frac{\partial b[i, k, m, n]}{\partial In[H]}=\sum_{jl}\frac{\partial a[i, j, k, l]}{\partial In[H]}  $$
+
+```
+indexDst = [1, 2, -1, -2, H];
+indexSrc = [1, -1, 2, -2, H];
+DummyIndex = 2;
+NewIndex = 2;
+RepeatedIndex= 2 + |H|;
+```
+
+
+从例子中可以发现转换赋值的前向微分也比反向传播微分要简单的多。
+
+### 双张量基础运算 `class ElementwiseNode` 
 
 举个例子,对于
 
 $$Y[a,b,c,d,e] = X_1[a,b,c,e]\quad + \quad X_2[a,c,d]$$
+
 有前向传播微分:
 $$out[a,b,c,d,e, H]=\frac{\partial Y[a,b,c,d,e]}{\partial In[H]}=\frac{\partial X_1[a,b,c,e]}{\partial In[H]}\quad + \quad \frac{\partial X_2[a,c,d]}{\partial In[H]}$$
 对于加减法的前向微分是平凡的。
@@ -293,15 +323,6 @@ $$out[a,b,c,d,e, H]=\frac{\partial Y[a,b,c,d,e]}{\partial In[H]}=\frac{\partial 
 对于乘法的前向微分略微复杂但是也只是单纯的扩展然后求和。
 
 
-### 转换赋值操作`class TransformNode` 
-
-举例子如下，对于
-$$b[i,k,m,n]=\sum_{jl} a[i,j, k, l]$$
-有前向传播微分:
-
-$$out[i,k,m,n,H]=\frac{\partial b[i,k,m,n]}{\partial In[H]}=\sum_{jl}\frac{\partial a[i,j, k, l]}{\partial In[H]}  $$
-
-从例子中可以发现转换赋值的前向微分也比反向传播微分要简单的多。
 ### 线性运算`class LinearNode`
 
 ### 非线性运算`class NonlinearNode`
