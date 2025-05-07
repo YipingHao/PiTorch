@@ -6,9 +6,9 @@
 
 为了描述准确清晰，本文没有爱因斯坦求和约定，所有累加累积都会显式的给出$\sum$和$\prod$符号。
 
-这是一个单人写的框架，作为单人写的框架，人月有限。需要尽可能简洁高性能的实现基本功能。如果不把卷积考虑在内，那么仅仅四种节点就可以表示几乎所有目的领域所需的前向神经网络架构。
+这是一个单人写的框架，作为单人写的框架，人月有限。需要尽可能简洁高性能的实现基本功能。如果不把卷积考虑在内，那么仅仅二种节点或者说算子就可以表示几乎所有目的领域所需的前向神经网络架构需要的线性操作。但是目的领域需要的非线性操作的种类更多。需要更多的算子种类。
 
-有向图的节点一共四个类型，分别是叶子类型，单张量基础运算，双张量基础运算，以及非线性变换。对应定义在`Pikachu.h`中的四个类。分别是`class LeafNode`, `class MonoNode`, `class DualNode`, `class NonlinearNode`。
+目前支持的有向图的节点一共五个类型，分别是叶子类型，单张量基础运算，双张量基础运算，以及带基本非线性类型，无参数流形类型。对应定义在`Pikachu.h`中的个类。分别是`class LeafNode`, `class MonoNode`, `class DualNode`, `class NonlinearNode`。
 
 
 这五个类有共同的基类`class Node`。
@@ -224,6 +224,7 @@ size_t RepeatedIndex = 1;
 $$out_1[a,b,c,e,H]=\frac{\partial O[H]}{\partial X1[a, b,c,e]}=\sum_d\frac{\partial O[H]}{\partial Y[a, b,d,e]} \frac{\partial Y[a, b,d,e]}{\partial X1[a, b,c,e]}=\sum_d\frac{\partial O[H]}{\partial Y[a, b,d,e]}  $$
 
 微分的结果是一个单张量基本操作。
+
 ```
 indexDst = [1, 2, -3, 5, H];
 indexSrc = [1, 2, -4, 5, H];
@@ -236,6 +237,8 @@ alpha = 1.0;
 $$out_2[a,c,d,H]=\frac{\partial O[H]}{\partial X2[a,c,d]}=\sum_{be}\frac{\partial O[H]}{\partial Y[a, b,d,e]} \frac{\partial Y[a, b,d,e]}{\partial X2[a,c,d]}=-\sum_{be}\frac{\partial O[H]}{\partial Y[a, b,d,e]}  $$
 
 微分的结果是一个单张量基本操作。
+
+
 ```
 indexDst = [1, -3, 4, H];
 indexSrc = [1, -2, 4, -5, H];
@@ -245,27 +248,142 @@ RepeatedIndex = 2 + |H|;
 alpha = -1.0;
 ```
 
+
 对左源张量的求导就是将`indexDst`变成单张量操作的`indexSrc`,将`indexSrcL`变成单张量操作的`indexDst`，随后加上H。将`indexDst`变成单张量操作的`indexSrc`之后对于为出现在单张量操作的`indexDst`中的指标视为哑指标随后讲之符号反转。对左源张量的求导同理，注意加号和减号造成的右源张量的alpha的区别。
 
+#### 例子3
 
 对于
 $$Y[a,b,c,d,e] = X_1[a,b,c,e]\quad \times \quad X_2[a,c,d]$$
+
+```
+descriptor source
+{
+    vector<long int> indexDst = [1, 2, 3, 4, 5];
+    vector<long int> indexSrcL = [1, 2, 3, 5];
+    vector<long int> indexSrcR = [1, 3, 4];
+    size_t DummyIndex = 0;
+    size_t RepeatedIndex = 2;
+}
+```
+
+
 有反向传播微分:
 $$out_1[a,b,c,e,H]=\frac{\partial O[H]}{\partial X1[a, b,c,e]}=\sum_d\frac{\partial O[H]}{\partial Y[a, b,c,d,e]} \frac{\partial Y[a, b,c,d,e]}{\partial X1[a, b,c,e]}=\sum_d\frac{\partial O[H]}{\partial Y[a, b,c,d,e]} X_2[a,c,d]$$
+```
+descriptor diffL
+{
+    vector<long int> indexDst = [1, 2, 3, 5, H];
+    vector<long int> indexSrcL = [1, 2, 3, -4, 5, H];
+    vector<long int> indexSrcR = [1, 3, -4];
+    size_t DummyIndex = 1;
+    size_t RepeatedIndex = 2 + |H|;
+}
+```
+交换`indexDst`和`indexSrcL`后添加自变量张量维数并设置不在结果中出现的哑标。
 $$out_2[a,c,d,H]=\frac{\partial O[H]}{\partial X2[a,c,d]}=\sum_{be}\frac{\partial O[H]}{\partial Y[a, b,c,d,e]} \frac{\partial Y[a, b,c,d,e]}{\partial X2[a,c,d]}=\sum_{be}\frac{\partial O[H]}{\partial Y[a, b,c,d,e]} X_1[a,b,c,e] $$
+```
+descriptor diffR
+{
+    vector<long int> indexDst = [1, 3, 4, H];
+    vector<long int> indexSrcL = [1, -2, 3, -5];
+    vector<long int> indexSrcR = [1, -2, 3, 4, -5, H];
+    size_t DummyIndex = 2;
+    size_t RepeatedIndex = 2 + |H|;
+}
+```
+交换`indexDst`和`indexSrcR`后添加自变量张量维数并设置不在结果中出现的哑标。
+
 
 对于乘法的反向传播微分变成了张量缩并。
 
+#### 例子4
 
 举例子如下:
 
 $${x}[i,j,k] = \sum_{a}{\omega}[i,a]y[a,j,k]$$
+
+```
+descriptor source
+{
+    vector<long int> indexDst = [1, 2, 3];
+    vector<long int> indexSrcL = [1, -4];
+    vector<long int> indexSrcR = [-4, 2, 3];
+    size_t DummyIndex = 1;
+    size_t RepeatedIndex = 0;
+}
+```
+
 有反向传播微分:
 
 $$out_1[i,a,H]=\frac{\partial O[H]}{\partial \omega[i,a]}=\sum_{jk}\frac{\partial O[H]}{\partial{x}[i,j,k]} \frac{\partial {x}[i,j,k]}{\partial \omega[i,a]}=\sum_{jk}\frac{\partial O[H]}{\partial x[i,j,k]} y[a,j,k]$$
 
-
+```
+descriptor diffL
+{
+    vector<long int> indexDst = [1, 4, H];
+    vector<long int> indexSrcL = [1, -2, -3, H];
+    vector<long int> indexSrcR = [4, -2, -3];
+    size_t DummyIndex = 2;
+    size_t RepeatedIndex = |H|;
+}
+```
 $$out_2[a,j,k,H]=\frac{\partial O[H]}{\partial y[a,j,k]}=\sum_{i}\frac{\partial O[H]}{\partial{x}[ijk]} \frac{\partial {x}[ijk]}{\partial y[a,j,k]}=\sum_{i}\frac{\partial O[H]}{\partial x[ijk]} \omega[i,a]$$
+```
+descriptor diffR
+{
+    vector<long int> indexDst = [4, 2, 3, H];
+    vector<long int> indexSrcL = [1, 4];
+    vector<long int> indexSrcR = [1, 2, 3, H];
+    size_t DummyIndex = 1;
+    size_t RepeatedIndex = |H|;
+}
+```
+
+#### 例子5
+
+举例子如下:
+
+$${x}[i,j] = \sum_{a}{\omega}[i,a]y[a, j, i]$$
+
+```
+descriptor source
+{
+    vector<long int> indexDst = [1, 2];
+    vector<long int> indexSrcL = [1, -4];
+    vector<long int> indexSrcR = [-4, 2, 1];
+    size_t DummyIndex = 1;
+    size_t RepeatedIndex = 1;
+}
+```
+
+有反向传播微分:
+
+$$out_1[i,a,H]=\frac{\partial O[H]}{\partial \omega[i,a]}=\sum_{j}\frac{\partial O[H]}{\partial{x}[i,j]} \frac{\partial {x}[i,j]}{\partial \omega[i,a]}=\sum_{j}\frac{\partial O[H]}{\partial x[i,j]} y[a,j,i]$$
+
+```
+descriptor diffL
+{
+    vector<long int> indexDst = [1, 4, H];
+    vector<long int> indexSrcL = [1, -2, H];
+    vector<long int> indexSrcR = [4, -2,  1];
+    size_t DummyIndex = 1;
+    size_t RepeatedIndex = 1 + |H|;
+}
+```
+$$out_2[a,j,i,H]=\frac{\partial O[H]}{\partial y[a,j,i]}=\frac{\partial O[H]}{\partial{x}[ij]} \frac{\partial {x}[ij]}{\partial y[a,j,i]}=\frac{\partial O[H]}{\partial x[ij]} \omega[i,a]$$
+```
+descriptor diffR
+{
+    vector<long int> indexDst = [4, 2, 1, H];
+    vector<long int> indexSrcL = [1, 4];
+    vector<long int> indexSrcR = [1, 2, H];
+    size_t DummyIndex = 0;
+    size_t RepeatedIndex = 1 + |H|;
+    
+}
+```
+交换`indexDst`和`indexSrcR`(`indexSrcl`)后添加自变量张量维数并设置不在结果中出现的哑标。
 
 ### 非线性运算`class NonlinearNode`
 
@@ -425,7 +543,7 @@ descriptor source
 ```
 
 有前向传播微分:
-$$out[a,b,d,e,H]=\frac{\partial Y[a,b,c,d,e]}{\partial In[H]}=\sum_{c}\left(\frac{\partial X_1[a,b,c,e]}{\partial In[H]} X_2[a,c,d]\quad\right) + \sum_{c}\left(\quad \frac{\partial X_2[a,c,d]}{\partial In[H]}X_1[a,b,c,e]\right)$$
+$$out[a,b,d,e,H]=\frac{\partial Y[a,b,c,d,e]}{\partial In[H]}=\sum_{c}\left(\frac{\partial X_1[a,b,c,e]}{\partial In[H]} X_2[a,c,d]\right) + \sum_{c}\left( \frac{\partial X_2[a,c,d]}{\partial In[H]}X_1[a,b,c,e]\right)$$
 
 微分的结果是三个操作，是两个操作求和生成第三个。
 
