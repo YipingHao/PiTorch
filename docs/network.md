@@ -1,10 +1,14 @@
 # 网络的表示
 
+本框架主要服务于PINN,以及NN-PES的工作。简称这两个领域为目的领域。
+
 框架使用有向图来表示整个网络的计算流程。
 
-为了描述准确清晰，本文没有爱因斯坦求和约定，所有累加累积都会显式的给出$\sum$和$\prod$符号
+为了描述准确清晰，本文没有爱因斯坦求和约定，所有累加累积都会显式的给出$\sum$和$\prod$符号。
 
-有向图的节点一共四个类型，分别是叶子类型，单张量基础运算，双张量基础运算，以及非线性变换。对应定义在`Pikachu.h`中的四个类。分别是`class LeafNode`, `class ElementwiseNode`, `class TransformNode`, `class LinearNode`, `class NonlinearNode`。
+这是一个单人写的框架，作为单人写的框架，人月有限。需要尽可能简洁高性能的实现基本功能。如果不把卷积考虑在内，那么仅仅四种节点就可以表示几乎所有目的领域所需的前向神经网络架构。
+
+有向图的节点一共四个类型，分别是叶子类型，单张量基础运算，双张量基础运算，以及非线性变换。对应定义在`Pikachu.h`中的四个类。分别是`class LeafNode`, `class MonoNode`, `class DualNode`, `class NonlinearNode`。
 
 
 这五个类有共同的基类`class Node`。
@@ -310,20 +314,152 @@ RepeatedIndex= 2 + |H|;
 
 举个例子,对于
 
-$$Y[a,b,c,d,e] = X_1[a,b,c,e]\quad + \quad X_2[a,c,d]$$
+$$Y[a,b,c,d,e] = X_1[a,b,c,e]\quad \pm \quad X_2[a,c,d]$$
+
+```
+descriptor source
+{
+    vector<long int> indexDst = [1, 2, 3, 4, 5];
+    vector<long int> indexSrcL = [1, 2, 3, 5];
+    vector<long int> indexSrcR = [1, 3, 4];
+    size_t DummyIndex = 0;
+    size_t RepeatedIndex = 2;
+}
+```
+
 
 有前向传播微分:
-$$out[a,b,c,d,e, H]=\frac{\partial Y[a,b,c,d,e]}{\partial In[H]}=\frac{\partial X_1[a,b,c,e]}{\partial In[H]}\quad + \quad \frac{\partial X_2[a,c,d]}{\partial In[H]}$$
+$$out[a,b,c,d,e, H]=\frac{\partial Y[a,b,c,d,e]}{\partial In[H]}=\frac{\partial X_1[a,b,c,e]}{\partial In[H]}\quad \pm \quad \frac{\partial X_2[a,c,d]}{\partial In[H]}$$
 对于加减法的前向微分是平凡的。
+
+```
+descriptor diff
+{
+    vector<long int> indexDst = [1, 2, 3, 4, 5, H];
+    vector<long int> indexSrcL = [1, 2, 3, 5, H];
+    vector<long int> indexSrcR = [1, 3, 4, H];
+    size_t DummyIndex = 0;
+    size_t RepeatedIndex = 2 + |H|;
+}
+```
+
 
 对于
 $$Y[a,b,c,d,e] = X_1[a,b,c,e]\quad \times \quad X_2[a,c,d]$$
+它的指标和之前的例子相同，只是运算符变成了，乘法:
+```
+descriptor source
+{
+    vector<long int> indexDst = [1, 2, 3, 4, 5];
+    vector<long int> indexSrcL = [1, 2, 3, 5];
+    vector<long int> indexSrcR = [1, 3, 4];
+    size_t DummyIndex = 0;
+    size_t RepeatedIndex = 2;
+}
+```
 有前向传播微分:
 $$out[a,b,c,d,e, H]=\frac{\partial Y[a,b,c,d,e]}{\partial In[H]}=\frac{\partial X_1[a,b,c,e]}{\partial In[H]} X_2[a,c,d]\quad + \quad \frac{\partial X_2[a,c,d]}{\partial In[H]}X_1[a,b,c,e]$$
-对于乘法的前向微分略微复杂但是也只是单纯的扩展然后求和。
+
+微分的结果是三个操作，是两个操作求和生成第三个。
+
+$$out[indice] = left[indice] + right[indice]$$
+
+求和的左半部分`left[indice] `是：
+
+```
+descriptor diff_left
+{
+    vector<long int> indexDst = [1, 2, 3, 4, 5, H];
+    vector<long int> indexSrcL = [1, 2, 3, 5, H];
+    vector<long int> indexSrcR = [1, 3, 4];
+    size_t DummyIndex = 0;
+    size_t RepeatedIndex = 2 + |H|;
+}
+```
+求和的右半部分`right[indice] `是：
+```
+descriptor diff_right
+{
+    vector<long int> indexDst = [1, 2, 3, 4, 5, H];
+    vector<long int> indexSrcL = [1, 2, 3, 5];
+    vector<long int> indexSrcR = [1, 3, 4, H];
+    size_t DummyIndex = 0;
+    size_t RepeatedIndex = 2 + |H|;
+}
+```
+可以看出，就是`source::indexDst`复制过来后，在`indexDst`上补充指标被微分张量的指标。随后在左源或者右源上补充相应指标，注意修改`RepeatedIndex`。
+
+求和的张量左边右边是同维度的，等价于`source::indexDst`加上输入的维度，可以下述`diff_sum`表示。
+```
+descriptor diff_sum
+{
+    vector<long int> indexDst = [1, 2, 3, 4, 5, H];
+    vector<long int> indexSrcL = [1, 2, 3, 4, 5, H];
+    vector<long int> indexSrcR = [1, 2, 3, 4, 5, H];
+    size_t DummyIndex = 0;
+    size_t RepeatedIndex = |source::indexDst| + |H|;
+}
+```
 
 
-### 线性运算`class LinearNode`
+对于
+$$Y[a,b,d,e] = \sum_{c}\left(X_1[a,b,c,e]\quad \times \quad X_2[a,c,d]\right)$$
+它的指标和之前的例子接近，只是多了哑标:
+
+```
+descriptor source
+{
+    vector<long int> indexDst = [1, 2, 4, 5];
+    vector<long int> indexSrcL = [1, 2, -3, 5];
+    vector<long int> indexSrcR = [1, -3, 4];
+    size_t DummyIndex = 1;
+    size_t RepeatedIndex = 2;
+}
+```
+
+有前向传播微分:
+$$out[a,b,d,e,H]=\frac{\partial Y[a,b,c,d,e]}{\partial In[H]}=\sum_{c}\left(\frac{\partial X_1[a,b,c,e]}{\partial In[H]} X_2[a,c,d]\quad\right) + \sum_{c}\left(\quad \frac{\partial X_2[a,c,d]}{\partial In[H]}X_1[a,b,c,e]\right)$$
+
+微分的结果是三个操作，是两个操作求和生成第三个。
+
+$$out[indice] = left[indice] + right[indice]$$
+
+求和的左半部分`left[indice] `是：
+
+```
+descriptor diff_left
+{
+    vector<long int> indexDst = [1, 2, 4, 5, H];
+    vector<long int> indexSrcL = [1, 2, -3, 5, H];
+    vector<long int> indexSrcR = [1, -3, 4];
+    size_t DummyIndex = 0;
+    size_t RepeatedIndex = 2 + |H|;
+}
+```
+求和的右半部分`right[indice] `是：
+```
+descriptor diff_right
+{
+    vector<long int> indexDst = [1, 2, 4, 5, H];
+    vector<long int> indexSrcL = [1, 2, -3, 5];
+    vector<long int> indexSrcR = [1, -3, 4, H];
+    size_t DummyIndex = 0;
+    size_t RepeatedIndex = 2 + |H|;
+}
+```
+```
+descriptor diff_sum
+{
+    vector<long int> indexDst = [1, 2, 4, 5, H];
+    vector<long int> indexSrcL = [1, 2, 4, 5, H];
+    vector<long int> indexSrcR = [1, 2, 4, 5, H];
+    size_t DummyIndex = 0;
+    size_t RepeatedIndex = |source::indexDst| + |H|;
+}
+```
+可以看出哑标的出现并不改变什么。
+
+
 
 ### 非线性运算`class NonlinearNode`
 
