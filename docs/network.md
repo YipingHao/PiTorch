@@ -117,7 +117,8 @@ size_t RepeatedIndex;
 ```
 
 其中`indexDst`，存储了目的操作张量的指标。其中`indexSrcL`，和`indexSrcR`存储了源操作张量的指标。这两个数组的长度正是对应张量的维数。其中每个不同的指标会分配到不同的整数。相同的整数对应到相同的指标。
-其中如果一个指标同时出现在了某个源操作和目的操作张量的指标的指标中，这个指标用正数表示，(大于零)，反之则用负数表示。换言之源张量的被求和的哑指标是负数，与单张量基本操作不同，目的操作张量中不能有新出现的指标。这是因为一旦如此，反向传播中的求导操作的结果就不再是单张量基础运算或者双张量基础运算，需要引入新的算子。如果出现需要出现新的指标可以用单张量基本运算和双张量基本运算来达成。 源操作张量的任意两个指标和其对应的整数不能相同，同理目的张量的的任意两个指标和其对应的整数不能相同。
+与单张量基本操作不同，目的操作张量中不能有新出现的指标。这是因为一旦如此，反向传播中的求导操作的结果就不再是单张量基础运算或者双张量基础运算，需要引入新的算子。如果
+如果出现需要出现新的指标可以用单张量基本运算和双张量基本运算来达成。 源操作张量的任意两个指标和其对应的整数不能相同，同理目的张量的的任意两个指标和其对应的整数不能相同。所有的指标没有负数。同时出现在两个源操作张量中但是没出现在目的张量中的指标是哑指标，同时出现在三个张量中的指标不是。
 `DummyIndex`是哑指标的数量，`RepeatedIndex`是同时在三个张量中的指标的数量，换言之同时出现在两个源操作张量中但是没有拿来求和的指标。这种操作也是允许的。
 
 
@@ -215,8 +216,8 @@ RepeatedIndex = 4;
 $$Y[a,b,d,e] = \sum_{c}{\left(X_1[a,b,c,e]\quad - \quad X_2[a,c,d]\right)}$$
 ```
 vector<long int> indexDst = [1, 2, 4, 5];
-vector<long int> indexSrcL = [1, 2, -3, 5];
-vector<long int> indexSrcR = [1, -3, 4];
+vector<long int> indexSrcL = [1, 2, 3, 5];
+vector<long int> indexSrcR = [1, 3, 4];
 size_t DummyIndex = 1;
 size_t RepeatedIndex = 1;
 ```
@@ -274,8 +275,8 @@ $$out_1[a,b,c,e,H]=\frac{\partial O[H]}{\partial X1[a, b,c,e]}=\sum_d\frac{\part
 descriptor diffL
 {
     vector<long int> indexDst = [1, 2, 3, 5, H];
-    vector<long int> indexSrcL = [1, 2, 3, -4, 5, H];
-    vector<long int> indexSrcR = [1, 3, -4];
+    vector<long int> indexSrcL = [1, 2, 3, 4, 5, H];
+    vector<long int> indexSrcR = [1, 3, 4];
     size_t DummyIndex = 1;
     size_t RepeatedIndex = 2 + |H|;
 }
@@ -286,8 +287,8 @@ $$out_2[a,c,d,H]=\frac{\partial O[H]}{\partial X2[a,c,d]}=\sum_{be}\frac{\partia
 descriptor diffR
 {
     vector<long int> indexDst = [1, 3, 4, H];
-    vector<long int> indexSrcL = [1, -2, 3, -5];
-    vector<long int> indexSrcR = [1, -2, 3, 4, -5, H];
+    vector<long int> indexSrcL = [1, 2, 3, 5];
+    vector<long int> indexSrcR = [1, 2, 3, 4, 5, H];
     size_t DummyIndex = 2;
     size_t RepeatedIndex = 2 + |H|;
 }
@@ -307,8 +308,8 @@ $${x}[i,j,k] = \sum_{a}{\omega}[i,a]y[a,j,k]$$
 descriptor source
 {
     vector<long int> indexDst = [1, 2, 3];
-    vector<long int> indexSrcL = [1, -4];
-    vector<long int> indexSrcR = [-4, 2, 3];
+    vector<long int> indexSrcL = [1, 4];
+    vector<long int> indexSrcR = [4, 2, 3];
     size_t DummyIndex = 1;
     size_t RepeatedIndex = 0;
 }
@@ -322,8 +323,8 @@ $$out_1[i,a,H]=\frac{\partial O[H]}{\partial \omega[i,a]}=\sum_{jk}\frac{\partia
 descriptor diffL
 {
     vector<long int> indexDst = [1, 4, H];
-    vector<long int> indexSrcL = [1, -2, -3, H];
-    vector<long int> indexSrcR = [4, -2, -3];
+    vector<long int> indexSrcL = [1, 2, 3, H];
+    vector<long int> indexSrcR = [4, 2, 3];
     size_t DummyIndex = 2;
     size_t RepeatedIndex = |H|;
 }
@@ -350,8 +351,8 @@ $${x}[i,j] = \sum_{a}{\omega}[i,a]y[a, j, i]$$
 descriptor source
 {
     vector<long int> indexDst = [1, 2];
-    vector<long int> indexSrcL = [1, -4];
-    vector<long int> indexSrcR = [-4, 2, 1];
+    vector<long int> indexSrcL = [1, 4];
+    vector<long int> indexSrcR = [4, 2, 1];
     size_t DummyIndex = 1;
     size_t RepeatedIndex = 1;
 }
@@ -365,8 +366,8 @@ $$out_1[i,a,H]=\frac{\partial O[H]}{\partial \omega[i,a]}=\sum_{j}\frac{\partial
 descriptor diffL
 {
     vector<long int> indexDst = [1, 4, H];
-    vector<long int> indexSrcL = [1, -2, H];
-    vector<long int> indexSrcR = [4, -2,  1];
+    vector<long int> indexSrcL = [1, 2, H];
+    vector<long int> indexSrcR = [4, 2,  1];
     size_t DummyIndex = 1;
     size_t RepeatedIndex = 1 + |H|;
 }
@@ -384,6 +385,15 @@ descriptor diffR
 }
 ```
 交换`indexDst`和`indexSrcR`(`indexSrcl`)后添加自变量张量维数并设置不在结果中出现的哑标。
+
+想象有五个不相交的指标集合$A_1$,$A_2$,$A_3$,$A_4$, $H$。其中$A_1\cup A_2\cup A_4$是左源操作张量的指标集合， $A_2\cup A_3\cup A_4$是右源操作张量的指标集合，  $A_1\cup A_2\cup A_3$是目的张量的指标。其中$A_4$是哑指标集合，$A_3$是出现在所有张量中的批次指标集合。$H$是微分目标张量指标集合，有:
+
+$$Dst[A_1\cup A_2\cup A_3]=\sum_{i A^\prime_4} srcL[A_1\cup A_2\cup A^\prime_4]srcR[A_2\cup A_3\cup A^\prime_4]$$
+
+
+$$ \frac{\partial O[H]}{\partial srcL[A_1\cup A_2\cup A_4]} =\sum_{A_1^\prime\cup A_2^\prime\cup A^\prime_3}\frac{\partial  O[H]}{\partial Dst[A_1^\prime\cup A_2^\prime\cup A^\prime_3]} \frac{\partial Dst[A_1^\prime\cup A_2^\prime\cup A^\prime_3]} {\partial srcL[A_1\cup A_2\cup A_4]}= \sum_{A_1^\prime\cup A_2^\prime\cup A^\prime_3}\frac{\partial  O[H]}{\partial Dst[A_1^\prime\cup A_2^\prime\cup A^\prime_3]} srcR[A_2\cup A_3^\prime\cup A_4]\delta_{A_1^\prime, A_1}\delta_{A_2^\prime, A_2}=\sum_{A^\prime_3}\frac{\partial  O[H]}{\partial Dst[A_1\cup A_2\cup A^\prime_3]} srcR[A_2\cup A_3^\prime\cup A_4]$$
+
+$Dst[A_1\cup A_2\cup A_3]$和 $\frac{\partial  O[H]}{\partial Dst[A_1\cup A_2\cup A^\prime_3]}$ 的$A_1$,$A_2$,$A_3$集合内的指标排布一样，所以反向传播只是交换指标之后加$H$就好了。
 
 ### 非线性运算`class NonlinearNode`
 
@@ -535,8 +545,8 @@ $$Y[a,b,d,e] = \sum_{c}\left(X_1[a,b,c,e]\quad \times \quad X_2[a,c,d]\right)$$
 descriptor source
 {
     vector<long int> indexDst = [1, 2, 4, 5];
-    vector<long int> indexSrcL = [1, 2, -3, 5];
-    vector<long int> indexSrcR = [1, -3, 4];
+    vector<long int> indexSrcL = [1, 2, 3, 5];
+    vector<long int> indexSrcR = [1, 3, 4];
     size_t DummyIndex = 1;
     size_t RepeatedIndex = 2;
 }
@@ -555,8 +565,8 @@ $$out[indice] = left[indice] + right[indice]$$
 descriptor diff_left
 {
     vector<long int> indexDst = [1, 2, 4, 5, H];
-    vector<long int> indexSrcL = [1, 2, -3, 5, H];
-    vector<long int> indexSrcR = [1, -3, 4];
+    vector<long int> indexSrcL = [1, 2, 3, 5, H];
+    vector<long int> indexSrcR = [1, 3, 4];
     size_t DummyIndex = 0;
     size_t RepeatedIndex = 2 + |H|;
 }
@@ -566,8 +576,8 @@ descriptor diff_left
 descriptor diff_right
 {
     vector<long int> indexDst = [1, 2, 4, 5, H];
-    vector<long int> indexSrcL = [1, 2, -3, 5];
-    vector<long int> indexSrcR = [1, -3, 4, H];
+    vector<long int> indexSrcL = [1, 2, 3, 5];
+    vector<long int> indexSrcR = [1, 3, 4, H];
     size_t DummyIndex = 0;
     size_t RepeatedIndex = 2 + |H|;
 }
