@@ -6,9 +6,9 @@
 
 为了描述准确清晰，本文没有爱因斯坦求和约定，所有累加累积都会显式的给出$\sum$和$\prod$符号。
 
-这是一个单人写的框架，作为单人写的框架，人月有限。需要尽可能简洁高性能的实现基本功能。如果不把卷积考虑在内，那么仅仅二种节点或者说算子就可以表示几乎所有目的领域所需的前向神经网络架构需要的线性操作。但是目的领域需要的非线性操作的种类更多。需要更多的算子种类。
+这是一个单人写的框架，作为单人写的框架，人月有限。需要尽可能简洁高性能的实现基本功能。如果不把卷积考虑在内，那么仅仅两种节点或者说算子就可以表示几乎所有目的领域所需的前向神经网络架构需要的线性操作。同理，仅用两种节点或者说算子就可以表示几乎所有目的领域所需的前向神经网络架构需要的非线性操作。
 
-目前支持的有向图的节点一共五个类型，分别是叶子类型，单张量基础运算，双张量基础运算，以及带基本非线性类型，无参数流形类型。对应定义在`Pikachu.h`中的个类。分别是`class LeafNode`, `class MonoNode`, `class DualNode`, `class NonlinearNode`。
+目前支持的有向图的节点一共五个类型，分别是叶子类型，单张量基础运算，双张量基础运算，以及单张量非线性型，双张量非线性型。对应定义在`Pikachu.h`中的个类。分别是`class LeafNode`, `class MonoNode`, `class DualNode`, `class NonlinearNode`。
 
 
 这五个类有共同的基类`class Node`。
@@ -27,7 +27,7 @@
 ```
 
 
-### 单张量基础运算`class TransformNode` 
+### 单张量基础运算
 
 
 本模块公式如下:
@@ -74,11 +74,23 @@ NewIndex = 2;
 RepeatedIndex= 2;
 ```
 当然了将`1`，`2`互换，甚至使用绝对值更大的整数也对应了相同的描述。
-### 双张量基础运算 `class LinearNode`
+### 双张量基础运算 
 
 将两个张量通过某一个运算符进行拼接，拼接后将部分指标变成哑指标后进行求和
 
-$${dst}[{indice}_1] = \sum_{dummy}{srcL}[{indice}_2]\quad Op \quad {srcR}[{indice}_3]$$
+${indice}_L$，${indice}_R$是两个指标集合。
+令 
+$$A_1 = {indice}_L - {indice}_R$$
+$$A_3 = {indice}_R - {indice}_L$$
+$$A_2 \suset {indice}_L\cap{indice}_R$$
+$$A_4 = {indice}_L\cap{indice}_R - A_2$$
+$${indice}_D = A_1 \cup A_3 \cup A_2$$
+
+
+则通式为
+$${dst}[{indice}_D] = \sum_{A_4}\left({srcL}[{indice}_L]\quad Op \quad {srcR}[{indice}_R]\right)$$
+
+
 $Op$一共有三种类型分别是加减乘。
 
 举一些例子:
@@ -126,20 +138,79 @@ size_t RepeatedIndex;
 
 
 
-### 非线性运算`class NonlinearNode`
+### 单张量非线性型
 
-本框架的精髓与独到的地方。类似激活函数等由初等函数复合得到的非线性变换对应的模块。本框架使用符号微分的地方。
+常见的激活函数就是属于此类模块。考虑一个函数将一个矢量映射到一个张量。
+
+$$f_{B_1}(x_i)$$
+
+其中$B_1$是一个指标构成的集合，这个集合可以是空集。集合的阶数就是张量的维数。如果是空集，那么函数输出的是一个标量。其中$x_i$是一个矢量，如果它维度为一，那么他就是一个标量。如果指标集是空集输入时标量，那么他就是我们熟悉的激活函数。
+
+举例子
+
+$$f_{abc}(x_d)$$
+$$f(x)$$
+$$f_i(x_j)$$
+
+
+我们可以用一下集合描述这个函数的指标
+```
+bool ScalarInput;
+long int x;
+vector<long int> function; 
+```
+
+如果`ScalarInput`是`true`那么函数的输入是一个标量，反之是一个矢量，需要分配一个指标这个指标就是`long int x`，此外函数本身也要分配一组指标`vector<long int> function`。如果`function.count()`是`0`那么函数的输出也是一个标量。
+
+如果有一个输入张量经过此函数作用后得到另一个张量，举个例子:
+
+$$Y_{ijkabc}=f_{abc}(x_d)[X_{dijk}]$$
+
+我们可以需要两个数组描述这种指标
+
+```
+vector<long int> indexDst;
+vector<long int> indexSrc;
+```
+其中， 源操作张量的任意两个指标和其对应的整数不能相同，同理目的张量的的任意两个指标和其对应的整数不能相同。出现在`indexDst` 中的指标一定出现在`indexSrc` 或`function`中。
+
+
+对于 $Y_{ijkabc}=f_{abc}(x_d)[X_{dijk}]$可以有
+
+```
+ScalarInput = false;
+x = 4;
+function = [1, 2, 3]; 
+
+indexDst = [1, 2, 3, 5, 6, 7];
+indexSrc = [4, 5, 6, 7];
+```
+
+
+
+
+### 双张量非线性型
+
+公式为
+
+$$y[indice_1]=f(x[indice_1];\omega[indice_1, dim])$$
+
+其中,$\omega$是参数，是一个一维张量，相当于网络的权重和偏置，也可以没有参数。$x$，$y$是输入和输出，是同指标的张量。可以选择不使用参数张量，但是一旦使用参数，会出现两个问题。第一个问题是，如何将参数分配给所有的输入是一个问题。我们可以所有的输入都共享一个参数也可以所有的输入都有独立的参数，也可以每一个输入的维度都共享相同的参数。第二个问题是，参数张量一定是一个叶子类型（比如常数或者参数）吗？是否可以是其他类型？
+
+为了简单和通用，第二个问题不要求参数张量是叶子类型。第一个问题我们要求参数张量和输入张量有独立的参数，张量指标除了最后一个和输入输出的指标一致，最后一个指标就是参数自身的指标。当我们需要不同指标共享参数的时候，使用单张量基本操作和一维非线性变换相结合的方式实现。这种实现性能更弱，可能在未来需要算子融合的方式加速。我们在程序中留下一个接口，这个接口不面向用户，来描述单张量基本操作和一维非线性变换融合的结果。
+
+
 
 ## 不同种类节点进行反向传播微分
 
 反向传播时由指定输出的对当前张量导数，计算指定输出的对当前张量的源操作张量的导数。
 
-### 叶子节点 `class LeafNode`
+### 叶子节点 
 
 叶子节点没有源操作张量，所以什么也不用动。
 
 
-### 单张量基础运算`class TransformNode` 
+### 单张量基础运算
 
 举例子如下，对于
 $$b[i,k,m,n]=\alpha \sum_{jl} a[i,j, k, l]$$
@@ -170,7 +241,7 @@ RepeatedIndex= 2;
 补充的`4`,`5`,`6`是新指标，换成别的也对。
 
 
-### 双张量基础运算 `class ElementwiseNode` 
+### 双张量基础运算 
 
 #### 例子1
 
@@ -395,14 +466,53 @@ $$ \frac{\partial O[H]}{\partial srcL[A_1\cup A_2\cup A_4]} =\sum_{A_1^\prime\cu
 
 $Dst[A_1\cup A_2\cup A_3]$和 $\frac{\partial  O[H]}{\partial Dst[A_1\cup A_2\cup A^\prime_3]}$ 的$A_1$,$A_2$,$A_3$集合内的指标排布一样，所以反向传播只是交换指标之后加$H$就好了。
 
-### 非线性运算`class NonlinearNode`
+### 单张量非线性型
+
+
+对于 $Y[ijkabc]=f[abc][d](X[dijk])$可以有
+
+```
+ScalarInput = false;
+x = 4;
+function = [1, 2, 3]; 
+
+indexDst = [1, 2, 3, 5, 6, 7];
+indexSrc = [4, 5, 6, 7];
+```
+
+
+
+$$\frac{\partial Y[a^\prime b^\prime c^\prime i^\prime j^\prime k^\prime]}{\partial X[dijk]} = \frac{\partial Y[a^\prime b^\prime c^\prime i j k]}{\partial X[dijk]}\delta_{ii^\prime}\delta_{jj^\prime}\delta_{kk^\prime}= f[a^\prime b^\prime c^\prime,d][d^\prime](X[d^\prime ijk])\delta_{ii^\prime}\delta_{jj^\prime}\delta_{kk^\prime}$$
+
+其中$f[a^\prime b^\prime c^\prime,d][d^\prime]=f[a^\prime b^\prime c^\prime d][d^\prime]$是$f[a^\prime b^\prime c^\prime][d]$对自变量的梯度，会使得张量阶数升高一阶，最后一阶的维度是自变量的维度。我们可以记为：
+
+$$Y^\prime[d a^\prime b^\prime c^\prime ijk]=f[a^\prime b^\prime c^\prime,d][d^\prime](X[d^\prime ijk])$$
+
+```
+ScalarInput = false;
+x = 4;
+function = [1, 2, 3]; 
+
+indexDst = [1, 2, 3, 5, 6, 7];
+indexSrc = [4, 5, 6, 7];
+```
+
+
+此时
+
+$$\frac{\partial O[H]}{\partial X[dijk]} = \sum_{a^\prime b^\prime c^\prime i^\prime j^\prime k^\prime}\frac{\partial O[H]}{\partial Y[a^\prime b^\prime c^\prime i^\prime j^\prime k^\prime]} \frac{\partial Y[a^\prime b^\prime c^\prime i^\prime j^\prime k^\prime]}{\partial X[dijk]} = \sum_{a^\prime b^\prime c^\prime i^\prime j^\prime k^\prime}\frac{\partial O[H]}{\partial Y[a^\prime b^\prime c^\prime i^\prime j^\prime k^\prime]} f[a^\prime b^\prime c^\prime,d][d^\prime](X[d^\prime ijk])\delta_{ii^\prime}\delta_{jj^\prime}\delta_{kk^\prime} =          \sum_{a^\prime b^\prime c^\prime }\frac{\partial O[H]}{\partial Y[a^\prime b^\prime c^\prime i j k]} f[a^\prime b^\prime c^\prime,d][d^\prime](X[d^\prime ijk]) $$
+$$ =      \sum_{a b c }\frac{\partial O[H]}{\partial Y[a b c i j k]} f[a b c,d][d^\prime](X[d^\prime ijk]) = \sum_{a b c }\frac{\partial O[H]}{\partial Y[a b c i j k]} Y^\prime[d abc ijk d]$$
+
+
+
+
 
 
 ## 不同种类节点进行前向传播微分
 
 前传播时由当前张量的源操作张量对指定输入张量的导数，计算当前张量对指定输入张量的导数。
 
-### 叶子节点 `class LeafNode`
+### 叶子节点 
 
 叶子节点没有源操作张量，但是却是前向微分的起点。
 如果当前叶子张量就是微分的指定输入张量，那么它的前向微分是一个对角张量，否则它是一个零张量。
@@ -412,7 +522,7 @@ $$diff[a,b,c]=\frac{\partial Leaf[a,b,c]}{\partial X}$$
 
 $$diff[a,b,c,H]=\frac{\partial Leaf[a,b,c]}{\partial X[H]}$$
 
-### 单张量基础运算`class TransformNode` 
+### 单张量基础运算
 
 
 举例子如下，对于
@@ -441,7 +551,7 @@ RepeatedIndex= 2 + |H|;
 
 从例子中可以发现转换赋值的前向微分也比反向传播微分要简单的多。
 
-### 双张量基础运算 `class ElementwiseNode` 
+### 双张量基础运算 
 
 #### 例子1
 
@@ -597,7 +707,7 @@ descriptor diff_sum
 
 
 
-### 非线性运算`class NonlinearNode`
+### 单张量非线性型
 
 
 
