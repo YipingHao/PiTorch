@@ -456,7 +456,7 @@ descriptor diffL
     size_t RepeatedIndex = |H|;
 }
 ```
-$$out_2[a,j,k,H]=\frac{\partial O[H]}{\partial y[a,j,k]}=\sum_{i}\frac{\partial O[H]}{\partial{x}[ijk]} \frac{\partial {x}[ijk]}{\partial y[a,j,k]}=\sum_{i}\frac{\partial O[H]}{\partial x[ijk]} \omega[i,a]$$
+$$out_2[a,j,k,H]=\frac{\partial O[H]}{\partial y[a,j,k]}=\sum_{i}\frac{\partial O[H]}{\partial{x}[ijk]} \frac{\partial {x}[ijk]}{\partial y[a,j,k]}=\sum_{i}\frac{\partial O[H]}{\partial X[i,j,k]} \omega[i,a]$$
 ```
 descriptor diffR
 {
@@ -568,8 +568,8 @@ descriptor diff
 注意此时$d$是`4`,$d^\prime$是`8`
 此时
 
-$$\frac{\partial O[H]}{\partial X[dijk]} = \sum_{a^\prime b^\prime c^\prime i^\prime j^\prime k^\prime}\frac{\partial O[H]}{\partial Y[a^\prime, b^\prime, c^\prime, i^\prime ,j^\prime ,k^\prime]} \frac{\partial Y[a^\prime, b^\prime, c^\prime, i^\prime ,j^\prime ,k^\prime]}{\partial X[dijk]} = \sum_{a^\prime b^\prime c^\prime i^\prime j^\prime k^\prime}\frac{\partial O[H]}{\partial Y[a^\prime, b^\prime, c^\prime, i^\prime ,j^\prime ,k^\prime]} f^\prime[a^\prime b^\prime c^\prime,d][d^\prime](X[d^\prime ijk])\delta_{ii^\prime}\delta_{jj^\prime}\delta_{kk^\prime} =          \sum_{a^\prime b^\prime c^\prime }\frac{\partial O[H]}{\partial Y[a^\prime b^\prime c^\prime i j k]} f^\prime[a^\prime b^\prime c^\prime,d][d^\prime](X[d^\prime ijk]) $$
-$$ =      \sum_{a b c }\frac{\partial O[H]}{\partial Y[a b c i j k]} f^\prime[a b c,d][d^\prime](X[d^\prime ijk]) = \sum_{a b c }\frac{\partial O[H]}{\partial Y[a b c i j k]} Y^\prime[ abc ijk d]$$
+$$\frac{\partial O[H]}{\partial X[d,i,j,k]} = \sum_{a^\prime b^\prime c^\prime i^\prime j^\prime k^\prime}\frac{\partial O[H]}{\partial Y[a^\prime, b^\prime, c^\prime, i^\prime ,j^\prime ,k^\prime]} \frac{\partial Y[a^\prime, b^\prime, c^\prime, i^\prime ,j^\prime ,k^\prime]}{\partial X[d,i,j,k]} = \sum_{a^\prime b^\prime c^\prime i^\prime j^\prime k^\prime}\frac{\partial O[H]}{\partial Y[a^\prime, b^\prime, c^\prime, i^\prime ,j^\prime ,k^\prime]} f^\prime[a^\prime, b^\prime, c^\prime,d][d^\prime](X[d^\prime ,i,j,k])\delta_{ii^\prime}\delta_{jj^\prime}\delta_{kk^\prime} =          \sum_{a^\prime b^\prime c^\prime }\frac{\partial O[H]}{\partial Y[a^\prime, b^\prime, c^\prime ,i ,j ,k]} f^\prime[a^\prime, b^\prime, c^\prime,d][d^\prime](X[d^\prime ,i,j,k]) $$
+$$ =      \sum_{a b c }\frac{\partial O[H]}{\partial Y[a, b, c, i, j, k]} f^\prime[a, b, c,d][d^\prime](X[d^\prime ,i,j,k]) = \sum_{a b c }\frac{\partial O[H]}{\partial Y[a, b, c, i, j, k]} Y^\prime[ a,b,c, i,j,k, d]$$
 
 
 此时生成了一个新的双张量基本操作。
@@ -593,7 +593,7 @@ descriptor ditensor
 
 
 
-对于 $Y[ijkabc]=f[abc][x](X[ijk])$可以有
+对于 $Y[i,j,k,a,b,c]=f[a,b,c][x](X[i,j,k])$可以有
 
 ```
 descriptor source
@@ -607,11 +607,11 @@ descriptor source
 }
 ```
 
-$$\frac{\partial Y[a^\prime, b^\prime, c^\prime, i^\prime ,j^\prime ,k^\prime]}{\partial X[ijk]} = \frac{\partial Y[a^\prime b^\prime c^\prime i j k]}{\partial X[ijk]}\delta_{ii^\prime}\delta_{jj^\prime}\delta_{kk^\prime}= f^\prime[a^\prime b^\prime c^\prime][x](X[ ijk])\delta_{ii^\prime}\delta_{jj^\prime}\delta_{kk^\prime}$$
+$$\frac{\partial Y[a^\prime, b^\prime, c^\prime, i^\prime ,j^\prime ,k^\prime]}{\partial X[i,j,k]} = \frac{\partial Y[a^\prime, b^\prime, c^\prime ,i ,j ,k]}{\partial X[i,j,k]}\delta_{ii^\prime}\delta_{jj^\prime}\delta_{kk^\prime}= f^\prime[a^\prime, b^\prime, c^\prime][x](X[i,j,k])\delta_{ii^\prime}\delta_{jj^\prime}\delta_{kk^\prime}$$
 
-其中$f^\prime[a^\prime b^\prime c^\prime][x]=f^\prime[a^\prime b^\prime c^\prime][x]$是$f[a^\prime b^\prime c^\prime][x]$对自变量的梯度，不会使得张量阶数升高。我们可以记为：
+其中$f^\prime[a^\prime, b^\prime, c^\prime][x]=f^\prime[a^\prime, b^\prime, c^\prime][x]$是$f[a^\prime b^\prime c^\prime][x]$对自变量的梯度，不会使得张量阶数升高。我们可以记为：
 
-$$Y^\prime[a^\prime b^\prime c^\prime ijk]=f^\prime[a^\prime b^\prime c^\prime][x](X[ijk])$$
+$$Y^\prime[a^\prime, b^\prime, c^\prime, i,j,k]=f^\prime[a^\prime, b^\prime, c^\prime][x](X[i,j,k])$$
 
 ```
 descriptor diff
@@ -629,8 +629,8 @@ descriptor diff
 
 此时生成了一个新的双张量基本操作。
 
-$$\frac{\partial O[H]}{\partial X[ijk]} = \sum_{a^\prime b^\prime c^\prime i^\prime j^\prime k^\prime}\frac{\partial O[H]}{\partial Y[a^\prime, b^\prime, c^\prime, i^\prime ,j^\prime ,k^\prime]} \frac{\partial Y[a^\prime, b^\prime, c^\prime, i^\prime ,j^\prime ,k^\prime]}{\partial X[ijk]} = \sum_{a^\prime b^\prime c^\prime i^\prime j^\prime k^\prime}\frac{\partial O[H]}{\partial Y[a^\prime, b^\prime, c^\prime, i^\prime ,j^\prime ,k^\prime]} f^\prime[a^\prime b^\prime c^\prime][x](X[ijk])\delta_{ii^\prime}\delta_{jj^\prime}\delta_{kk^\prime} =          \sum_{a^\prime b^\prime c^\prime }\frac{\partial O[H]}{\partial Y[a^\prime b^\prime c^\prime i j k]} f^\prime[a^\prime b^\prime c^\prime][x](X[ijk]) $$
-$$ =      \sum_{a b c }\frac{\partial O[H]}{\partial Y[a b c i j k]} f^\prime[a b c][x](X[ ijk]) = \sum_{a b c }\frac{\partial O[H]}{\partial Y[a b c i j k]} Y^\prime[ abc ijk]$$
+$$\frac{\partial O[H]}{\partial X[i,j,k]} = \sum_{a^\prime b^\prime c^\prime i^\prime j^\prime k^\prime}\frac{\partial O[H]}{\partial Y[a^\prime, b^\prime, c^\prime, i^\prime ,j^\prime ,k^\prime]} \frac{\partial Y[a^\prime, b^\prime, c^\prime, i^\prime ,j^\prime ,k^\prime]}{\partial X[i,j,k]} = \sum_{a^\prime b^\prime c^\prime i^\prime j^\prime k^\prime}\frac{\partial O[H]}{\partial Y[a^\prime, b^\prime, c^\prime, i^\prime ,j^\prime ,k^\prime]} f^\prime[a^\prime, b^\prime, c^\prime][x](X[i,j,k])\delta_{ii^\prime}\delta_{jj^\prime}\delta_{kk^\prime} =          \sum_{a^\prime b^\prime c^\prime }\frac{\partial O[H]}{\partial Y[a^\prime, b^\prime, c^\prime ,i ,j ,k]} f^\prime[a^\prime, b^\prime, c^\prime][x](X[i,j,k]) $$
+$$ =      \sum_{a b c }\frac{\partial O[H]}{\partial Y[a, b, c, i, j, k]} f^\prime[a, b, c][x](X[ ijk]) = \sum_{a b c }\frac{\partial O[H]}{\partial Y[a, b, c, i, j, k]} Y^\prime[ a,b,c ,i,j,k]$$
 
 ```
 descriptor ditensor
@@ -852,7 +852,7 @@ descriptor diff_sum
 
 #### 例子1 矢量函数
 
-对于 $Y[ijkabc]=f[abc][d](X[dijk])$可以有
+对于 $Y[i,j,k,a,b,c]=f[a,b,c][d](X[d,i,j,k])$可以有
 
 ```
 descriptor source
@@ -868,17 +868,17 @@ descriptor source
 
 
 
-$$\frac{\partial Y[a b c i j k]}{\partial X[d^\prime i^\prime j^\prime k^\prime]} = \frac{\partial Y[a b c i j k]}{\partial X[d^\prime i j k]}\delta_{ii^\prime}\delta_{jj^\prime}\delta_{kk^\prime}= f^\prime[a^\prime b^\prime c^\prime,d^\prime][d](X[d ijk])\delta_{ii^\prime}\delta_{jj^\prime}\delta_{kk^\prime}$$
+$$\frac{\partial Y[a, b, c, i, j, k]}{\partial X[d^\prime i^\prime, j^\prime, k^\prime]} = \frac{\partial Y[a, b, c, i, j, k]}{\partial X[d^\prime i, j, k]}\delta_{ii^\prime}\delta_{jj^\prime}\delta_{kk^\prime}= f^\prime[a^\prime, b^\prime, c^\prime,d^\prime][d](X[d ,i,j,k])\delta_{ii^\prime}\delta_{jj^\prime}\delta_{kk^\prime}$$
 
-其中$f^\prime[a^\prime b^\prime c^\prime,d][d^\prime]=f^\prime[a^\prime b^\prime c^\prime d][d^\prime]$是$f[a^\prime b^\prime c^\prime][d]$对自变量的梯度，会使得张量阶数升高一阶，最后一阶的维度是自变量的维度。我们可以记为：
+其中$f^\prime[a^\prime, b^\prime, c^\prime,d][d^\prime]=f^\prime[a^\prime, b^\prime, c^\prime, d][d^\prime]$是$f[a^\prime, b^\prime, c^\prime][d]$对自变量的梯度，会使得张量阶数升高一阶，最后一阶的维度是自变量的维度。我们可以记为：
 
-$$Y^\prime[a b c ijk d^\prime]=f^\prime[a b c, d^\prime][d](X[d ijk])$$
+$$Y^\prime[a, b, c, i,j,k, d^\prime]=f^\prime[a, b, c, d^\prime][d](X[d ,i,j,k])$$
 
 交换$d$和 $d^\prime$
 
-$$Y^\prime[a b c ijk d]=f^\prime[a b c, d][d^\prime](X[d^\prime ijk])$$
+$$Y^\prime[a, b, c, i,j,k, d]=f^\prime[a, b, c, d][d^\prime](X[d^\prime ,i,j,k])$$
 
-我们可以将$Y^\prime[a b c ijk d]$记为
+我们可以将$Y^\prime[a, b, c, i,j,k d]$记为
 ```
 descriptor diff
 {
@@ -895,9 +895,9 @@ descriptor diff
 
 此时
 
-$$\frac{\partial Y[ijkabc]}{ \partial In[H]} = \sum_{d^\prime i^\prime j^\prime k^\prime} \frac{\partial Y[ijkabc]}{\partial X[d^\prime i^\prime j^\prime k^\prime]}\frac{\partial X[d^\prime i^\prime j^\prime k^\prime]}{ \partial In[H]} =        \sum_{d^\prime i^\prime j^\prime k^\prime}  \delta_{ii^\prime}\delta_{jj^\prime}\delta_{kk^\prime}   Y^\prime[a b c ijk d^\prime]   \frac{\partial X[d^\prime i^\prime j^\prime k^\prime]}{ \partial In[H]} =        \sum_{d^\prime}  Y^\prime[a b c ijk d^\prime]   \frac{\partial X[d^\prime i j k]}{ \partial In[H]}$$
+$$\frac{\partial Y[i,j,k,a,b,c]}{ \partial In[H]} = \sum_{d^\prime i^\prime j^\prime k^\prime} \frac{\partial Y[i,j,k,a,b,c]}{\partial X[d^\prime, i^\prime, j^\prime, k^\prime]}\frac{\partial X[d^\prime, i^\prime, j^\prime, k^\prime]}{ \partial In[H]} =        \sum_{d^\prime i^\prime j^\prime k^\prime}  \delta_{ii^\prime}\delta_{jj^\prime}\delta_{kk^\prime}   Y^\prime[a, b, c, i,j,k, d^\prime]   \frac{\partial X[d^\prime, i^\prime, j^\prime, k^\prime]}{ \partial In[H]} =        \sum_{d^\prime}  Y^\prime[a, b, c, i,j,k, d^\prime]   \frac{\partial X[d^\prime, i, j, k]}{ \partial In[H]}$$
 
-$$=        \sum_{d}  Y^\prime[a b c ijk d]   \frac{\partial X[d i j k]}{ \partial In[H]} $$
+$$=        \sum_{d}  Y^\prime[a, b, c, i,j,k,d]   \frac{\partial X[d, i, j, k]}{ \partial In[H]} $$
 
 
 此时生成了一个新的双张量基本操作。
@@ -921,7 +921,7 @@ descriptor ditensor
 
 
 
-对于 $Y[ijkabc]=f[abc][x](X[ijk])$可以有
+对于 $Y[i,j,k,a,b,c]=f[a,b,c][x](X[i,j,k])$可以有
 
 ```
 descriptor source
@@ -935,11 +935,11 @@ descriptor source
 }
 ```
 
-$$\frac{\partial Y[a b c i j k]}{\partial X[i^\prime j^\prime k^\prime]} = \frac{\partial Y[a b c i j k]}{\partial X[i^\prime j^\prime k^\prime]}\delta_{ii^\prime}\delta_{jj^\prime}\delta_{kk^\prime}= f^\prime[abc][x](X[ ijk])\delta_{ii^\prime}\delta_{jj^\prime}\delta_{kk^\prime}$$
+$$\frac{\partial Y[a, b, c, i, j, k]}{\partial X[i^\prime, j^\prime, k^\prime]} = \frac{\partial Y[a, b, c, i, j, k]}{\partial X[i^\prime, j^\prime, k^\prime]}\delta_{ii^\prime}\delta_{jj^\prime}\delta_{kk^\prime}= f^\prime[a,b,c][x](X[ i,j,k])\delta_{ii^\prime}\delta_{jj^\prime}\delta_{kk^\prime}$$
 
-其中$f^\prime[abc][x]=f^\prime[abc][x]$是$f[abc][x]$对自变量的导数，不会会使得张量阶数升高。我们可以记为：
+其中$f^\prime[a,b,c][x]=f^\prime[a,b,c][x]$是$f[a,b,c][x]$对自变量的导数，不会会使得张量阶数升高。我们可以记为：
 
-$$Y^\prime[abc ijk]=f^\prime[abc][x](X[ijk])$$
+$$Y^\prime[a,b,c ,i,j,k]=f^\prime[a,b,c][x](X[i,j,k])$$
 
 ```
 descriptor diff
@@ -958,7 +958,7 @@ descriptor diff
 此时生成了一个新的双张量基本操作。
 
 
-$$\frac{\partial Y[ijkabc]}{ \partial In[H]} = \sum_{ i^\prime j^\prime k^\prime} \frac{\partial Y[ijkabc]}{\partial X[ i^\prime j^\prime k^\prime]}\frac{\partial X[ i^\prime j^\prime k^\prime]}{ \partial In[H]} =        \sum_{ i^\prime j^\prime k^\prime}  \delta_{ii^\prime}\delta_{jj^\prime}\delta_{kk^\prime}   Y^\prime[a b c ijk]   \frac{\partial X [i^\prime j^\prime k^\prime]}{ \partial In[H]} =        Y^\prime[a b c ijk ]   \frac{\partial X[ i j k]}{ \partial In[H]}$$
+$$\frac{\partial Y[i,j,k,a,b,c]}{ \partial In[H]} = \sum_{ i^\prime j^\prime k^\prime} \frac{\partial Y[i,j,k,a,b,c]}{\partial X[ i^\prime, j^\prime, k^\prime]}\frac{\partial X[ i^\prime, j^\prime, k^\prime]}{ \partial In[H]} =        \sum_{ i^\prime j^\prime k^\prime}  \delta_{ii^\prime}\delta_{jj^\prime}\delta_{kk^\prime}   Y^\prime[a, b, c ,i,j,k]   \frac{\partial X [i^\prime, j^\prime, k^\prime]}{ \partial In[H]} =        Y^\prime[a, b, c, i,j,k ]   \frac{\partial X[ i, j, k]}{ \partial In[H]}$$
 
 
 
