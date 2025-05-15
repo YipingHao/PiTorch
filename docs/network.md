@@ -230,15 +230,6 @@ vector<long int> indexPara;
 
 其中， 源操作张量的任意两个指标和其对应的整数不能相同，同理目的张量的的任意两个指标和其对应的整数不能相同。出现在`indexDst` 中的指标一定出现在`indexSrc` 或`function`中。`indexSrc`最多有一个等同于`long int x`的指标不出现在`indexDst`。`indexPara`中除了最多一个等同于`long int omega`的指标其余所有指标，都出现在`indexSrc` 或者`indexDst`中。
 
-
-
-
-
-
-
-
-
-
 $$Y[ijkabc]=f[abc][x_p, \omega_q](X[pijk], W[ijq])$$
 
 ```
@@ -248,6 +239,7 @@ function = [1, 2, 3];
 
 indexDst = [1, 2, 3, 5, 6, 7];
 indexSrc = [4, 5, 6, 7];
+```
 
 
 公式为
@@ -260,7 +252,10 @@ $$y[indice_1]=f(x[indice_1];\omega[indice_1, dim])$$
 
 
 
-## 不同种类节点进行反向传播微分
+
+
+
+##  不同种类节点进行反向传播微分
 
 反向传播时由指定输出的对当前张量导数，计算指定输出的对当前张量的源操作张量的导数。
 
