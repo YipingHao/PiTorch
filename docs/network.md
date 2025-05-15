@@ -164,7 +164,7 @@ vector<long int> function;
 
 如果有一个输入张量经过此函数作用后得到另一个张量，举个例子:
 
-$$Y_{ijkabc}=f_{abc}(x_d)[X_{dijk}]$$
+$$Y[i,j,k,a,b,c]=f[a,b,c][x_d](X[d,i,j,k])$$
 
 我们可以需要两个数组描述这种指标
 
@@ -175,15 +175,18 @@ vector<long int> indexSrc;
 其中， 源操作张量的任意两个指标和其对应的整数不能相同，同理目的张量的的任意两个指标和其对应的整数不能相同。出现在`indexDst` 中的指标一定出现在`indexSrc` 或`function`中。`indexSrc`最多有一个等同于`long int x`的指标不出现在`indexDst`。
 
 
-对于 $Y_{ijkabc}=f_{abc}(x_d)[X_{dijk}]$可以有
+对于 $Y[i,j,k,a,b,c]=f[a,b,c][x_d](X[d,i,j,k])$可以有
 
 ```
-ScalarInput = false;
-x = 4;
-function = [1, 2, 3]; 
+source//descriptor
+{
+    ScalarInput = false;
+    x = 4;
+    function = [1, 2, 3]; 
 
-indexDst = [1, 2, 3, 5, 6, 7];
-indexSrc = [4, 5, 6, 7];
+    indexDst = [1, 2, 3, 5, 6, 7];
+    indexSrc = [4, 5, 6, 7];
+}
 ```
 
 
@@ -217,7 +220,7 @@ vector<long int> function;
 
 如果有一个输入张量经过此函数作用后得到另一个张量，举个例子:
 
-$$Y[ijkabc]=f[abc][x_p, \omega_q](X[pijk], W[ijq])$$
+$$Y[i,j,k,a,b,c]=f[a,b,c][x_p, \omega_q](X[p,i,j,k], W[i,j,q])$$
 
 我们可以需要三个数组描述这种指标
 
@@ -228,27 +231,26 @@ vector<long int> indexPara;
 ```
 
 
-其中， 源操作张量的任意两个指标和其对应的整数不能相同，同理目的张量的的任意两个指标和其对应的整数不能相同。出现在`indexDst` 中的指标一定出现在`indexSrc` 或`function`中。`indexSrc`最多有一个等同于`long int x`的指标不出现在`indexDst`。`indexPara`中除了最多一个等同于`long int omega`的指标其余所有指标，都出现在`indexSrc` 或者`indexDst`中。
+其中， 源操作张量的任意两个指标和其对应的整数不能相同，同理目的张量的的任意两个指标和其对应的整数不能相同。出现在`indexDst` 中的指标一定出现在`indexSrc`,`indexPara` 或`function`中,并且这些指标不能等于 `long int x`和`long int omega`。`indexSrc`最多有一个等同于`long int x`的指标不出现在`indexDst`。`indexPara`中除了最多一个等同于`long int omega`的指标其余所有指标，都出现在`indexDst`中。`function`全部指标出现在`indexDst` 中。
 
-$$Y[ijkabc]=f[abc][x_p, \omega_q](X[pijk], W[ijq])$$
+$$Y[i,j,k, a,b,c]=f[a,b,c][x_p, \omega_q](X[p,i,k], W[i,j,q])$$
 
 ```
-ScalarInput = false;
-x = 4;
-function = [1, 2, 3]; 
+source//descriptor
+{
+    ScalarInput = false;
+    x = 7;
+    ScalarPara = false;
+    omega = 8;
+    function = [1, 2, 3]; 
 
-indexDst = [1, 2, 3, 5, 6, 7];
-indexSrc = [4, 5, 6, 7];
+    indexDst = [1, 2, 3, 4, 5, 6];
+    indexSrc = [4, 6, 7];
+    indexPara = [4, 5, 8];
+}
+
 ```
 
-
-公式为
-
-$$y[indice_1]=f(x[indice_1];\omega[indice_1, dim])$$
-
-其中,$\omega$是参数，是一个一维张量，相当于网络的权重和偏置，也可以没有参数。$x$，$y$是输入和输出，是同指标的张量。可以选择不使用参数张量，但是一旦使用参数，会出现两个问题。第一个问题是，如何将参数分配给所有的输入是一个问题。我们可以所有的输入都共享一个参数也可以所有的输入都有独立的参数，也可以每一个输入的维度都共享相同的参数。第二个问题是，参数张量一定是一个叶子类型（比如常数或者参数）吗？是否可以是其他类型？
-
-为了简单和通用，第二个问题不要求参数张量是叶子类型。第一个问题我们要求参数张量和输入张量有独立的参数，张量指标除了最后一个和输入输出的指标一致，最后一个指标就是参数自身的指标。当我们需要不同指标共享参数的时候，使用单张量基本操作和一维非线性变换相结合的方式实现。这种实现性能更弱，可能在未来需要算子融合的方式加速。我们在程序中留下一个接口，这个接口不面向用户，来描述单张量基本操作和一维非线性变换融合的结果。
 
 
 
@@ -525,7 +527,7 @@ $Dst[A_1\cup A_2\cup A_3]$和 $\frac{\partial  O[H]}{\partial Dst[A_1\cup A_2\cu
 
 #### 例子1 矢量函数
 
-对于 $Y[ijkabc]=f[abc][d](X[dijk])$可以有
+对于 $Y[i,j,k,a,b,c]=f[a,b,c][d](X[d,i,j,k])$可以有
 
 ```
 descriptor source
@@ -541,11 +543,11 @@ descriptor source
 
 
 
-$$\frac{\partial Y[a^\prime b^\prime c^\prime i^\prime j^\prime k^\prime]}{\partial X[dijk]} = \frac{\partial Y[a^\prime b^\prime c^\prime i j k]}{\partial X[dijk]}\delta_{ii^\prime}\delta_{jj^\prime}\delta_{kk^\prime}= f^\prime[a^\prime b^\prime c^\prime,d][d^\prime](X[d^\prime ijk])\delta_{ii^\prime}\delta_{jj^\prime}\delta_{kk^\prime}$$
+$$\frac{\partial Y[a^\prime, b^\prime, c^\prime, i^\prime, j^\prime, k^\prime]}{\partial X[d,i,j,k]} = \frac{\partial Y[a^\prime, b^\prime, c^\prime, i, j, k]}{\partial X[d,i,j,k]}\delta_{ii^\prime}\delta_{jj^\prime}\delta_{kk^\prime}= f^\prime[a^\prime, b^\prime, c^\prime,d][d^\prime](X[d^\prime, i,j,k])\delta_{ii^\prime}\delta_{jj^\prime}\delta_{kk^\prime}$$
 
-其中$f^\prime[a^\prime b^\prime c^\prime,d][d^\prime]=f^\prime[a^\prime b^\prime c^\prime d][d^\prime]$是$f[a^\prime b^\prime c^\prime][d]$对自变量的梯度，会使得张量阶数升高一阶，最后一阶的维度是自变量的维度。我们可以记为：
+其中$f^\prime[a^\prime, b^\prime, c^\prime,d][d^\prime][d^\prime]$是$f[a^\prime, b^\prime, c^\prime][d]$对自变量的梯度，会使得张量阶数升高一阶，最后一阶的维度是自变量的维度。我们可以记为：
 
-$$Y^\prime[a^\prime b^\prime c^\prime ijk d]=f^\prime[a^\prime b^\prime c^\prime,d][d^\prime](X[d^\prime ijk])$$
+$$Y^\prime[a^\prime, b^\prime, c^\prime, i,j,k, d]=f^\prime[a^\prime, b^\prime, c^\prime,d][d^\prime](X[d^\prime, i,j,k])$$
 
 
 
@@ -566,7 +568,7 @@ descriptor diff
 注意此时$d$是`4`,$d^\prime$是`8`
 此时
 
-$$\frac{\partial O[H]}{\partial X[dijk]} = \sum_{a^\prime b^\prime c^\prime i^\prime j^\prime k^\prime}\frac{\partial O[H]}{\partial Y[a^\prime b^\prime c^\prime i^\prime j^\prime k^\prime]} \frac{\partial Y[a^\prime b^\prime c^\prime i^\prime j^\prime k^\prime]}{\partial X[dijk]} = \sum_{a^\prime b^\prime c^\prime i^\prime j^\prime k^\prime}\frac{\partial O[H]}{\partial Y[a^\prime b^\prime c^\prime i^\prime j^\prime k^\prime]} f^\prime[a^\prime b^\prime c^\prime,d][d^\prime](X[d^\prime ijk])\delta_{ii^\prime}\delta_{jj^\prime}\delta_{kk^\prime} =          \sum_{a^\prime b^\prime c^\prime }\frac{\partial O[H]}{\partial Y[a^\prime b^\prime c^\prime i j k]} f^\prime[a^\prime b^\prime c^\prime,d][d^\prime](X[d^\prime ijk]) $$
+$$\frac{\partial O[H]}{\partial X[dijk]} = \sum_{a^\prime b^\prime c^\prime i^\prime j^\prime k^\prime}\frac{\partial O[H]}{\partial Y[a^\prime, b^\prime, c^\prime, i^\prime ,j^\prime ,k^\prime]} \frac{\partial Y[a^\prime, b^\prime, c^\prime, i^\prime ,j^\prime ,k^\prime]}{\partial X[dijk]} = \sum_{a^\prime b^\prime c^\prime i^\prime j^\prime k^\prime}\frac{\partial O[H]}{\partial Y[a^\prime, b^\prime, c^\prime, i^\prime ,j^\prime ,k^\prime]} f^\prime[a^\prime b^\prime c^\prime,d][d^\prime](X[d^\prime ijk])\delta_{ii^\prime}\delta_{jj^\prime}\delta_{kk^\prime} =          \sum_{a^\prime b^\prime c^\prime }\frac{\partial O[H]}{\partial Y[a^\prime b^\prime c^\prime i j k]} f^\prime[a^\prime b^\prime c^\prime,d][d^\prime](X[d^\prime ijk]) $$
 $$ =      \sum_{a b c }\frac{\partial O[H]}{\partial Y[a b c i j k]} f^\prime[a b c,d][d^\prime](X[d^\prime ijk]) = \sum_{a b c }\frac{\partial O[H]}{\partial Y[a b c i j k]} Y^\prime[ abc ijk d]$$
 
 
@@ -605,7 +607,7 @@ descriptor source
 }
 ```
 
-$$\frac{\partial Y[a^\prime b^\prime c^\prime i^\prime j^\prime k^\prime]}{\partial X[ijk]} = \frac{\partial Y[a^\prime b^\prime c^\prime i j k]}{\partial X[ijk]}\delta_{ii^\prime}\delta_{jj^\prime}\delta_{kk^\prime}= f^\prime[a^\prime b^\prime c^\prime][x](X[ ijk])\delta_{ii^\prime}\delta_{jj^\prime}\delta_{kk^\prime}$$
+$$\frac{\partial Y[a^\prime, b^\prime, c^\prime, i^\prime ,j^\prime ,k^\prime]}{\partial X[ijk]} = \frac{\partial Y[a^\prime b^\prime c^\prime i j k]}{\partial X[ijk]}\delta_{ii^\prime}\delta_{jj^\prime}\delta_{kk^\prime}= f^\prime[a^\prime b^\prime c^\prime][x](X[ ijk])\delta_{ii^\prime}\delta_{jj^\prime}\delta_{kk^\prime}$$
 
 其中$f^\prime[a^\prime b^\prime c^\prime][x]=f^\prime[a^\prime b^\prime c^\prime][x]$是$f[a^\prime b^\prime c^\prime][x]$对自变量的梯度，不会使得张量阶数升高。我们可以记为：
 
@@ -627,7 +629,7 @@ descriptor diff
 
 此时生成了一个新的双张量基本操作。
 
-$$\frac{\partial O[H]}{\partial X[ijk]} = \sum_{a^\prime b^\prime c^\prime i^\prime j^\prime k^\prime}\frac{\partial O[H]}{\partial Y[a^\prime b^\prime c^\prime i^\prime j^\prime k^\prime]} \frac{\partial Y[a^\prime b^\prime c^\prime i^\prime j^\prime k^\prime]}{\partial X[ijk]} = \sum_{a^\prime b^\prime c^\prime i^\prime j^\prime k^\prime}\frac{\partial O[H]}{\partial Y[a^\prime b^\prime c^\prime i^\prime j^\prime k^\prime]} f^\prime[a^\prime b^\prime c^\prime][x](X[ijk])\delta_{ii^\prime}\delta_{jj^\prime}\delta_{kk^\prime} =          \sum_{a^\prime b^\prime c^\prime }\frac{\partial O[H]}{\partial Y[a^\prime b^\prime c^\prime i j k]} f^\prime[a^\prime b^\prime c^\prime][x](X[ijk]) $$
+$$\frac{\partial O[H]}{\partial X[ijk]} = \sum_{a^\prime b^\prime c^\prime i^\prime j^\prime k^\prime}\frac{\partial O[H]}{\partial Y[a^\prime, b^\prime, c^\prime, i^\prime ,j^\prime ,k^\prime]} \frac{\partial Y[a^\prime, b^\prime, c^\prime, i^\prime ,j^\prime ,k^\prime]}{\partial X[ijk]} = \sum_{a^\prime b^\prime c^\prime i^\prime j^\prime k^\prime}\frac{\partial O[H]}{\partial Y[a^\prime, b^\prime, c^\prime, i^\prime ,j^\prime ,k^\prime]} f^\prime[a^\prime b^\prime c^\prime][x](X[ijk])\delta_{ii^\prime}\delta_{jj^\prime}\delta_{kk^\prime} =          \sum_{a^\prime b^\prime c^\prime }\frac{\partial O[H]}{\partial Y[a^\prime b^\prime c^\prime i j k]} f^\prime[a^\prime b^\prime c^\prime][x](X[ijk]) $$
 $$ =      \sum_{a b c }\frac{\partial O[H]}{\partial Y[a b c i j k]} f^\prime[a b c][x](X[ ijk]) = \sum_{a b c }\frac{\partial O[H]}{\partial Y[a b c i j k]} Y^\prime[ abc ijk]$$
 
 ```
@@ -972,6 +974,35 @@ descriptor ditensor
 ```
 
 将 `source.indexSrc`的指标给`ditensor.indexSrcL`并在后面附加`H`。`ditensor.indexDst`是`source.indexDst`并在后面加上`H`,是反向传播的源头。`ditensor.indexSrcR`是`diff.indexDst`。
+
+
+### 双张量非线性型
+
+#### 例子1 双矢量函数
+
+对于例子：
+$$Y[i,j,k, a,b,c]=f[a,b,c][x_p, \omega_q](X[p,i,k], W[i,j,q])$$
+
+```
+source//descriptor
+{
+    ScalarInput = false;
+    x = 7;
+    ScalarPara = false;
+    omega = 8;
+    function = [1, 2, 3]; 
+
+    indexDst = [1, 2, 3, 4, 5, 6];
+    indexSrc = [4, 6, 7];
+    indexPara = [4, 5, 8];
+}
+```
+
+$$Y^\prime_{X}[i,j,k, a,b,c, p]=\frac{\partial f[a,b,c][x_P, \omega_q](X[P,i,k], W[i,j,q])}{X[p,i,k]} = f[a,b,c, p][x_P, \omega_q](X[P,i,k], W[i,j,q])$$
+
+
+
+
 
 
 
