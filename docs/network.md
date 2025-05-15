@@ -172,7 +172,7 @@ $$Y_{ijkabc}=f_{abc}(x_d)[X_{dijk}]$$
 vector<long int> indexDst;
 vector<long int> indexSrc;
 ```
-其中， 源操作张量的任意两个指标和其对应的整数不能相同，同理目的张量的的任意两个指标和其对应的整数不能相同。出现在`indexDst` 中的指标一定出现在`indexSrc` 或`function`中。
+其中， 源操作张量的任意两个指标和其对应的整数不能相同，同理目的张量的的任意两个指标和其对应的整数不能相同。出现在`indexDst` 中的指标一定出现在`indexSrc` 或`function`中。`indexSrc`最多有一个等同于`long int x`的指标不出现在`indexDst`。
 
 
 对于 $Y_{ijkabc}=f_{abc}(x_d)[X_{dijk}]$可以有
@@ -190,6 +190,65 @@ indexSrc = [4, 5, 6, 7];
 
 
 ### 双张量非线性型
+
+常见的激活函数就是属于此类模块。考虑一个函数将一个矢量映射到一个张量。
+
+$$f_{B_1}(x_i, \omega)$$
+
+其中$B_1$是一个指标构成的集合，这个集合可以是空集。集合的阶数就是张量的维数。如果是空集，那么函数输出的是一个标量。其中$x_i$是一个矢量，如果它维度为一，那么他就是一个标量。同理$\omega$是一个矢量，如果它维度为一，那么他就是一个标量。这$\omega$和$x_i$有一定对称性, 它们出现的背景是函数和参数。
+
+举例子
+
+$$f_{abc}(x_p, \omega_q)$$
+$$f(x, y)$$
+$$f_i(x_j, \omega)$$
+
+
+我们可以用一下集合描述这个函数的指标
+```
+bool ScalarInput;
+long int x;
+bool ScalarPara;
+long int omega;
+vector<long int> function; 
+```
+
+如果`ScalarInput`是`true`那么函数的输入是一个标量，反之是一个矢量，需要分配一个指标这个指标就是`long int x`，如果`ScalarPara`是`true`那么函数的参数是一个标量，反之是一个矢量，需要分配一个指标这个指标就是`long int x`。此外函数本身也要分配一组指标`vector<long int> function`。如果`function.count()`是`0`那么函数的输出也是一个标量。
+
+如果有一个输入张量经过此函数作用后得到另一个张量，举个例子:
+
+$$Y[ijkabc]=f[abc][x_p, \omega_q](X[pijk], W[ijq])$$
+
+我们可以需要三个数组描述这种指标
+
+```
+vector<long int> indexDst;
+vector<long int> indexSrc;
+vector<long int> indexPara;
+```
+
+
+其中， 源操作张量的任意两个指标和其对应的整数不能相同，同理目的张量的的任意两个指标和其对应的整数不能相同。出现在`indexDst` 中的指标一定出现在`indexSrc` 或`function`中。`indexSrc`最多有一个等同于`long int x`的指标不出现在`indexDst`。`indexPara`中除了最多一个等同于`long int omega`的指标其余所有指标，都出现在`indexSrc` 或者`indexDst`中。
+
+
+
+
+
+
+
+
+
+
+$$Y[ijkabc]=f[abc][x_p, \omega_q](X[pijk], W[ijq])$$
+
+```
+ScalarInput = false;
+x = 4;
+function = [1, 2, 3]; 
+
+indexDst = [1, 2, 3, 5, 6, 7];
+indexSrc = [4, 5, 6, 7];
+
 
 公式为
 
@@ -553,7 +612,7 @@ descriptor source
 
 $$\frac{\partial Y[a^\prime b^\prime c^\prime i^\prime j^\prime k^\prime]}{\partial X[ijk]} = \frac{\partial Y[a^\prime b^\prime c^\prime i j k]}{\partial X[ijk]}\delta_{ii^\prime}\delta_{jj^\prime}\delta_{kk^\prime}= f^\prime[a^\prime b^\prime c^\prime][x](X[ ijk])\delta_{ii^\prime}\delta_{jj^\prime}\delta_{kk^\prime}$$
 
-其中$f^\prime[a^\prime b^\prime c^\prime][x]=f^\prime[a^\prime b^\prime c^\prime][x]$是$f[a^\prime b^\prime c^\prime][x]$对自变量的梯度，会使得张量阶数升高一阶，最后一阶的维度是自变量的维度。我们可以记为：
+其中$f^\prime[a^\prime b^\prime c^\prime][x]=f^\prime[a^\prime b^\prime c^\prime][x]$是$f[a^\prime b^\prime c^\prime][x]$对自变量的梯度，不会使得张量阶数升高。我们可以记为：
 
 $$Y^\prime[a^\prime b^\prime c^\prime ijk]=f^\prime[a^\prime b^\prime c^\prime][x](X[ijk])$$
 
@@ -812,15 +871,17 @@ descriptor source
 
 
 
-$$\frac{\partial Y[a^\prime b^\prime c^\prime i^\prime j^\prime k^\prime]}{\partial X[dijk]} = \frac{\partial Y[a^\prime b^\prime c^\prime i j k]}{\partial X[dijk]}\delta_{ii^\prime}\delta_{jj^\prime}\delta_{kk^\prime}= f^\prime[a^\prime b^\prime c^\prime,d][d^\prime](X[d^\prime ijk])\delta_{ii^\prime}\delta_{jj^\prime}\delta_{kk^\prime}$$
+$$\frac{\partial Y[a b c i j k]}{\partial X[d^\prime i^\prime j^\prime k^\prime]} = \frac{\partial Y[a b c i j k]}{\partial X[d^\prime i j k]}\delta_{ii^\prime}\delta_{jj^\prime}\delta_{kk^\prime}= f^\prime[a^\prime b^\prime c^\prime,d^\prime][d](X[d ijk])\delta_{ii^\prime}\delta_{jj^\prime}\delta_{kk^\prime}$$
 
 其中$f^\prime[a^\prime b^\prime c^\prime,d][d^\prime]=f^\prime[a^\prime b^\prime c^\prime d][d^\prime]$是$f[a^\prime b^\prime c^\prime][d]$对自变量的梯度，会使得张量阶数升高一阶，最后一阶的维度是自变量的维度。我们可以记为：
 
-$$Y^\prime[a^\prime b^\prime c^\prime ijk d]=f^\prime[a^\prime b^\prime c^\prime,d][d^\prime](X[d^\prime ijk])$$
+$$Y^\prime[a b c ijk d^\prime]=f^\prime[a b c, d^\prime][d](X[d ijk])$$
 
+交换$d$和 $d^\prime$
 
+$$Y^\prime[a b c ijk d]=f^\prime[a b c, d][d^\prime](X[d^\prime ijk])$$
 
-
+我们可以将$Y^\prime[a b c ijk d]$记为
 ```
 descriptor diff
 {
@@ -832,17 +893,14 @@ descriptor diff
     indexSrc = [8, 5, 6, 7];
 }
 ```
+注意此时$d$是`8`,$d^\prime$是`4`
+将 `source` 拷贝到`diff`。随后，将`x`和`diff.indexSrc`中的`x`对应指标，换成一个新指标。并将旧的`x`的指标，附加到`function`和`indexDst`的最后。和前向微分一致。
 
-将 `source` 拷贝到`diff`。随后，将`x`和`diff.indexSrc`中的`x`对应指标，换成一个新指标。并将旧的`x`的指标，附加到`function`和`indexDst`的最后。
-注意此时$d$是`4`,$d^\prime$是`8`
 此时
 
-$$$$
+$$\frac{\partial Y[ijkabc]}{ \partial In[H]} = \sum_{d^\prime i^\prime j^\prime k^\prime} \frac{\partial Y[ijkabc]}{\partial X[d^\prime i^\prime j^\prime k^\prime]}\frac{\partial X[d^\prime i^\prime j^\prime k^\prime]}{ \partial In[H]} =        \sum_{d^\prime i^\prime j^\prime k^\prime}  \delta_{ii^\prime}\delta_{jj^\prime}\delta_{kk^\prime}   Y^\prime[a b c ijk d^\prime]   \frac{\partial X[d^\prime i^\prime j^\prime k^\prime]}{ \partial In[H]} =        \sum_{d^\prime}  Y^\prime[a b c ijk d^\prime]   \frac{\partial X[d^\prime i j k]}{ \partial In[H]}$$
 
-
-
-$$\frac{\partial O[H]}{\partial X[dijk]} = \sum_{a^\prime b^\prime c^\prime i^\prime j^\prime k^\prime}\frac{\partial O[H]}{\partial Y[a^\prime b^\prime c^\prime i^\prime j^\prime k^\prime]} \frac{\partial Y[a^\prime b^\prime c^\prime i^\prime j^\prime k^\prime]}{\partial X[dijk]} = \sum_{a^\prime b^\prime c^\prime i^\prime j^\prime k^\prime}\frac{\partial O[H]}{\partial Y[a^\prime b^\prime c^\prime i^\prime j^\prime k^\prime]} f^\prime[a^\prime b^\prime c^\prime,d][d^\prime](X[d^\prime ijk])\delta_{ii^\prime}\delta_{jj^\prime}\delta_{kk^\prime} =          \sum_{a^\prime b^\prime c^\prime }\frac{\partial O[H]}{\partial Y[a^\prime b^\prime c^\prime i j k]} f^\prime[a^\prime b^\prime c^\prime,d][d^\prime](X[d^\prime ijk]) $$
-$$ =      \sum_{a b c }\frac{\partial O[H]}{\partial Y[a b c i j k]} f^\prime[a b c,d][d^\prime](X[d^\prime ijk]) = \sum_{a b c }\frac{\partial O[H]}{\partial Y[a b c i j k]} Y^\prime[ abc ijk d]$$
+$$=        \sum_{d}  Y^\prime[a b c ijk d]   \frac{\partial X[d i j k]}{ \partial In[H]} $$
 
 
 此时生成了一个新的双张量基本操作。
@@ -851,15 +909,15 @@ $$ =      \sum_{a b c }\frac{\partial O[H]}{\partial Y[a b c i j k]} f^\prime[a 
 ```
 descriptor ditensor
 {
-    vector<long int> indexDst = [4, 5, 6, 7, H];
-    vector<long int> indexSrcL = [1, 2, 3, 5, 6, 7, H];
+    vector<long int> indexDst = [1, 2, 3, 5, 6, 7, H];
+    vector<long int> indexSrcL = [4, 5, 6, 7, H];
     vector<long int> indexSrcR = [1, 2, 3, 5, 6, 7, 4];
-    size_t DummyIndex = 3;
+    size_t DummyIndex = 1;
     size_t RepeatedIndex = 3;
 }
 ```
 
-将 `source.indexSrc`的指标给`ditensor.indexDst`并在后面附加`H`。`ditensor.indexSrcL`是`source.indexDst`加上`H`,是反向传播的源头。`ditensor.indexSrcR`是`diff.indexDst`。
+将 `source.indexSrc`的指标给`ditensor.indexSrcL`并在后面附加`H`。`ditensor.indexDst`是`source.indexDst`加上`H`,是反向传播的源头。`ditensor.indexSrcR`是`diff.indexDst`。
 
 
 #### 例子2 标量函数
@@ -880,11 +938,11 @@ descriptor source
 }
 ```
 
-$$\frac{\partial Y[a^\prime b^\prime c^\prime i^\prime j^\prime k^\prime]}{\partial X[ijk]} = \frac{\partial Y[a^\prime b^\prime c^\prime i j k]}{\partial X[ijk]}\delta_{ii^\prime}\delta_{jj^\prime}\delta_{kk^\prime}= f^\prime[a^\prime b^\prime c^\prime][x](X[ ijk])\delta_{ii^\prime}\delta_{jj^\prime}\delta_{kk^\prime}$$
+$$\frac{\partial Y[a b c i j k]}{\partial X[i^\prime j^\prime k^\prime]} = \frac{\partial Y[a b c i j k]}{\partial X[i^\prime j^\prime k^\prime]}\delta_{ii^\prime}\delta_{jj^\prime}\delta_{kk^\prime}= f^\prime[abc][x](X[ ijk])\delta_{ii^\prime}\delta_{jj^\prime}\delta_{kk^\prime}$$
 
-其中$f^\prime[a^\prime b^\prime c^\prime][x]=f^\prime[a^\prime b^\prime c^\prime][x]$是$f[a^\prime b^\prime c^\prime][x]$对自变量的梯度，会使得张量阶数升高一阶，最后一阶的维度是自变量的维度。我们可以记为：
+其中$f^\prime[abc][x]=f^\prime[abc][x]$是$f[abc][x]$对自变量的导数，不会会使得张量阶数升高。我们可以记为：
 
-$$Y^\prime[a^\prime b^\prime c^\prime ijk]=f^\prime[a^\prime b^\prime c^\prime][x](X[ijk])$$
+$$Y^\prime[abc ijk]=f^\prime[abc][x](X[ijk])$$
 
 ```
 descriptor diff
@@ -902,21 +960,23 @@ descriptor diff
 
 此时生成了一个新的双张量基本操作。
 
-$$\frac{\partial O[H]}{\partial X[ijk]} = \sum_{a^\prime b^\prime c^\prime i^\prime j^\prime k^\prime}\frac{\partial O[H]}{\partial Y[a^\prime b^\prime c^\prime i^\prime j^\prime k^\prime]} \frac{\partial Y[a^\prime b^\prime c^\prime i^\prime j^\prime k^\prime]}{\partial X[ijk]} = \sum_{a^\prime b^\prime c^\prime i^\prime j^\prime k^\prime}\frac{\partial O[H]}{\partial Y[a^\prime b^\prime c^\prime i^\prime j^\prime k^\prime]} f^\prime[a^\prime b^\prime c^\prime][x](X[ijk])\delta_{ii^\prime}\delta_{jj^\prime}\delta_{kk^\prime} =          \sum_{a^\prime b^\prime c^\prime }\frac{\partial O[H]}{\partial Y[a^\prime b^\prime c^\prime i j k]} f^\prime[a^\prime b^\prime c^\prime][x](X[ijk]) $$
-$$ =      \sum_{a b c }\frac{\partial O[H]}{\partial Y[a b c i j k]} f^\prime[a b c][x](X[ ijk]) = \sum_{a b c }\frac{\partial O[H]}{\partial Y[a b c i j k]} Y^\prime[ abc ijk]$$
+
+$$\frac{\partial Y[ijkabc]}{ \partial In[H]} = \sum_{ i^\prime j^\prime k^\prime} \frac{\partial Y[ijkabc]}{\partial X[ i^\prime j^\prime k^\prime]}\frac{\partial X[ i^\prime j^\prime k^\prime]}{ \partial In[H]} =        \sum_{ i^\prime j^\prime k^\prime}  \delta_{ii^\prime}\delta_{jj^\prime}\delta_{kk^\prime}   Y^\prime[a b c ijk]   \frac{\partial X [i^\prime j^\prime k^\prime]}{ \partial In[H]} =        Y^\prime[a b c ijk ]   \frac{\partial X[ i j k]}{ \partial In[H]}$$
+
+
 
 ```
 descriptor ditensor
 {
-    vector<long int> indexDst = [5, 6, 7, H];
-    vector<long int> indexSrcL = [1, 2, 3, 5, 6, 7, H];
+    vector<long int> indexDst = [1, 2, 3, 5, 6, 7, H];
+    vector<long int> indexSrcL = [5, 6, 7, H];
     vector<long int> indexSrcR = [1, 2, 3, 5, 6, 7];
-    size_t DummyIndex = 3;
+    size_t DummyIndex = 0;
     size_t RepeatedIndex = 3;
 }
 ```
 
-将 `source.indexSrc`的指标给`ditensor.indexDst`并在后面附加`H`。`ditensor.indexSrcL`是`source.indexDst`加上`H`,是反向传播的源头。`ditensor.indexSrcR`是`diff.indexDst`。
+将 `source.indexSrc`的指标给`ditensor.indexSrcL`并在后面附加`H`。`ditensor.indexDst`是`source.indexDst`并在后面加上`H`,是反向传播的源头。`ditensor.indexSrcR`是`diff.indexDst`。
 
 
 
