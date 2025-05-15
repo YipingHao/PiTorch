@@ -998,10 +998,48 @@ source//descriptor
 }
 ```
 
-$$Y^\prime_{X}[i,j,k, a,b,c, p]=\frac{\partial f[a,b,c][x_P, \omega_q](X[P,i,k], W[i,j,q])}{X[p,i,k]} = f[a,b,c, p][x_P, \omega_q](X[P,i,k], W[i,j,q])$$
+$$\frac{\partial f[a,b,c][x_P, \omega_q](X[P,i,k], W[i,j,q])}{\partial X[ p^\prime, i^\prime, k^\prime]} = f[a,b,c, p^\prime][x_P, \omega_q](X[P,i,k], W[i,j,q])\delta_{ii^\prime}\delta_{kk^\prime} =Y^\prime_{X}[i,j,k, a,b,c, p^\prime] \delta_{ii^\prime}\delta_{kk^\prime}$$
+其中
+$$Y^\prime_{X}[i,j,k, a,b,c, p^\prime] = f[a,b,c, p^\prime][x_P, \omega_q](X[P,i,k], W[i,j,q])$$
+```
+source//descriptor
+{
+    ScalarInput = false;
+    x = 10;
+    ScalarPara = false;
+    omega = 8;
+    function = [1, 2, 3, 7]; 
+
+    indexDst = [1, 2, 3, 4, 5, 6];
+    indexSrc = [4, 6, 10];
+    indexPara = [4, 5, 8];
+}
+```
+将`x`和`indexSrc`中等于`x`的指标变成新的哑标`10`。`function`后附加旧的 `x = 7`。
+
+$$\frac{\partial f[a,b,c][x_P, \omega_q](X[P,i,k], W[i,j,q])}{\partial  W[i^\prime,j^\prime,q^\prime]} = f[a,b,c, q^\prime][x_p, \omega_Q](X[p,i,k], W[i,j,Q])\delta_{ii^\prime}\delta_{jj^\prime}=Y^\prime_{W}[i,j,k, a,b,c, p^\prime]\delta_{ii^\prime}\delta_{jj^\prime}$$
+其中
+$$Y^\prime_{W}[i,j,k, a,b,c, p^\prime]=f[a,b,c, q^\prime][x_p, \omega_Q](X[p,i,k], W[i,j,Q])$$
+```
+source//descriptor
+{
+    ScalarInput = false;
+    x = 7;
+    ScalarPara = false;
+    omega = 10;
+    function = [1, 2, 3, 8]; 
+
+    indexDst = [1, 2, 3, 4, 5, 6];
+    indexSrc = [4, 6, 7];
+    indexPara = [4, 5, 10];
+}
+```
+将`omega`和`indexSrc`中等于`omega`的指标变成新的哑标`10`。`function`后附加旧的 `omega = 8`。
+
+随后，
 
 
-
+$$\frac{\partial Y[i,j,k,a,b,c]}{ \partial In[H]} = \sum_{ p^\prime i^\prime k^\prime} \frac{\partial Y[i,j,k,a,b,c]}{\partial X[ p^\prime, i^\prime, k^\prime]}\frac{\partial X[ p^\prime, i^\prime, k^\prime]}{ \partial In[H]}  +  \sum_{ i^\prime j^\prime q^\prime} \frac{\partial Y[i,j,k,a,b,c]}{\partial W[i^\prime,j^\prime,q^\prime]}\frac{\partial W[i^\prime,j^\prime,q^\prime]}{ \partial In[H]}     =        \sum_{ i^\prime j^\prime k^\prime}  \delta_{ii^\prime}\delta_{jj^\prime}\delta_{kk^\prime}   Y^\prime[a, b, c ,i,j,k]   \frac{\partial X [i^\prime, j^\prime, k^\prime]}{ \partial In[H]} =        Y^\prime[a, b, c, i,j,k ]   \frac{\partial X[ i, j, k]}{ \partial In[H]}$$
 
 
 
