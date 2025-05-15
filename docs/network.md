@@ -82,7 +82,7 @@ ${indice}_L$，${indice}_R$是两个指标集合。
 令 
 $$A_1 = {indice}_L - {indice}_R$$
 $$A_3 = {indice}_R - {indice}_L$$
-$$A_2 \suset {indice}_L\cap{indice}_R$$
+$$A_2 \subset  {indice}_L\cap{indice}_R$$
 $$A_4 = {indice}_L\cap{indice}_R - A_2$$
 $${indice}_D = A_1 \cup A_3 \cup A_2$$
 
@@ -494,20 +494,22 @@ $$\frac{\partial Y[a^\prime b^\prime c^\prime i^\prime j^\prime k^\prime]}{\part
 $$Y^\prime[a^\prime b^\prime c^\prime ijk d]=f^\prime[a^\prime b^\prime c^\prime,d][d^\prime](X[d^\prime ijk])$$
 
 
-可以用一下参数描述，在最后补充一个新指标即可。
+
 
 ```
 descriptor diff
 {
     ScalarInput = false;
-    x = 4;
-    function = [1, 2, 3, 8]; 
+    x = 8;
+    function = [1, 2, 3, 4]; 
 
-    indexDst = [1, 2, 3, 5, 6, 7, 8];
-    indexSrc = [4, 5, 6, 7];
+    indexDst = [1, 2, 3, 5, 6, 7, 4];
+    indexSrc = [8, 5, 6, 7];
 }
 ```
-注意此时$d$是`8`,$d^\prime$是`4`
+
+将 `source` 拷贝到`diff`。随后，将`x`和`diff.indexSrc`中的`x`对应指标，换成一个新指标。并将旧的`x`的指标，附加到`function`和`indexDst`的最后。
+注意此时$d$是`4`,$d^\prime$是`8`
 此时
 
 $$\frac{\partial O[H]}{\partial X[dijk]} = \sum_{a^\prime b^\prime c^\prime i^\prime j^\prime k^\prime}\frac{\partial O[H]}{\partial Y[a^\prime b^\prime c^\prime i^\prime j^\prime k^\prime]} \frac{\partial Y[a^\prime b^\prime c^\prime i^\prime j^\prime k^\prime]}{\partial X[dijk]} = \sum_{a^\prime b^\prime c^\prime i^\prime j^\prime k^\prime}\frac{\partial O[H]}{\partial Y[a^\prime b^\prime c^\prime i^\prime j^\prime k^\prime]} f^\prime[a^\prime b^\prime c^\prime,d][d^\prime](X[d^\prime ijk])\delta_{ii^\prime}\delta_{jj^\prime}\delta_{kk^\prime} =          \sum_{a^\prime b^\prime c^\prime }\frac{\partial O[H]}{\partial Y[a^\prime b^\prime c^\prime i j k]} f^\prime[a^\prime b^\prime c^\prime,d][d^\prime](X[d^\prime ijk]) $$
@@ -528,7 +530,7 @@ descriptor ditensor
 }
 ```
 
-将 `source.indexSrc`的指标给`ditensor.indexDst`并在后面附加`H`。`ditensor.indexSrcL`是`source.indexDst`加上`H`,是反向传播的源头。`ditensor.indexSrcR`是`diff.indexDst`,注意它的末位指标需要变成`source.x`函数哑标。
+将 `source.indexSrc`的指标给`ditensor.indexDst`并在后面附加`H`。`ditensor.indexSrcL`是`source.indexDst`加上`H`,是反向传播的源头。`ditensor.indexSrcR`是`diff.indexDst`。
 
 
 #### 例子2 标量函数
@@ -790,6 +792,131 @@ descriptor diff_sum
 
 
 ### 单张量非线性型
+
+
+#### 例子1 矢量函数
+
+对于 $Y[ijkabc]=f[abc][d](X[dijk])$可以有
+
+```
+descriptor source
+{
+    ScalarInput = false;
+    x = 4;
+    function = [1, 2, 3]; 
+
+    indexDst = [1, 2, 3, 5, 6, 7];
+    indexSrc = [4, 5, 6, 7];
+}
+```
+
+
+
+$$\frac{\partial Y[a^\prime b^\prime c^\prime i^\prime j^\prime k^\prime]}{\partial X[dijk]} = \frac{\partial Y[a^\prime b^\prime c^\prime i j k]}{\partial X[dijk]}\delta_{ii^\prime}\delta_{jj^\prime}\delta_{kk^\prime}= f^\prime[a^\prime b^\prime c^\prime,d][d^\prime](X[d^\prime ijk])\delta_{ii^\prime}\delta_{jj^\prime}\delta_{kk^\prime}$$
+
+其中$f^\prime[a^\prime b^\prime c^\prime,d][d^\prime]=f^\prime[a^\prime b^\prime c^\prime d][d^\prime]$是$f[a^\prime b^\prime c^\prime][d]$对自变量的梯度，会使得张量阶数升高一阶，最后一阶的维度是自变量的维度。我们可以记为：
+
+$$Y^\prime[a^\prime b^\prime c^\prime ijk d]=f^\prime[a^\prime b^\prime c^\prime,d][d^\prime](X[d^\prime ijk])$$
+
+
+
+
+```
+descriptor diff
+{
+    ScalarInput = false;
+    x = 8;
+    function = [1, 2, 3, 4]; 
+
+    indexDst = [1, 2, 3, 5, 6, 7, 4];
+    indexSrc = [8, 5, 6, 7];
+}
+```
+
+将 `source` 拷贝到`diff`。随后，将`x`和`diff.indexSrc`中的`x`对应指标，换成一个新指标。并将旧的`x`的指标，附加到`function`和`indexDst`的最后。
+注意此时$d$是`4`,$d^\prime$是`8`
+此时
+
+$$$$
+
+
+
+$$\frac{\partial O[H]}{\partial X[dijk]} = \sum_{a^\prime b^\prime c^\prime i^\prime j^\prime k^\prime}\frac{\partial O[H]}{\partial Y[a^\prime b^\prime c^\prime i^\prime j^\prime k^\prime]} \frac{\partial Y[a^\prime b^\prime c^\prime i^\prime j^\prime k^\prime]}{\partial X[dijk]} = \sum_{a^\prime b^\prime c^\prime i^\prime j^\prime k^\prime}\frac{\partial O[H]}{\partial Y[a^\prime b^\prime c^\prime i^\prime j^\prime k^\prime]} f^\prime[a^\prime b^\prime c^\prime,d][d^\prime](X[d^\prime ijk])\delta_{ii^\prime}\delta_{jj^\prime}\delta_{kk^\prime} =          \sum_{a^\prime b^\prime c^\prime }\frac{\partial O[H]}{\partial Y[a^\prime b^\prime c^\prime i j k]} f^\prime[a^\prime b^\prime c^\prime,d][d^\prime](X[d^\prime ijk]) $$
+$$ =      \sum_{a b c }\frac{\partial O[H]}{\partial Y[a b c i j k]} f^\prime[a b c,d][d^\prime](X[d^\prime ijk]) = \sum_{a b c }\frac{\partial O[H]}{\partial Y[a b c i j k]} Y^\prime[ abc ijk d]$$
+
+
+此时生成了一个新的双张量基本操作。
+
+
+```
+descriptor ditensor
+{
+    vector<long int> indexDst = [4, 5, 6, 7, H];
+    vector<long int> indexSrcL = [1, 2, 3, 5, 6, 7, H];
+    vector<long int> indexSrcR = [1, 2, 3, 5, 6, 7, 4];
+    size_t DummyIndex = 3;
+    size_t RepeatedIndex = 3;
+}
+```
+
+将 `source.indexSrc`的指标给`ditensor.indexDst`并在后面附加`H`。`ditensor.indexSrcL`是`source.indexDst`加上`H`,是反向传播的源头。`ditensor.indexSrcR`是`diff.indexDst`。
+
+
+#### 例子2 标量函数
+
+
+
+对于 $Y[ijkabc]=f[abc][x](X[ijk])$可以有
+
+```
+descriptor source
+{
+    ScalarInput = true;
+    x = -1;
+    function = [1, 2, 3]; 
+
+    indexDst = [1, 2, 3, 5, 6, 7];
+    indexSrc = [5, 6, 7];
+}
+```
+
+$$\frac{\partial Y[a^\prime b^\prime c^\prime i^\prime j^\prime k^\prime]}{\partial X[ijk]} = \frac{\partial Y[a^\prime b^\prime c^\prime i j k]}{\partial X[ijk]}\delta_{ii^\prime}\delta_{jj^\prime}\delta_{kk^\prime}= f^\prime[a^\prime b^\prime c^\prime][x](X[ ijk])\delta_{ii^\prime}\delta_{jj^\prime}\delta_{kk^\prime}$$
+
+其中$f^\prime[a^\prime b^\prime c^\prime][x]=f^\prime[a^\prime b^\prime c^\prime][x]$是$f[a^\prime b^\prime c^\prime][x]$对自变量的梯度，会使得张量阶数升高一阶，最后一阶的维度是自变量的维度。我们可以记为：
+
+$$Y^\prime[a^\prime b^\prime c^\prime ijk]=f^\prime[a^\prime b^\prime c^\prime][x](X[ijk])$$
+
+```
+descriptor diff
+{
+    ScalarInput = true;
+    x = -1;
+    function = [1, 2, 3]; 
+
+    indexDst = [1, 2, 3, 5, 6, 7];
+    indexSrc = [5, 6, 7];
+}
+```
+
+换言之输入的指标的描述原封不动。
+
+此时生成了一个新的双张量基本操作。
+
+$$\frac{\partial O[H]}{\partial X[ijk]} = \sum_{a^\prime b^\prime c^\prime i^\prime j^\prime k^\prime}\frac{\partial O[H]}{\partial Y[a^\prime b^\prime c^\prime i^\prime j^\prime k^\prime]} \frac{\partial Y[a^\prime b^\prime c^\prime i^\prime j^\prime k^\prime]}{\partial X[ijk]} = \sum_{a^\prime b^\prime c^\prime i^\prime j^\prime k^\prime}\frac{\partial O[H]}{\partial Y[a^\prime b^\prime c^\prime i^\prime j^\prime k^\prime]} f^\prime[a^\prime b^\prime c^\prime][x](X[ijk])\delta_{ii^\prime}\delta_{jj^\prime}\delta_{kk^\prime} =          \sum_{a^\prime b^\prime c^\prime }\frac{\partial O[H]}{\partial Y[a^\prime b^\prime c^\prime i j k]} f^\prime[a^\prime b^\prime c^\prime][x](X[ijk]) $$
+$$ =      \sum_{a b c }\frac{\partial O[H]}{\partial Y[a b c i j k]} f^\prime[a b c][x](X[ ijk]) = \sum_{a b c }\frac{\partial O[H]}{\partial Y[a b c i j k]} Y^\prime[ abc ijk]$$
+
+```
+descriptor ditensor
+{
+    vector<long int> indexDst = [5, 6, 7, H];
+    vector<long int> indexSrcL = [1, 2, 3, 5, 6, 7, H];
+    vector<long int> indexSrcR = [1, 2, 3, 5, 6, 7];
+    size_t DummyIndex = 3;
+    size_t RepeatedIndex = 3;
+}
+```
+
+将 `source.indexSrc`的指标给`ditensor.indexDst`并在后面附加`H`。`ditensor.indexSrcL`是`source.indexDst`加上`H`,是反向传播的源头。`ditensor.indexSrcR`是`diff.indexDst`。
 
 
 
