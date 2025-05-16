@@ -645,7 +645,220 @@ descriptor ditensor
 
 将 `source.indexSrc`的指标给`ditensor.indexDst`并在后面附加`H`。`ditensor.indexSrcL`是`source.indexDst`加上`H`,是反向传播的源头。`ditensor.indexSrcR`是`diff.indexDst`。
 
+### 双张量非线性型
 
+
+双张量非线性型的微分会连续生成五种连续的操作。但是如果是针对参数的梯度或者说是网络输出对输入的导数，那么一些操作可以被化简。
+
+#### 例子1 双矢量函数
+
+对于例子：
+$$Y[i,j,k, a,b,c]=f[a,b,c][x_p, \omega_q](X[p,i,k], W[i,j,q])$$
+
+```
+source//descriptor
+{
+    ScalarInput = false;
+    x = 7;
+    ScalarPara = false;
+    omega = 8;
+    function = [1, 2, 3]; 
+
+    indexDst = [1, 2, 3, 4, 5, 6];
+    indexSrc = [4, 6, 7];
+    indexPara = [4, 5, 8];
+}
+```
+
+$$\frac{\partial f[a,b,c][x_P, \omega_q](X[P,i,k], W[i,j,q])}{\partial X[ p^\prime, i^\prime, k^\prime]} = f[a,b,c, p^\prime][x_P, \omega_q](X[P,i,k], W[i,j,q])\delta_{ii^\prime}\delta_{kk^\prime} =Y^\prime_{X}[i,j,k, a,b,c, p^\prime] \delta_{ii^\prime}\delta_{kk^\prime}$$
+其中
+$$Y^\prime_{X}[i,j,k, a,b,c, p^\prime] = f[a,b,c, p^\prime][x_P, \omega_q](X[P,i,k], W[i,j,q])$$
+```
+diffX//descriptor
+{
+    ScalarInput = false;
+    x = 10;
+    ScalarPara = false;
+    omega = 8;
+    function = [1, 2, 3, 7]; 
+
+    indexDst = [1, 2, 3, 4, 5, 6, 7];
+    indexSrc = [4, 6, 10];
+    indexPara = [4, 5, 8];
+}
+```
+将`x`和`indexSrc`中等于`x`的指标变成新的哑标`10`。`function`和`indexDst`后附加旧的 `x = 7`, 。
+
+$$\frac{\partial f[a,b,c][x_P, \omega_q](X[P,i,k], W[i,j,q])}{\partial  W[i^\prime,j^\prime,q^\prime]} = f[a,b,c, q^\prime][x_p, \omega_Q](X[p,i,k], W[i,j,Q])\delta_{ii^\prime}\delta_{jj^\prime}=Y^\prime_{W}[i,j,k, a,b,c, q^\prime]\delta_{ii^\prime}\delta_{jj^\prime}$$
+其中
+$$Y^\prime_{W}[i,j,k, a,b,c, q^\prime]=f[a,b,c, q^\prime][x_p, \omega_Q](X[p,i,k], W[i,j,Q])$$
+```
+diffW//descriptor
+{
+    ScalarInput = false;
+    x = 7;
+    ScalarPara = false;
+    omega = 10;
+    function = [1, 2, 3, 8]; 
+
+    indexDst = [1, 2, 3, 4, 5, 6, 8];
+    indexSrc = [4, 6, 7];
+    indexPara = [4, 5, 10];
+}
+```
+将`omega`和`indexSrc`中等于`omega`的指标变成新的哑标`10`。`function`后附加旧的 `omega = 8`。
+
+随后，
+
+
+$$\frac{\partial Y[i,j,k,a,b,c]}{ \partial In[H]} = \sum_{ p^\prime i^\prime k^\prime} \frac{\partial Y[i,j,k,a,b,c]}{\partial X[ p^\prime, i^\prime, k^\prime]}\frac{\partial X[ p^\prime, i^\prime, k^\prime]}{ \partial In[H]}  +  \sum_{ i^\prime j^\prime q^\prime} \frac{\partial Y[i,j,k,a,b,c]}{\partial W[i^\prime,j^\prime,q^\prime]}\frac{\partial W[i^\prime,j^\prime,q^\prime]}{ \partial In[H]}     =        \sum_{ p^\prime i^\prime k^\prime} Y^\prime_{X}[i,j,k, a,b,c, p^\prime] \delta_{ii^\prime}\delta_{kk^\prime}\frac{\partial X[ p^\prime, i^\prime, k^\prime]}{ \partial In[H]}  +  \sum_{ i^\prime j^\prime q^\prime} Y^\prime_{W}[i,j,k, a,b,c, p^\prime]\delta_{ii^\prime}\delta_{jj^\prime}\frac{\partial W[i^\prime,j^\prime,q^\prime]}{ \partial In[H]} $$
+
+$$=  \sum_{ p^\prime } Y^\prime_{X}[i,j,k, a,b,c, p^\prime] \frac{\partial X[ p^\prime, i, k]}{ \partial In[H]}  +  \sum_{ q^\prime} Y^\prime_{W}[i,j,k, a,b,c, p^\prime]\frac{\partial W[i,j,q^\prime]}{ \partial In[H]} $$
+
+$$=  \sum_{ p } Y^\prime_{X}[i,j,k, a,b,c, p] \frac{\partial X[ p, i, k]}{ \partial In[H]}  +  \sum_{ q} Y^\prime_{W}[i,j,k, a,b,c, p]\frac{\partial W[i,j,q]}{ \partial In[H]} $$
+
+需要三个操作，
+左边是，
+```
+ditensorL//descriptor
+{
+    vector<long int> indexDst = [1, 2, 3, 4, 5, 6，H];
+    vector<long int> indexSrcL = [4, 6, 7, H];
+    vector<long int> indexSrcR = [1, 2, 3, 4, 5, 6, 7];
+    size_t DummyIndex = 1;
+    size_t RepeatedIndex = 2;
+}
+```
+右边是
+```
+ditensorR//descriptor
+{
+    vector<long int> indexDst = [1, 2, 3, 4, 5, 6，H];
+    vector<long int> indexSrcL = [4, 5, 8, H];
+    vector<long int> indexSrcR = [1, 2, 3, 4, 5, 6, 8];
+    size_t DummyIndex = 1;
+    size_t RepeatedIndex = 2;
+}
+```
+两者的输入都是`source.Dst`后附加`H`。`indexSrcL`均是$X$,$W$对应的指标加上后附加`H`， `indexSrcR`均是计算两个偏导数$Y^\prime_{X}$和$Y^\prime_{W}$对应的指标。
+将两者加起来，加法的三个指标均相同:
+```
+ditensorAdd//descriptor
+{
+    vector<long int> indexDst = [1, 2, 3, 4, 5, 6，H];
+    vector<long int> indexSrcL = [1, 2, 3, 4, 5, 6，H];
+    vector<long int> indexSrcR = [1, 2, 3, 4, 5, 6，H];
+    size_t DummyIndex = 0;
+    size_t RepeatedIndex = 6 + |H|;
+}
+```
+
+#### 例子2 标量矢量函数
+
+对于例子：
+$$Y[i,j,k, a,b,c]=f[a,b,c][x, \omega_q](X[i,k], W[i,j,q])$$
+
+```
+source//descriptor
+{
+    ScalarInput = true;
+    x = -1;
+    ScalarPara = false;
+    omega = 8;
+    function = [1, 2, 3]; 
+
+    indexDst = [1, 2, 3, 4, 5, 6];
+    indexSrc = [4, 6];
+    indexPara = [4, 5, 8];
+}
+```
+
+$$\frac{\partial f[a,b,c][x, \omega_q](X[i,k], W[i,j,q])}{\partial X[i^\prime, k^\prime]} = f[a,b,c][x, \omega_q](X[i,k], W[i,j,q])\delta_{ii^\prime}\delta_{kk^\prime} =Y^\prime_{X}[i,j,k, a,b,c] \delta_{ii^\prime}\delta_{kk^\prime}$$
+其中
+$$Y^\prime_{X}[i,j,k, a,b,c] = f[a,b,c][x, \omega_q](X[i,k], W[i,j,q])$$
+```
+diffX//descriptor
+{
+    ScalarInput = true;
+    x = -1;
+    ScalarPara = false;
+    omega = 8;
+    function = [1, 2, 3]; 
+
+    indexDst = [1, 2, 3, 4, 5, 6];
+    indexSrc = [4, 6];
+    indexPara = [4, 5, 8];
+}
+```
+什么都不用改变等同于`source`
+
+$$\frac{\partial f[a,b,c][x, \omega_q](X[i,k], W[i,j,q])}{\partial  W[i^\prime,j^\prime,q^\prime]} = f[a,b,c, q^\prime][x, \omega_Q](X[i,k], W[i,j,Q])\delta_{ii^\prime}\delta_{jj^\prime}=Y^\prime_{W}[i,j,k, a,b,c, q^\prime]\delta_{ii^\prime}\delta_{jj^\prime}$$
+其中
+$$Y^\prime_{W}[i,j,k, a,b,c, q^\prime]=f[a,b,c, q^\prime][x, \omega_Q](X[i,k], W[i,j,Q])$$
+```
+diffW//descriptor
+{
+    ScalarInput = true;
+    x = -1;
+    ScalarPara = false;
+    omega = 10;
+    function = [1, 2, 3, 8]; 
+
+    indexDst = [1, 2, 3, 4, 5, 6, 8];
+    indexSrc = [4, 6, 7];
+    indexPara = [4, 5, 10];
+}
+```
+将`omega`和`indexSrc`中等于`omega`的指标变成新的哑标`10`。`function`后附加旧的 `omega = 8`。和上面的例子完全相同。
+
+
+
+
+随后，
+
+
+$$\frac{\partial Y[i,j,k,a,b,c]}{ \partial In[H]} = \sum_{ i^\prime k^\prime} \frac{\partial Y[i,j,k,a,b,c]}{\partial X[i^\prime, k^\prime]}\frac{\partial X[ i^\prime, k^\prime]}{ \partial In[H]}  +  \sum_{ i^\prime j^\prime q^\prime} \frac{\partial Y[i,j,k,a,b,c]}{\partial W[i^\prime,j^\prime,q^\prime]}\frac{\partial W[i^\prime,j^\prime,q^\prime]}{ \partial In[H]}     =        \sum_{ i^\prime k^\prime} Y^\prime_{X}[i,j,k, a,b,c] \delta_{ii^\prime}\delta_{kk^\prime}\frac{\partial X[ i^\prime, k^\prime]}{ \partial In[H]}  +  \sum_{ i^\prime j^\prime q^\prime} Y^\prime_{W}[i,j,k, a,b,c, p^\prime]\delta_{ii^\prime}\delta_{jj^\prime}\frac{\partial W[i^\prime,j^\prime,q^\prime]}{ \partial In[H]} $$
+
+$$=   Y^\prime_{X}[i,j,k, a,b,c] \frac{\partial X[i, k]}{ \partial In[H]}  +  \sum_{ q^\prime} Y^\prime_{W}[i,j,k, a,b,c, p^\prime]\frac{\partial W[i,j,q^\prime]}{ \partial In[H]} $$
+
+$$=  Y^\prime_{X}[i,j,k, a,b,c] \frac{\partial X[i, k]}{ \partial In[H]}  +  \sum_{ q} Y^\prime_{W}[i,j,k, a,b,c, p]\frac{\partial W[i,j,q]}{ \partial In[H]} $$
+
+需要三个操作，
+左边是，
+```
+ditensorL//descriptor
+{
+    vector<long int> indexDst = [1, 2, 3, 4, 5, 6，H];
+    vector<long int> indexSrcL = [4, 6, H];
+    vector<long int> indexSrcR = [1, 2, 3, 4, 5, 6];
+    size_t DummyIndex = 1;
+    size_t RepeatedIndex = 2;
+}
+```
+右边是
+```
+ditensorR//descriptor
+{
+    vector<long int> indexDst = [1, 2, 3, 4, 5, 6，H];
+    vector<long int> indexSrcL = [4, 5, 8, H];
+    vector<long int> indexSrcR = [1, 2, 3, 4, 5, 6, 8];
+    size_t DummyIndex = 0;
+    size_t RepeatedIndex = 2;
+}
+```
+两者的输入都是`source.Dst`后附加`H`。`indexSrcL`均是$X$,$W$对应的指标加上后附加`H`， `indexSrcR`均是计算两个偏导数$Y^\prime_{X}$和$Y^\prime_{W}$对应的指标。
+将两者加起来，加法的三个指标均相同:都是`source.indexDst`加上`H`
+```
+ditensorAdd//descriptor
+{
+    vector<long int> indexDst = [1, 2, 3, 4, 5, 6，H];
+    vector<long int> indexSrcL = [1, 2, 3, 4, 5, 6，H];
+    vector<long int> indexSrcR = [1, 2, 3, 4, 5, 6，H];
+    size_t DummyIndex = 0;
+    size_t RepeatedIndex = 6 + |H|;
+}
+```
+换言之是否是变量函数并不影响算法。
 
 
 ## 不同种类节点进行前向传播微分
@@ -978,6 +1191,9 @@ descriptor ditensor
 
 ### 双张量非线性型
 
+
+双张量非线性型的微分会连续生成五种连续的操作。但是如果是针对参数的梯度或者说是网络输出对输入的导数，那么一些操作可以被化简。
+
 #### 例子1 双矢量函数
 
 对于例子：
@@ -1002,7 +1218,7 @@ $$\frac{\partial f[a,b,c][x_P, \omega_q](X[P,i,k], W[i,j,q])}{\partial X[ p^\pri
 其中
 $$Y^\prime_{X}[i,j,k, a,b,c, p^\prime] = f[a,b,c, p^\prime][x_P, \omega_q](X[P,i,k], W[i,j,q])$$
 ```
-source//descriptor
+diffX//descriptor
 {
     ScalarInput = false;
     x = 10;
@@ -1010,18 +1226,18 @@ source//descriptor
     omega = 8;
     function = [1, 2, 3, 7]; 
 
-    indexDst = [1, 2, 3, 4, 5, 6];
+    indexDst = [1, 2, 3, 4, 5, 6, 7];
     indexSrc = [4, 6, 10];
     indexPara = [4, 5, 8];
 }
 ```
-将`x`和`indexSrc`中等于`x`的指标变成新的哑标`10`。`function`后附加旧的 `x = 7`。
+将`x`和`indexSrc`中等于`x`的指标变成新的哑标`10`。`function`和`indexDst`后附加旧的 `x = 7`, 。
 
-$$\frac{\partial f[a,b,c][x_P, \omega_q](X[P,i,k], W[i,j,q])}{\partial  W[i^\prime,j^\prime,q^\prime]} = f[a,b,c, q^\prime][x_p, \omega_Q](X[p,i,k], W[i,j,Q])\delta_{ii^\prime}\delta_{jj^\prime}=Y^\prime_{W}[i,j,k, a,b,c, p^\prime]\delta_{ii^\prime}\delta_{jj^\prime}$$
+$$\frac{\partial f[a,b,c][x_P, \omega_q](X[P,i,k], W[i,j,q])}{\partial  W[i^\prime,j^\prime,q^\prime]} = f[a,b,c, q^\prime][x_p, \omega_Q](X[p,i,k], W[i,j,Q])\delta_{ii^\prime}\delta_{jj^\prime}=Y^\prime_{W}[i,j,k, a,b,c, q^\prime]\delta_{ii^\prime}\delta_{jj^\prime}$$
 其中
-$$Y^\prime_{W}[i,j,k, a,b,c, p^\prime]=f[a,b,c, q^\prime][x_p, \omega_Q](X[p,i,k], W[i,j,Q])$$
+$$Y^\prime_{W}[i,j,k, a,b,c, q^\prime]=f[a,b,c, q^\prime][x_p, \omega_Q](X[p,i,k], W[i,j,Q])$$
 ```
-source//descriptor
+diffW//descriptor
 {
     ScalarInput = false;
     x = 7;
@@ -1029,7 +1245,7 @@ source//descriptor
     omega = 10;
     function = [1, 2, 3, 8]; 
 
-    indexDst = [1, 2, 3, 4, 5, 6];
+    indexDst = [1, 2, 3, 4, 5, 6, 8];
     indexSrc = [4, 6, 7];
     indexPara = [4, 5, 10];
 }
@@ -1039,8 +1255,151 @@ source//descriptor
 随后，
 
 
-$$\frac{\partial Y[i,j,k,a,b,c]}{ \partial In[H]} = \sum_{ p^\prime i^\prime k^\prime} \frac{\partial Y[i,j,k,a,b,c]}{\partial X[ p^\prime, i^\prime, k^\prime]}\frac{\partial X[ p^\prime, i^\prime, k^\prime]}{ \partial In[H]}  +  \sum_{ i^\prime j^\prime q^\prime} \frac{\partial Y[i,j,k,a,b,c]}{\partial W[i^\prime,j^\prime,q^\prime]}\frac{\partial W[i^\prime,j^\prime,q^\prime]}{ \partial In[H]}     =        \sum_{ i^\prime j^\prime k^\prime}  \delta_{ii^\prime}\delta_{jj^\prime}\delta_{kk^\prime}   Y^\prime[a, b, c ,i,j,k]   \frac{\partial X [i^\prime, j^\prime, k^\prime]}{ \partial In[H]} =        Y^\prime[a, b, c, i,j,k ]   \frac{\partial X[ i, j, k]}{ \partial In[H]}$$
+$$\frac{\partial Y[i,j,k,a,b,c]}{ \partial In[H]} = \sum_{ p^\prime i^\prime k^\prime} \frac{\partial Y[i,j,k,a,b,c]}{\partial X[ p^\prime, i^\prime, k^\prime]}\frac{\partial X[ p^\prime, i^\prime, k^\prime]}{ \partial In[H]}  +  \sum_{ i^\prime j^\prime q^\prime} \frac{\partial Y[i,j,k,a,b,c]}{\partial W[i^\prime,j^\prime,q^\prime]}\frac{\partial W[i^\prime,j^\prime,q^\prime]}{ \partial In[H]}     =        \sum_{ p^\prime i^\prime k^\prime} Y^\prime_{X}[i,j,k, a,b,c, p^\prime] \delta_{ii^\prime}\delta_{kk^\prime}\frac{\partial X[ p^\prime, i^\prime, k^\prime]}{ \partial In[H]}  +  \sum_{ i^\prime j^\prime q^\prime} Y^\prime_{W}[i,j,k, a,b,c, p^\prime]\delta_{ii^\prime}\delta_{jj^\prime}\frac{\partial W[i^\prime,j^\prime,q^\prime]}{ \partial In[H]} $$
+
+$$=  \sum_{ p^\prime } Y^\prime_{X}[i,j,k, a,b,c, p^\prime] \frac{\partial X[ p^\prime, i, k]}{ \partial In[H]}  +  \sum_{ q^\prime} Y^\prime_{W}[i,j,k, a,b,c, p^\prime]\frac{\partial W[i,j,q^\prime]}{ \partial In[H]} $$
+
+$$=  \sum_{ p } Y^\prime_{X}[i,j,k, a,b,c, p] \frac{\partial X[ p, i, k]}{ \partial In[H]}  +  \sum_{ q} Y^\prime_{W}[i,j,k, a,b,c, p]\frac{\partial W[i,j,q]}{ \partial In[H]} $$
+
+需要三个操作，
+左边是，
+```
+ditensorL//descriptor
+{
+    vector<long int> indexDst = [1, 2, 3, 4, 5, 6，H];
+    vector<long int> indexSrcL = [4, 6, 7, H];
+    vector<long int> indexSrcR = [1, 2, 3, 4, 5, 6, 7];
+    size_t DummyIndex = 1;
+    size_t RepeatedIndex = 2;
+}
+```
+右边是
+```
+ditensorR//descriptor
+{
+    vector<long int> indexDst = [1, 2, 3, 4, 5, 6，H];
+    vector<long int> indexSrcL = [4, 5, 8, H];
+    vector<long int> indexSrcR = [1, 2, 3, 4, 5, 6, 8];
+    size_t DummyIndex = 1;
+    size_t RepeatedIndex = 2;
+}
+```
+两者的输入都是`source.Dst`后附加`H`。`indexSrcL`均是$X$,$W$对应的指标加上后附加`H`， `indexSrcR`均是计算两个偏导数$Y^\prime_{X}$和$Y^\prime_{W}$对应的指标。
+将两者加起来，加法的三个指标均相同:
+```
+ditensorAdd//descriptor
+{
+    vector<long int> indexDst = [1, 2, 3, 4, 5, 6，H];
+    vector<long int> indexSrcL = [1, 2, 3, 4, 5, 6，H];
+    vector<long int> indexSrcR = [1, 2, 3, 4, 5, 6，H];
+    size_t DummyIndex = 0;
+    size_t RepeatedIndex = 6 + |H|;
+}
+```
+
+#### 例子2 标量矢量函数
+
+对于例子：
+$$Y[i,j,k, a,b,c]=f[a,b,c][x, \omega_q](X[i,k], W[i,j,q])$$
+
+```
+source//descriptor
+{
+    ScalarInput = true;
+    x = -1;
+    ScalarPara = false;
+    omega = 8;
+    function = [1, 2, 3]; 
+
+    indexDst = [1, 2, 3, 4, 5, 6];
+    indexSrc = [4, 6];
+    indexPara = [4, 5, 8];
+}
+```
+
+$$\frac{\partial f[a,b,c][x, \omega_q](X[i,k], W[i,j,q])}{\partial X[i^\prime, k^\prime]} = f[a,b,c][x, \omega_q](X[i,k], W[i,j,q])\delta_{ii^\prime}\delta_{kk^\prime} =Y^\prime_{X}[i,j,k, a,b,c] \delta_{ii^\prime}\delta_{kk^\prime}$$
+其中
+$$Y^\prime_{X}[i,j,k, a,b,c] = f[a,b,c][x, \omega_q](X[i,k], W[i,j,q])$$
+```
+diffX//descriptor
+{
+    ScalarInput = true;
+    x = -1;
+    ScalarPara = false;
+    omega = 8;
+    function = [1, 2, 3]; 
+
+    indexDst = [1, 2, 3, 4, 5, 6];
+    indexSrc = [4, 6];
+    indexPara = [4, 5, 8];
+}
+```
+什么都不用改变等同于`source`
+
+$$\frac{\partial f[a,b,c][x, \omega_q](X[i,k], W[i,j,q])}{\partial  W[i^\prime,j^\prime,q^\prime]} = f[a,b,c, q^\prime][x, \omega_Q](X[i,k], W[i,j,Q])\delta_{ii^\prime}\delta_{jj^\prime}=Y^\prime_{W}[i,j,k, a,b,c, q^\prime]\delta_{ii^\prime}\delta_{jj^\prime}$$
+其中
+$$Y^\prime_{W}[i,j,k, a,b,c, q^\prime]=f[a,b,c, q^\prime][x, \omega_Q](X[i,k], W[i,j,Q])$$
+```
+diffW//descriptor
+{
+    ScalarInput = true;
+    x = -1;
+    ScalarPara = false;
+    omega = 10;
+    function = [1, 2, 3, 8]; 
+
+    indexDst = [1, 2, 3, 4, 5, 6, 8];
+    indexSrc = [4, 6, 7];
+    indexPara = [4, 5, 10];
+}
+```
+将`omega`和`indexSrc`中等于`omega`的指标变成新的哑标`10`。`function`后附加旧的 `omega = 8`。和上面的例子完全相同。
 
 
 
 
+随后，
+
+
+$$\frac{\partial Y[i,j,k,a,b,c]}{ \partial In[H]} = \sum_{ i^\prime k^\prime} \frac{\partial Y[i,j,k,a,b,c]}{\partial X[i^\prime, k^\prime]}\frac{\partial X[ i^\prime, k^\prime]}{ \partial In[H]}  +  \sum_{ i^\prime j^\prime q^\prime} \frac{\partial Y[i,j,k,a,b,c]}{\partial W[i^\prime,j^\prime,q^\prime]}\frac{\partial W[i^\prime,j^\prime,q^\prime]}{ \partial In[H]}     =        \sum_{ i^\prime k^\prime} Y^\prime_{X}[i,j,k, a,b,c] \delta_{ii^\prime}\delta_{kk^\prime}\frac{\partial X[ i^\prime, k^\prime]}{ \partial In[H]}  +  \sum_{ i^\prime j^\prime q^\prime} Y^\prime_{W}[i,j,k, a,b,c, p^\prime]\delta_{ii^\prime}\delta_{jj^\prime}\frac{\partial W[i^\prime,j^\prime,q^\prime]}{ \partial In[H]} $$
+
+$$=   Y^\prime_{X}[i,j,k, a,b,c] \frac{\partial X[i, k]}{ \partial In[H]}  +  \sum_{ q^\prime} Y^\prime_{W}[i,j,k, a,b,c, p^\prime]\frac{\partial W[i,j,q^\prime]}{ \partial In[H]} $$
+
+$$=  Y^\prime_{X}[i,j,k, a,b,c] \frac{\partial X[i, k]}{ \partial In[H]}  +  \sum_{ q} Y^\prime_{W}[i,j,k, a,b,c, p]\frac{\partial W[i,j,q]}{ \partial In[H]} $$
+
+需要三个操作，
+左边是，
+```
+ditensorL//descriptor
+{
+    vector<long int> indexDst = [1, 2, 3, 4, 5, 6，H];
+    vector<long int> indexSrcL = [4, 6, H];
+    vector<long int> indexSrcR = [1, 2, 3, 4, 5, 6];
+    size_t DummyIndex = 1;
+    size_t RepeatedIndex = 2;
+}
+```
+右边是
+```
+ditensorR//descriptor
+{
+    vector<long int> indexDst = [1, 2, 3, 4, 5, 6，H];
+    vector<long int> indexSrcL = [4, 5, 8, H];
+    vector<long int> indexSrcR = [1, 2, 3, 4, 5, 6, 8];
+    size_t DummyIndex = 0;
+    size_t RepeatedIndex = 2;
+}
+```
+两者的输入都是`source.Dst`后附加`H`。`indexSrcL`均是$X$,$W$对应的指标加上后附加`H`， `indexSrcR`均是计算两个偏导数$Y^\prime_{X}$和$Y^\prime_{W}$对应的指标。
+将两者加起来，加法的三个指标均相同:都是`source.indexDst`加上`H`
+```
+ditensorAdd//descriptor
+{
+    vector<long int> indexDst = [1, 2, 3, 4, 5, 6，H];
+    vector<long int> indexSrcL = [1, 2, 3, 4, 5, 6，H];
+    vector<long int> indexSrcR = [1, 2, 3, 4, 5, 6，H];
+    size_t DummyIndex = 0;
+    size_t RepeatedIndex = 6 + |H|;
+}
+```
+换言之是否是变量函数并不影响算法。
