@@ -41,36 +41,36 @@ LeafNode::~LeafNode()
 {
 
 }
-ElementwiseNode::ElementwiseNode()
+DiLinear::DiLinear()
 {
 	Type = _elementwise_;
 }
-ElementwiseNode::~ElementwiseNode()
+DiLinear::~DiLinear()
 {
 }
-TransformNode::TransformNode()
+DiNonlinear::DiNonlinear()
 {
 	Type = _tansform_;
 	alpha = 1.0;
 }
-TransformNode::~TransformNode()
+DiNonlinear::~DiNonlinear()
 {
 }
-LinearNode::LinearNode()
+MonoLinear::MonoLinear()
 {
 	Type = _linear_;
 }
-LinearNode::~LinearNode()
+MonoLinear::~MonoLinear()
 {
 }
-NonlinearNode::NonlinearNode()
+MonoNonlinear::MonoNonlinear()
 {
 	formula = NULL;
 	Type = _nonlinear_;
 	next = _uintMax_;
 	SrcDim = 0;
 }
-NonlinearNode::~NonlinearNode()
+MonoNonlinear::~MonoNonlinear()
 {
 	NonlinearType NT;
 	NT = (NonlinearType)Op;
@@ -133,36 +133,36 @@ Node* LeafNode::copy(void) const
 	//node->Desc.Set(Desc);
 	return node;
 }
-Node* ElementwiseNode::copy(void) const
+Node* DiLinear::copy(void) const
 {
-	ElementwiseNode* node;
-	node = new ElementwiseNode();
+	DiLinear* node;
+	node = new DiLinear();
 	CopyCoreN(*node);
 	node->descE.Set(descE);
 	return node;
 }
-Node* TransformNode::copy(void) const
+Node* DiNonlinear::copy(void) const
 {
-	TransformNode* node;
-	node = new TransformNode();
+	DiNonlinear* node;
+	node = new DiNonlinear();
 	CopyCoreN(*node);
 	node->DisDesc1.Set(DisDesc1);
 	node->CondenDesc2.Set(CondenDesc2);
 	node->alpha = alpha;
 	return node;
 }
-Node* LinearNode::copy(void) const
+Node* MonoLinear::copy(void) const
 {
-	LinearNode* node;
-	node = new LinearNode();
+	MonoLinear* node;
+	node = new MonoLinear();
 	CopyCoreN(*node);
-	node->Desc.Set(Desc);
+	//node->Desc.Set(Desc);
 	return node;
 }
-Node* NonlinearNode::copy(void) const
+Node* MonoNonlinear::copy(void) const
 {
-	NonlinearNode* node;
-	node = new NonlinearNode();
+	MonoNonlinear* node;
+	node = new MonoNonlinear();
 	CopyCoreN(*node);
 	NonlinearType NT;
 	NT = (NonlinearType)Op;
@@ -226,7 +226,7 @@ void LeafNode::backward(bool dYdX, vector<Node*>& label)
 {
 	return;
 }
-void ElementwiseNode::backward(bool dYdX, vector<Node*>& label) 
+void DiLinear::backward(bool dYdX, vector<Node*>& label) 
 {
 	Node::ElementwiseType ET;
 	ET = (Node::ElementwiseType)Op;
@@ -247,7 +247,7 @@ void ElementwiseNode::backward(bool dYdX, vector<Node*>& label)
 	{
 		hyperlex::dictionary* error;
 		error = new hyperlex::dictionary;
-		error->append("location", "ElementwiseNode::backward");
+		error->append("location", "DiLinear::backward");
 		error->append("error", "switch (ET) unknown type");
 		error->append("Op", Op);
 		throw error;
@@ -256,7 +256,7 @@ void ElementwiseNode::backward(bool dYdX, vector<Node*>& label)
 		
 	}
 }
-void TransformNode::backward(bool dYdX, vector<Node*>& label) 
+void DiNonlinear::backward(bool dYdX, vector<Node*>& label) 
 {
 	Node::TransformType TT;
 	Node* dst;
@@ -290,7 +290,7 @@ void TransformNode::backward(bool dYdX, vector<Node*>& label)
 	{
 		hyperlex::dictionary* error;
 		error = new hyperlex::dictionary;
-		error->append("location", "TransformNode::backward");
+		error->append("location", "DiNonlinear::backward");
 		error->append("error", "switch (ET) unknown type");
 		error->append("Op", Op);
 		throw error;
@@ -298,7 +298,7 @@ void TransformNode::backward(bool dYdX, vector<Node*>& label)
 	}
 	}
 }
-void LinearNode::backward(bool dYdX, vector<Node*>& label) 
+void MonoLinear::backward(bool dYdX, vector<Node*>& label) 
 {
 	LinearType LT;
 	LT = (LinearType)Op;
@@ -312,7 +312,7 @@ void LinearNode::backward(bool dYdX, vector<Node*>& label)
 	{
 		hyperlex::dictionary* error;
 		error = new hyperlex::dictionary;
-		error->append("location", "LinearNode::backward");
+		error->append("location", "MonoLinear::backward");
 		error->append("error", "switch (ET) unknown type");
 		error->append("Op", Op);
 		throw error;
@@ -321,7 +321,7 @@ void LinearNode::backward(bool dYdX, vector<Node*>& label)
 	}
 	return;
 }
-void NonlinearNode::backward(bool dYdX, vector<Node*>& label) 
+void MonoNonlinear::backward(bool dYdX, vector<Node*>& label) 
 {
 	NonlinearType NT;
 	NT = (NonlinearType)Op;
@@ -345,7 +345,7 @@ void NonlinearNode::backward(bool dYdX, vector<Node*>& label)
 	{
 		hyperlex::dictionary* error;
 		error = new hyperlex::dictionary;
-		error->append("location", "NonlinearNode::backward");
+		error->append("location", "MonoNonlinear::backward");
 		error->append("error", "switch (ET) unknown type");
 		error->append("Op", Op);
 		throw error;

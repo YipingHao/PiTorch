@@ -282,19 +282,19 @@ namespace Pikachu
 	
 	class NetWork;
 	class LeafNode;
-	class ElementwiseNode;
-	class TransformNode;
-	class LinearNode;
-	class NonlinearNode;
+	class DiLinear;
+	class DiNonlinear;
+	class MonoLinear;
+	class MonoNonlinear;
 	class Node : public vortex<Node>
 	{
 	public:
 		friend class NetWork;
 		friend class LeafNode;
-		friend class ElementwiseNode;
-		friend class TransformNode;
-		friend class LinearNode;
-		friend class NonlinearNode;
+		friend class DiLinear;
+		friend class DiNonlinear;
+		friend class MonoLinear;
+		friend class MonoNonlinear;
 		
 
 		Node();
@@ -376,49 +376,51 @@ namespace Pikachu
 		void Initial(const tensor& desc);
 
 	};
-	class ElementwiseNode : public Node
+	class MonoLinear : public Node
 	{
 	public:
-		ElementwiseNode();
-		~ElementwiseNode();
+		MonoLinear();
+		~MonoLinear();
+		Node* copy(void) const;
+		void backward(bool dYdX, vector<Node*>& label);
+	protected:
+		vector<sint> indexDst;
+		vector<sint> indexSrc;
+		size_t DummyIndex;
+		size_t NewIndex;
+		size_t RepeatedIndex;
+	};
+	class DiLinear : public Node
+	{
+	public:
+		DiLinear();
+		~DiLinear();
 		Node* copy(void) const; 
 		void backward(bool dYdX, vector<Node*>& label);
 	protected:
-		elementwise descE;
+		//elementwise descE;
+		vector<sint> indexDst;
+		vector<sint> indexSrcL;
+		vector<sint> indexSrcR;
+		size_t DummyIndex;
+		size_t RepeatedIndex;
 	};
-	class TransformNode : public Node
+	class MonoNonlinear : public Node
 	{
 	public:
-		TransformNode();
-		~TransformNode();
-		Node* copy(void) const;
-		void backward(bool dYdX, vector<Node*>& label);
-	protected:
-		double alpha;
-		dispatch DisDesc1;
-		condensation CondenDesc2;
-
-	};
-	class LinearNode : public Node
-	{	
-	public:
-		LinearNode();
-		~LinearNode();
-		Node* copy(void) const;
-		void backward(bool dYdX, vector<Node*>& label);
-	protected:
-		contract Desc;
-
-	};
-	class NonlinearNode : public Node
-	{
-	public:
-		NonlinearNode();
-		~NonlinearNode();
+		MonoNonlinear();
+		~MonoNonlinear();
 		Node* copy(void) const;
 		void backward(bool dYdX, vector<Node*>& label);
 	private:
-		
+		bool ScalarInput;
+		sint x;
+		vector<sint> function;
+
+		vector<sint> indexDst;
+		vector<sint> indexSrc;
+
+
 		void* formula;
 		//cluster*cl;
 		//manifolds*man;
@@ -430,6 +432,31 @@ namespace Pikachu
 		size_t next;
 		size_t SrcDim;
 	};
+	class DiNonlinear : public Node
+	{
+	public:
+		DiNonlinear();
+		~DiNonlinear();
+		Node* copy(void) const;
+		void backward(bool dYdX, vector<Node*>& label);
+	protected:
+		//double alpha;
+		//dispatch DisDesc1;
+		//condensation CondenDesc2;
+
+		bool ScalarInput;
+		sint x;
+		bool ScalarPara;
+		sint omega;
+		vector<sint> function;
+
+		vector<sint> indexDst;
+		vector<sint> indexSrc;
+		vector<sint> indexPara;
+
+	};
+	
+	
 
 	
 	

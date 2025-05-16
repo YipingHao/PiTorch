@@ -24,6 +24,8 @@ namespace Pikachu
 }
 namespace Pikachu
 {
+	typedef long int sint;
+
 	template <class T> class vector
 	{
 	protected:
@@ -42,6 +44,7 @@ namespace Pikachu
 		void recapacity(size_t NewSize);
 		void recount(size_t NewCount);
 		void append(const T& element);
+		sint search(const T& element);
 		size_t SearchAppend(const T& element);
 		size_t pop(T& element);
 		size_t top(T& element);
@@ -579,6 +582,15 @@ namespace Pikachu
 			content[i - 1] = content[i];
 		}
 		Count -= 1;
+	}
+	template <class T> sint vector<T>::search(const T& element)
+	{
+		sint i;
+		for (i = 0; i < Count; i++)
+		{
+			if (content[i] == element) return i;
+		}
+		return -1L;
 	}
 	template <class T> size_t vector<T>::SearchAppend(const T& element)
 	{
