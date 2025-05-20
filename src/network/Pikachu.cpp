@@ -30,23 +30,26 @@ void NetWork::backward(size_t No)
 	vector<bool> valid;
 	vector<Node*> label;
 	vector<Node*> sequence;
+	vector<size_t> H;
 
 	Out = output[No];
 	queue.append(Out);
 	net.BFTbackward(valid, queue);
 	net.TopoSortBFSBack(sequence);
 
-	length = sequence.count();
+	length = net.count();
+
 	label.recount(length);
 	label.value(NULL);
 
 	TempLeaf = new LeafNode(this, Node::_leafConst_);
-	TempLeaf->Initial(Out->descriptor);
+	TempLeaf->Initial(Out->descriptor, H);
 	label[output[No]->site()] = TempLeaf;
 
 	for (i = 0; i < length; i++)
 	{
 		here = sequence[i];
+		here->backward(true, label, H);
 		//here->backward(true, now, label, *this);
 		if (here->Type == Node::_leaf_ && here->Op == (int)Node::_leafIn_)
 		{

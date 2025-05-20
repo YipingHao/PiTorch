@@ -286,13 +286,13 @@ DummyIndex = 2;
 NewIndex = 2;
 RepeatedIndex= 2;
 ```
-得到的微分实质上是先将`DummyIndex`和`RepeatedIndex`对调，`NewIndex`加上`H`的维数。再将`indexDst`和`indexSrc`对调,并补充上`H`对应的指标，我们假设`H`是三维的。那么我们有
+得到的微分实质上是先将`DummyIndex`和`NewIndex`对调，`RepeatedIndex`加上`H`的维数。再将`indexDst`和`indexSrc`对调,并补充上`H`对应的指标，我们假设`H`是三维的。那么我们有
 ```
 indexDst = [1, -1, 2, -2, 4， 5， 6]\\[1, -1, 2, -2, H];
 indexSrc = [1, 2, -1, -2, 4， 5， 6]\\[1, -1, 2, -2, H];
 DummyIndex = 2;
-NewIndex = 2 + 3;
-RepeatedIndex= 2;
+NewIndex = 2;
+RepeatedIndex= 2 + 3;
 ```
 补充的`4`,`5`,`6`是新指标，换成别的也对。
 

@@ -51,7 +51,6 @@ DiLinear::~DiLinear()
 DiNonlinear::DiNonlinear()
 {
 	Type = _tansform_;
-	alpha = 1.0;
 }
 DiNonlinear::~DiNonlinear()
 {
@@ -138,7 +137,7 @@ Node* DiLinear::copy(void) const
 	DiLinear* node;
 	node = new DiLinear();
 	CopyCoreN(*node);
-	node->descE.Set(descE);
+	//node->descE.Set(descE);
 	return node;
 }
 Node* DiNonlinear::copy(void) const
@@ -146,9 +145,9 @@ Node* DiNonlinear::copy(void) const
 	DiNonlinear* node;
 	node = new DiNonlinear();
 	CopyCoreN(*node);
-	node->DisDesc1.Set(DisDesc1);
-	node->CondenDesc2.Set(CondenDesc2);
-	node->alpha = alpha;
+	//node->DisDesc1.Set(DisDesc1);
+	//node->CondenDesc2.Set(CondenDesc2);
+	//node->alpha = alpha;
 	return node;
 }
 Node* MonoLinear::copy(void) const
@@ -222,11 +221,12 @@ Node* MonoNonlinear::copy(void) const
 	return node;
 }
 
-void LeafNode::backward(bool dYdX, vector<Node*>& label)
+void LeafNode::backward(bool dYdX, vector<Node*>& label, vector<size_t>& H)
 {
+
 	return;
 }
-void DiLinear::backward(bool dYdX, vector<Node*>& label) 
+void DiLinear::backward(bool dYdX, vector<Node*>& label, vector<size_t>& H) 
 {
 	Node::ElementwiseType ET;
 	ET = (Node::ElementwiseType)Op;
@@ -256,7 +256,7 @@ void DiLinear::backward(bool dYdX, vector<Node*>& label)
 		
 	}
 }
-void DiNonlinear::backward(bool dYdX, vector<Node*>& label) 
+void DiNonlinear::backward(bool dYdX, vector<Node*>& label, vector<size_t>& H) 
 {
 	Node::TransformType TT;
 	Node* dst;
@@ -298,10 +298,18 @@ void DiNonlinear::backward(bool dYdX, vector<Node*>& label)
 	}
 	}
 }
-void MonoLinear::backward(bool dYdX, vector<Node*>& label) 
+void MonoLinear::backward(bool dYdX, vector<Node*>& label, vector<size_t>& H) 
 {
 	LinearType LT;
 	LT = (LinearType)Op;
+
+	MonoLinear* diff;
+	diff = new MonoLinear();
+	diff->alpha = alpha;
+	diff->indexDst.copy(indexSrc);
+	diff->indexSrc.copy(indexDst);
+
+
 	switch (LT)
 	{
 	case Pikachu::Node::_contraction_:
@@ -321,7 +329,7 @@ void MonoLinear::backward(bool dYdX, vector<Node*>& label)
 	}
 	return;
 }
-void MonoNonlinear::backward(bool dYdX, vector<Node*>& label) 
+void MonoNonlinear::backward(bool dYdX, vector<Node*>& label, vector<size_t>& H) 
 {
 	NonlinearType NT;
 	NT = (NonlinearType)Op;
@@ -355,7 +363,7 @@ void MonoNonlinear::backward(bool dYdX, vector<Node*>& label)
 	return;
 }
 
-void LeafNode::Initial(const tensor& desc)
+void LeafNode::Initial(const tensor& desc, vector<size_t>& H)
 {
 	size_t i, L;
 	FuncConst one_;
@@ -368,16 +376,23 @@ void LeafNode::Initial(const tensor& desc)
 		descriptor.ChangeOrder(1);
 		descriptor.ChangeDim(0, 1);
 		value.append(one_);
+		H.recount(0);
 	}
 	else if (desc.GetOrder() == 1 && desc[0] == 1)
 	{
 		descriptor.Set(desc);
 		value.append(one_);
+		H.recount(0);
 	}
 	else
 	{
 		descriptor.Clear();
-		for (i = 0; i < desc.GetOrder(); i++) descriptor.AppendDim(desc[i]);
+		H.recount(desc.GetOrder());
+		for (i = 0; i < desc.GetOrder(); i++)
+		{
+			H[i] = desc[i];
+			descriptor.AppendDim(desc[i]);
+		}
 		for (i = 0; i < desc.GetOrder(); i++) descriptor.AppendDim(desc[i]);
 		L = desc.GetCount();
 		value.recount(descriptor.GetCount());

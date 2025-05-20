@@ -350,7 +350,7 @@ namespace Pikachu
 		};
 		virtual Node* copy(void)const  = 0;
 		//virtual void copy(Node& source) = 0;
-		virtual void backward(bool dYdX, vector<Node*>& label) = 0;
+		virtual void backward(bool dYdX, vector<Node*>& label, vector<size_t>& H) = 0;
 	protected:
 		Affiliation Affi;
 		VortexType Type;
@@ -372,8 +372,8 @@ namespace Pikachu
 		LeafNode(NetWork* context, Node::LeafType t);
 		~LeafNode();
 		Node* copy(void) const;
-		void backward(bool dYdX, vector<Node*>& label);
-		void Initial(const tensor& desc);
+		void backward(bool dYdX, vector<Node*>& label, vector<size_t>& H);
+		void Initial(const tensor& desc, vector<size_t>& H);
 
 	};
 	class MonoLinear : public Node
@@ -382,8 +382,10 @@ namespace Pikachu
 		MonoLinear();
 		~MonoLinear();
 		Node* copy(void) const;
-		void backward(bool dYdX, vector<Node*>& label);
+		void backward(bool dYdX, vector<Node*>& label, vector<size_t>& H);
+		
 	protected:
+		double alpha;
 		vector<sint> indexDst;
 		vector<sint> indexSrc;
 		size_t DummyIndex;
@@ -396,7 +398,7 @@ namespace Pikachu
 		DiLinear();
 		~DiLinear();
 		Node* copy(void) const; 
-		void backward(bool dYdX, vector<Node*>& label);
+		void backward(bool dYdX, vector<Node*>& label, vector<size_t>& H);
 	protected:
 		//elementwise descE;
 		vector<sint> indexDst;
@@ -411,7 +413,7 @@ namespace Pikachu
 		MonoNonlinear();
 		~MonoNonlinear();
 		Node* copy(void) const;
-		void backward(bool dYdX, vector<Node*>& label);
+		void backward(bool dYdX, vector<Node*>& label, vector<size_t>& H);
 	private:
 		bool ScalarInput;
 		sint x;
@@ -438,7 +440,7 @@ namespace Pikachu
 		DiNonlinear();
 		~DiNonlinear();
 		Node* copy(void) const;
-		void backward(bool dYdX, vector<Node*>& label);
+		void backward(bool dYdX, vector<Node*>& label, vector<size_t>& H);
 	protected:
 		//double alpha;
 		//dispatch DisDesc1;
