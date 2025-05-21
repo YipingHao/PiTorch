@@ -26,6 +26,25 @@ void Node::CopyCoreN(Node& dst) const
 	CopyToCore(dst);
 	return;
 }
+void Node::setDesc(const tensor& desc)
+{
+	descriptor.Set(desc);
+}
+void Node::setDesc(const tensor& desc, const vector<size_t>& H)
+{
+	tensor descTemp;
+	size_t i;
+	descTemp.Set(desc);
+	for (i = 0; i < H.count(); i++)
+		descTemp.AppendDim(H[i]);
+	descriptor.Set(descTemp);
+}
+
+void Node::clearCore(void)
+{
+	ArcClear();
+}
+
 
 LeafNode::LeafNode()
 {
@@ -221,6 +240,85 @@ Node* MonoNonlinear::copy(void) const
 	return node;
 }
 
+void LeafNode::check(void) const
+{
+
+}
+void DiLinear::check(void) const
+{
+
+}
+void DiNonlinear::check(void) const
+{
+
+}
+void MonoLinear::check(void) const
+{
+
+}
+void MonoNonlinear::check(void) const
+{
+
+}
+
+void LeafNode::clear(void)
+{
+
+}
+void MonoLinear::clear(void)
+{
+	clearCore();
+}
+void DiLinear::clear(void)
+{
+	clearCore();
+}
+void MonoNonlinear::clear(void)
+{
+	clearCore();
+}
+void DiNonlinear::clear(void)
+{
+	clearCore();
+}
+void DiLinear::trivial(Node* SrcL, Node* SrcR)
+{
+	size_t i;
+	hyperlex::dictionary* error = NULL;
+	clear();
+	if (!(SrcL->descriptor == SrcR->descriptor))
+	{
+		error = new hyperlex::dictionary;
+		error->append("location", "DiLinear::trivial");
+		error->append("error", "SrcL->descriptor != SrcR->descriptor");
+		error->append("SrcL", SrcL->descriptor.GetOrder());
+		error->append("SrcR", SrcR->descriptor.GetOrder());
+		throw error;
+	}
+	if (SrcL->network == NULL || SrcL->network != SrcR->network)
+	{
+		error = new hyperlex::dictionary;
+		error->append("location", "DiLinear::trivial");
+		error->append("error", "SrcL->network == NULL || SrcL->network != SrcR->network");
+		throw error;
+	}
+	Op = OpType::_add_;
+	DummyIndex = 0;
+	RepeatedIndex = SrcL->descriptor.GetOrder();
+	indexDst.recount(RepeatedIndex);
+	indexSrcL.recount(RepeatedIndex);
+	indexSrcR.recount(RepeatedIndex);
+	for (i = 0; i < RepeatedIndex; i++)
+	{
+		indexDst[i] = (sint)(i + 1);
+		indexSrcL[i] = (sint)(i + 1);
+		indexSrcR[i] = (sint)(i + 1);
+	}
+	SrcL->network->NodeAppend(this);
+	network->net.ArcAdd(SrcL, SrcR, this);
+
+}
+
 void LeafNode::backward(bool dYdX, vector<Node*>& label, vector<size_t>& H)
 {
 
@@ -228,27 +326,69 @@ void LeafNode::backward(bool dYdX, vector<Node*>& label, vector<size_t>& H)
 }
 void DiLinear::backward(bool dYdX, vector<Node*>& label, vector<size_t>& H) 
 {
-	Node::ElementwiseType ET;
-	ET = (Node::ElementwiseType)Op;
-	double alpha;
-	alpha = (ET == _sub_ ? -1.0 : 1.0);
-	switch (ET)
+	Node::OpType OT;
+	OT = (Node::OpType)Op;
+	
+	switch (OT)
 	{
 	case Pikachu::Node::_add_:
 	case Pikachu::Node::_sub_:
-		//BackCore1(true, 1.0, No, label, workspace);
-		//BackCore1(false, alpha, No, label, workspace);
+	{
+		MonoLinear* diff;
+		Node* SrcBack_, * source;
+		size_t siteThis, siteSource;
+		double Ralpha;
+		Ralpha = (OT == _sub_ ? -1.0 : 1.0);
+		siteThis = site();
+		siteSource = source->site();
+		SrcBack_ = label[siteThis];
+
+
+		diff = new MonoLinear();
+		diff->build(indexDst, indexSrcL, H, 1.0);
+		diff->setDesc(in[0]->descriptor, H);
+		network->NodeAppend(diff);
+		network->net.ArcAdd(SrcBack_, diff);
+		network->BackAcc(in[0]->site(), label, diff);
+
+		diff = new MonoLinear();
+		diff->build(indexDst, indexSrcR, H, Ralpha);
+		diff->setDesc(in[1]->descriptor, H);
+		network->NodeAppend(diff);
+		network->net.ArcAdd(SrcBack_, diff);
+		network->BackAcc(in[1]->site(), label, diff);
 		break;
+	}
 	case Pikachu::Node::_mul_:
-		//BackCore2(true, No, label, workspace);
-		//BackCore2(false, No, label, workspace);
+	{
+		DiLinear* diff;
+		Node* SrcBack_;
+		size_t siteThis;
+		siteThis = site();
+		SrcBack_ = label[siteThis];
+
+
+		diff = new DiLinear();
+		//diff->build(indexDst, indexSrcL, H, 1.0);
+		diff->setDesc(in[0]->descriptor, H);
+		network->NodeAppend(diff);
+		network->net.ArcAdd(SrcBack_, in[1], diff);
+		network->BackAcc(in[0]->site(), label, diff);
+
+		diff = new DiLinear();
+		//diff->build(indexDst, indexSrcR, H, Ralpha);
+		diff->setDesc(in[1]->descriptor, H);
+		network->NodeAppend(diff);
+		network->net.ArcAdd(SrcBack_, in[0], diff);
+		network->BackAcc(in[1]->site(), label, diff);
 		break;
+	}
 	default:
 	{
 		hyperlex::dictionary* error;
 		error = new hyperlex::dictionary;
 		error->append("location", "DiLinear::backward");
-		error->append("error", "switch (ET) unknown type");
+		error->append("error", "switch (OT) unknown type");
 		error->append("Op", Op);
 		throw error;
 		break;
@@ -300,33 +440,30 @@ void DiNonlinear::backward(bool dYdX, vector<Node*>& label, vector<size_t>& H)
 }
 void MonoLinear::backward(bool dYdX, vector<Node*>& label, vector<size_t>& H) 
 {
-	LinearType LT;
-	LT = (LinearType)Op;
-
 	MonoLinear* diff;
+	Node* SrcBack_, *source;
+	size_t siteThis, siteSource;
+	siteThis = site();
+	source = in[0];
+	siteSource = source->site();
+	SrcBack_ = label[siteThis];
+
+
 	diff = new MonoLinear();
-	diff->alpha = alpha;
-	diff->indexDst.copy(indexSrc);
-	diff->indexSrc.copy(indexDst);
+	diff->build(indexDst, indexSrc, H, alpha);
+	diff->setDesc(source->descriptor, H);
+	//diff->alpha = alpha;
+	//diff->indexDst.copy(indexSrc);
+	//diff->indexSrc.copy(indexDst);
+	//diff->DummyIndex = NewIndex;
+	//diff->NewIndex = DummyIndex;
+	//diff->RepeatedIndex = RepeatedIndex + H.count();
 
 
-	switch (LT)
-	{
-	case Pikachu::Node::_contraction_:
-		//ContracBack1(true, No, label, workspace);
-		//ContracBack1(false, No, label, workspace);
-		break;
-	default:
-	{
-		hyperlex::dictionary* error;
-		error = new hyperlex::dictionary;
-		error->append("location", "MonoLinear::backward");
-		error->append("error", "switch (ET) unknown type");
-		error->append("Op", Op);
-		throw error;
-		break;
-	}
-	}
+	network->NodeAppend(diff);
+	network->net.ArcAdd(SrcBack_, diff);
+	network->BackAcc(siteSource, label, diff);
+
 	return;
 }
 void MonoNonlinear::backward(bool dYdX, vector<Node*>& label, vector<size_t>& H) 
@@ -404,6 +541,109 @@ void LeafNode::Initial(const tensor& desc, vector<size_t>& H)
 	return;
 }
 
+
+void MonoLinear::build(const vector<sint>& Src, const vector<sint>& Dst, double Alpha)
+{
+	sint max;
+	size_t i;
+	clear();
+	max = Src[0];
+	indexDst.recount(Dst.count());
+	indexSrc.recount(Src.count());
+	for (i = 0; i < Src.count(); i++)
+	{
+		max = max > Src[i] ? max : Src[i];
+		indexSrc[i] = Src[i];
+	}
+	for (i = 0; i < Dst.count(); i++)
+	{
+		max = max > Dst[i] ? max : Dst[i];
+		indexDst[i] = Dst[i];
+	}
+	DummyIndex = 0;
+	NewIndex = 0;
+	RepeatedIndex = 0;
+	for (i = 0; i < indexSrc.count(); i++)
+	{
+		sint temp = indexSrc[i];
+		size_t site = indexDst.search(temp);
+		if (site == _uintMax_) NewIndex += 1;
+		else RepeatedIndex += 1;
+	}
+	for (i = 0; i < indexDst.count(); i++)
+	{
+		sint temp = indexDst[i];
+		size_t site = indexSrc.search(temp);
+		if (site == _uintMax_) DummyIndex += 1;
+	}
+}
+void MonoLinear::build(const vector<sint>& Src, const vector<sint>& Dst, const vector<size_t>& H, double Alpha)
+{
+	sint max;
+	size_t i;
+	clear();
+	max = Src[0]; 
+	indexDst.recount(Dst.count() + H.count());
+	indexSrc.recount(Src.count() + H.count());
+	for (i = 0; i < Src.count(); i++)
+	{
+		max = max > Src[i] ? max : Src[i];
+		indexSrc[i] = Src[i];
+	}
+	for (i = 0; i < Dst.count(); i++)
+	{
+		max = max > Dst[i] ? max : Dst[i];
+		indexDst[i] = Dst[i];
+	}
+
+	for (i = 0; i < H.count(); i++)
+	{
+		indexSrc[i + Src.count()] = (sint)(max + i + 1);
+		indexDst[i + Dst.count()] = (sint)(max + i + 1);
+	}
+	DummyIndex = 0;
+	NewIndex = 0;
+	RepeatedIndex = 0;
+	for (i = 0; i < indexSrc.count(); i++)
+	{
+		sint temp = indexSrc[i];
+		size_t site = indexDst.search(temp);
+		if (site == _uintMax_) NewIndex += 1;
+		else RepeatedIndex += 1;
+	}
+	for (i = 0; i < indexDst.count(); i++)
+	{
+		sint temp = indexDst[i];
+		size_t site = indexSrc.search(temp);
+		if (site == _uintMax_) DummyIndex += 1;
+	}
+}
+
+
+void DiLinear::build(const vector<sint>& SrcL, const vector<sint>& SrcR, const vector<sint>& Dst)
+{
+	
+}
+sint DiLinear::MaxIndex(void) const
+{
+	size_t i;
+	sint temp;
+	temp = indexSrcL[0];
+	for (i = 0; i < indexSrcL.count(); i++)
+	{
+		temp = (temp > indexSrcL[i] ? temp : indexSrcL[i]);
+	}
+	for (i = 0; i < indexSrcR.count(); i++)
+	{
+		temp = (temp > indexSrcR[i] ? temp : indexSrcR[i]);
+	}
+	for (i = 0; i < indexDst.count(); i++)
+	{
+		temp = (temp > indexDst[i] ? temp : indexDst[i]);
+	}
+
+	return temp;
+}
 
 GraphNode::GraphNode()
 {

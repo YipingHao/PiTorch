@@ -60,6 +60,26 @@ void NetWork::backward(size_t No)
 
 
 }
+void NetWork::NodeAppend(Node* rear)
+{
+	rear->network = this;
+	net.append(rear);
+}
+void NetWork::BackAcc(size_t target, vector<Node*>& label, Node* source)
+{
+	Node *SrcL;
+	DiLinear* New;
+	if (source->network == NULL) NodeAppend(source);
+	if (label[target] == NULL)
+	{
+		label[target] = source;
+		return;
+	}
+	SrcL = label[target];
+	New = new DiLinear();
+	New->trivial(SrcL, source);
+	label[target] = New;
+}
 
 network::network()
 {

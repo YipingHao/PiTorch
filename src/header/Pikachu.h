@@ -322,7 +322,7 @@ namespace Pikachu
 			_leafPara_ = 1,
 			_leafConst_ = 2,
 		};
-		enum ElementwiseType
+		enum OpType
 		{
 			_add_ = 0,
 			_sub_ = 1,
@@ -351,6 +351,8 @@ namespace Pikachu
 		virtual Node* copy(void)const  = 0;
 		//virtual void copy(Node& source) = 0;
 		virtual void backward(bool dYdX, vector<Node*>& label, vector<size_t>& H) = 0;
+		virtual void check(void)const = 0;
+		virtual void clear(void) = 0;
 	protected:
 		Affiliation Affi;
 		VortexType Type;
@@ -361,6 +363,9 @@ namespace Pikachu
 		NetWork* network;
 
 		void CopyCoreN(Node& dst) const;
+		void setDesc(const tensor& desc);
+		void setDesc(const tensor& desc, const vector<size_t>& H);
+		void clearCore(void);
 	};
 	class LeafNode : public Node
 	{
@@ -374,7 +379,8 @@ namespace Pikachu
 		Node* copy(void) const;
 		void backward(bool dYdX, vector<Node*>& label, vector<size_t>& H);
 		void Initial(const tensor& desc, vector<size_t>& H);
-
+		void check(void)const;
+		void clear(void);
 	};
 	class MonoLinear : public Node
 	{
@@ -383,7 +389,11 @@ namespace Pikachu
 		~MonoLinear();
 		Node* copy(void) const;
 		void backward(bool dYdX, vector<Node*>& label, vector<size_t>& H);
-		
+		void check(void)const;
+		void clear(void);
+		void build(const vector<sint>& Src, const vector<sint>& Dst, double Alpha);
+		void build(const vector<sint>& Src, const vector<sint>& Dst, const vector<size_t>& H, double Alpha);
+		friend class DiLinear;
 	protected:
 		double alpha;
 		vector<sint> indexDst;
@@ -399,6 +409,11 @@ namespace Pikachu
 		~DiLinear();
 		Node* copy(void) const; 
 		void backward(bool dYdX, vector<Node*>& label, vector<size_t>& H);
+		void check(void)const;
+		void clear(void);
+		void trivial(Node* SrcL, Node* SrcR);
+		void build(const vector<sint>& SrcL, const vector<sint>& SrcR, const vector<sint>& Dst);
+
 	protected:
 		//elementwise descE;
 		vector<sint> indexDst;
@@ -406,6 +421,7 @@ namespace Pikachu
 		vector<sint> indexSrcR;
 		size_t DummyIndex;
 		size_t RepeatedIndex;
+		sint MaxIndex(void) const;
 	};
 	class MonoNonlinear : public Node
 	{
@@ -414,7 +430,9 @@ namespace Pikachu
 		~MonoNonlinear();
 		Node* copy(void) const;
 		void backward(bool dYdX, vector<Node*>& label, vector<size_t>& H);
-	private:
+		void check(void)const;
+		void clear(void);
+	protected:
 		bool ScalarInput;
 		sint x;
 		vector<sint> function;
@@ -433,6 +451,7 @@ namespace Pikachu
 
 		size_t next;
 		size_t SrcDim;
+		
 	};
 	class DiNonlinear : public Node
 	{
@@ -441,6 +460,8 @@ namespace Pikachu
 		~DiNonlinear();
 		Node* copy(void) const;
 		void backward(bool dYdX, vector<Node*>& label, vector<size_t>& H);
+		void check(void)const;
+		void clear(void);
 	protected:
 		//double alpha;
 		//dispatch DisDesc1;
@@ -472,6 +493,13 @@ namespace Pikachu
 		void copy(NetWork& source);
 		void forward(size_t No);
 		void backward(size_t No);
+		void NodeAppend(Node* rear);
+		friend class NetWork;
+		friend class LeafNode;
+		friend class DiLinear;
+		friend class DiNonlinear;
+		friend class MonoLinear;
+		friend class MonoNonlinear;
 	protected:
 		graph<Node> net;
 
@@ -484,6 +512,7 @@ namespace Pikachu
 
 
 		vector<Node*> hahahah;
+		void BackAcc(size_t target, vector<Node*>& label, Node* source);
 	};
 }
 

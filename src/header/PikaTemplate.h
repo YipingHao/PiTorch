@@ -44,7 +44,7 @@ namespace Pikachu
 		void recapacity(size_t NewSize);
 		void recount(size_t NewCount);
 		void append(const T& element);
-		sint search(const T& element);
+		size_t search(const T& element);
 		size_t SearchAppend(const T& element);
 		size_t pop(T& element);
 		size_t top(T& element);
@@ -321,6 +321,7 @@ namespace Pikachu
 			infor = NULL;
 		}
 		~vortex();
+		void ArcClear(void);
 		//void value(const V& source);
 		void CopyCore(const Vextern& source);
 		void CopyToCore(Vextern& dst) const;
@@ -583,14 +584,14 @@ namespace Pikachu
 		}
 		Count -= 1;
 	}
-	template <class T> sint vector<T>::search(const T& element)
+	template <class T> size_t vector<T>::search(const T& element)
 	{
-		sint i;
+		size_t i;
 		for (i = 0; i < Count; i++)
 		{
 			if (content[i] == element) return i;
 		}
-		return -1L;
+		return _uintMax_;
 	}
 	template <class T> size_t vector<T>::SearchAppend(const T& element)
 	{
@@ -1366,6 +1367,31 @@ namespace Pikachu
 		catch (hyperlex::dictionary* error)
 		{
 			error->append("location", "vortex<V>::~vortex()");
+			error->append("i", i);
+			throw error;
+		}
+	}
+	template <class V> void vortex<V>::ArcClear(void)
+	{
+		size_t i, site;
+		Vextern* target;
+		try
+		{
+			target = (Vextern*)infor;
+			for (i = 0; i < in.count(); i++)
+			{
+				site = in[i]->SearchOutExcept(target);
+				in[i]->ShrinkOut(site);
+			}
+			for (i = 0; i < out.count(); i++)
+			{
+				site = out[i]->SearchInExcept(target);
+				out[i]->ShrinkIn(site);
+			}
+		}
+		catch (hyperlex::dictionary* error)
+		{
+			error->append("location", "vortex<V>::ArcClear()");
 			error->append("i", i);
 			throw error;
 		}
