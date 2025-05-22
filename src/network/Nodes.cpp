@@ -404,45 +404,33 @@ void DiLinear::backward(bool dYdX, vector<Node*>& label, vector<size_t>& H)
 }
 void DiNonlinear::backward(bool dYdX, vector<Node*>& label, vector<size_t>& H) 
 {
-	Node::TransformType TT;
-	Node* dst;
-	Node* original;
-	Transform* New;
-	TT = (Node::TransformType)Op;
-	dst = in[0];
-	original = label[label_site];
-	switch (TT)
-	{
-	case Pikachu::Node::_identity_:
-		//workspace.BackwardAppend(dst, original, label);
-		break;
-	case Pikachu::Node::_condense_:
-		//site = workspace.append(_tansform_, _dispatch_);
-		//New = (Transform*)(workspace.net[site].content);
-		//New->DisDesc1.backward(Src->descriptor, CondenDesc2);
-		//workspace.net.append(original, site);
-		//workspace.SetDesc(site);
-		//workspace.BackwardAppend(dst, site, label);
-		break;
-	case Pikachu::Node::_dispatch_:
-		//site = workspace.append(_tansform_, _condense_);
-		//New = (Transform*)(workspace.net[site].content);
-		//New->CondenDesc2.backward(Src->descriptor, DisDesc1);
-		//workspace.net.append(original, site);
-		//workspace.SetDesc(site);
-		//workspace.BackwardAppend(dst, site, label);
-		break;
-	default:
-	{
-		hyperlex::dictionary* error;
-		error = new hyperlex::dictionary;
-		error->append("location", "DiNonlinear::backward");
-		error->append("error", "switch (ET) unknown type");
-		error->append("Op", Op);
-		throw error;
-		break;
-	}
-	}
+	DiNonlinear* func;
+	DiLinear* diff;
+	Node* SrcBack_;
+	size_t siteThis;
+	siteThis = site();
+	SrcBack_ = label[siteThis];
+
+	func = differential(true);
+	diff = new DiLinear();
+	diff->setDesc(in[0]->descriptor, H);
+	diff->value(indexDst, func->indexDst, indexSrc);
+	diff->Happend(true, false, true, H.count());
+	diff->build();
+	network->NodeAppend(diff);
+	network->net.ArcAdd(SrcBack_, func, diff);
+	network->BackAcc(in[0]->site(), label, diff);
+
+	func = differential(false);
+	diff = new DiLinear();
+	diff->setDesc(in[1]->descriptor, H);
+	diff->value(indexDst, func->indexDst, indexPara);
+	diff->Happend(true, false, true, H.count());
+	diff->build();
+	network->NodeAppend(diff);
+	network->net.ArcAdd(SrcBack_, func, diff);
+	network->BackAcc(in[1]->site(), label, diff);
+
 }
 void MonoLinear::backward(bool dYdX, vector<Node*>& label, vector<size_t>& H) 
 {
@@ -474,37 +462,51 @@ void MonoLinear::backward(bool dYdX, vector<Node*>& label, vector<size_t>& H)
 }
 void MonoNonlinear::backward(bool dYdX, vector<Node*>& label, vector<size_t>& H) 
 {
-	NonlinearType NT;
-	NT = (NonlinearType)Op;
-	//if (next == _uintMax_) SetNext(No, workspace);
-	switch (NT)
-	{
-	case Pikachu::GraphNode::_activation_:
-		//BackCore1A(No, label, workspace);
-		//if (!dYdX) BackCore1AdLdW(No, label, workspace);
-		break;
-	case Pikachu::GraphNode::_cluster_:
-		//BackCore2C(No, label, workspace);
-		break;
-		//case Pikachu::GraphNode::_activationBack_:
-		//	throw PikaError("Nonlinear::backward", "case Pikachu::GraphNode::_manifold_", Op);
-		//	break;
-		//case Pikachu::GraphNode::_activationHv_:
-		//	throw PikaError("Nonlinear::backward", "case Pikachu::GraphNode::_manifold_", Op);
-		//	break;
-	default:
-	{
-		hyperlex::dictionary* error;
-		error = new hyperlex::dictionary;
-		error->append("location", "MonoNonlinear::backward");
-		error->append("error", "switch (ET) unknown type");
-		error->append("Op", Op);
-		throw error;
-		break;
-	}
-	}
+	MonoNonlinear* func;
+	func = differential();
+
+	DiLinear* diff;
+	Node* SrcBack_;
+	size_t siteThis;
+	siteThis = site();
+	SrcBack_ = label[siteThis];
+
+
+	diff = new DiLinear();
+	//diff->build(indexDst, indexSrcL, H, 1.0);
+	diff->setDesc(in[0]->descriptor, H);
+	diff->value(indexDst, func->indexDst, indexSrc);
+	diff->Happend(true, false, true, H.count());
+	diff->build();
+	network->NodeAppend(diff);
+	network->net.ArcAdd(SrcBack_, func, diff);
+	network->BackAcc(in[0]->site(), label, diff);
 	return;
 }
+
+
+void LeafNode::forward(bool dYdX, vector<Node*>& label, vector<size_t>& H)
+{
+
+}
+void MonoLinear::forward(bool dYdX, vector<Node*>& label, vector<size_t>& H)
+{
+
+}
+void DiLinear::forward(bool dYdX, vector<Node*>& label, vector<size_t>& H)
+{
+
+}
+void MonoLinear::forward(bool dYdX, vector<Node*>& label, vector<size_t>& H)
+{
+
+}
+void DiNonlinear::forward(bool dYdX, vector<Node*>& label, vector<size_t>& H)
+{
+
+}
+
+
 
 void LeafNode::Initial(const tensor& desc, vector<size_t>& H)
 {
@@ -625,7 +627,6 @@ void MonoLinear::build(const vector<sint>& Src, const vector<sint>& Dst, const v
 	}
 }
 
-
 void DiLinear::value(const vector<sint>& SrcL, const vector<sint>& SrcR, const vector<sint>& Dst)
 {
 	indexSrcL.copy(SrcL);
@@ -708,6 +709,190 @@ void DiLinear::Happend(bool L, bool R, bool D, size_t H)
 	}
 	return;
 }
+
+void MonoNonlinear::inforPrint(hyperlex::dictionary& dict)const
+{
+	dict.append("ScalarInput", ScalarInput);
+	dict.append("x", x);
+	
+}
+hyperlex::dictionary* MonoNonlinear::ErrorGive(void) const
+{
+	hyperlex::dictionary* error;
+	error = new  hyperlex::dictionary;
+	inforPrint(*error);
+	return error;
+}
+sint MonoNonlinear::MaxIndex(void) const
+{
+	size_t i;
+	sint temp;
+	temp = 0;
+	for (i = 0; i < indexSrc.count(); i++)
+	{
+		temp = (temp > indexSrc[i] ? temp : indexSrc[i]);
+	}
+	for (i = 0; i < function.count(); i++)
+	{
+		temp = (temp > function[i] ? temp : function[i]);
+	}
+	for (i = 0; i < indexDst.count(); i++)
+	{
+		temp = (temp > indexDst[i] ? temp : indexDst[i]);
+	}
+	if (ScalarInput)
+	{
+		temp = (temp > x ? temp : x);
+	}
+	return temp;
+}
+MonoNonlinear* MonoNonlinear::differential(void) const
+{
+	MonoNonlinear* diff;
+	diff = new MonoNonlinear;
+	diff->x = x;
+	diff->ScalarInput = ScalarInput;
+
+	diff->function.copy(function);
+	diff->indexSrc.copy(indexSrc);
+	diff->indexDst.copy(indexDst);
+
+	diff->descriptor.Set(descriptor);
+	diff->funcTensor.Set(funcTensor);
+	if (!ScalarInput)
+	{
+		size_t site = diff->indexSrc.search(x);
+		if (site == _uintMax_)
+		{
+			hyperlex::dictionary* error = ErrorGive();
+			error->append("location", "differential");
+			throw error;
+		}
+		sint index = 1 + MaxIndex();
+		size_t dimX;
+		dimX = in[0]->descriptor[site];
+		diff->function.append(x);
+		diff->indexDst.append(x);
+
+		diff->x = index;
+		diff->indexSrc[site] = index;
+		
+		diff->descriptor.AppendDim(dimX);
+		diff->funcTensor.AppendDim(dimX);
+	}
+	network->NodeAppend(diff);
+	network->net.ArcAdd(in[0], diff);
+	return diff;
+}
+
+sint DiNonlinear::MaxIndex(void) const
+{
+	size_t i;
+	sint temp;
+	temp = 0;
+	for (i = 0; i < indexSrc.count(); i++)
+	{
+		temp = (temp > indexSrc[i] ? temp : indexSrc[i]);
+	}
+	for (i = 0; i < function.count(); i++)
+	{
+		temp = (temp > function[i] ? temp : function[i]);
+	}
+	for (i = 0; i < indexDst.count(); i++)
+	{
+		temp = (temp > indexDst[i] ? temp : indexDst[i]);
+	}
+	if (ScalarInput)
+	{
+		temp = (temp > x ? temp : x);
+	}
+	if (ScalarPara)
+	{
+		temp = (temp > omega ? temp : omega);
+	}
+	return temp;
+}
+DiNonlinear* DiNonlinear::differential(bool X) const
+{
+	DiNonlinear* diff;
+	diff = new DiNonlinear;
+	diff->ScalarInput = ScalarInput;
+	diff->x = x;
+	diff->ScalarPara = ScalarPara;
+	diff->omega = omega;
+
+	diff->function.copy(function);
+	
+	diff->indexDst.copy(indexDst);
+	diff->indexSrc.copy(indexSrc);
+	diff->indexPara.copy(indexPara);
+
+	diff->descriptor.Set(descriptor);
+	diff->funcTensor.Set(funcTensor);
+	if (X)
+	{
+		if (!ScalarInput)
+		{
+			size_t site = diff->indexSrc.search(x);
+			if (site == _uintMax_)
+			{
+				hyperlex::dictionary* error = ErrorGive();
+				error->append("location", "differential");
+				throw error;
+			}
+			sint index = 1 + MaxIndex();
+			size_t dimX;
+			dimX = in[0]->descriptor[site];
+			diff->function.append(x);
+			diff->indexDst.append(x);
+			diff->x = index;
+			diff->indexSrc[site] = index;
+			diff->descriptor.AppendDim(dimX);
+			diff->funcTensor.AppendDim(dimX);
+		}
+	}
+	else
+	{
+		if (!ScalarPara)
+		{
+			size_t site = diff->indexPara.search(omega);
+			if (site == _uintMax_)
+			{
+				hyperlex::dictionary* error = ErrorGive();
+				error->append("location", "differential");
+				throw error;
+			}
+			sint index = 1 + MaxIndex();
+			size_t dimX;
+			dimX = in[1]->descriptor[site];
+			diff->function.append(omega);
+			diff->indexDst.append(omega);
+			diff->omega = index;
+			diff->indexSrc[site] = index;
+			diff->descriptor.AppendDim(dimX);
+			diff->funcTensor.AppendDim(dimX);
+		}
+	}
+	
+	network->NodeAppend(diff);
+	network->net.ArcAdd(in[0], in[1], diff);
+}
+void DiNonlinear::inforPrint(hyperlex::dictionary& dict)const
+{
+	dict.append("ScalarInput", ScalarInput);
+	dict.append("x", x);
+	dict.append("ScalarPara", ScalarPara);
+	dict.append("omega", omega);
+}
+hyperlex::dictionary* DiNonlinear::ErrorGive(void) const
+{
+	hyperlex::dictionary* error;
+	error = new  hyperlex::dictionary;
+	inforPrint(*error);
+	return error;
+}
+
+
 
 GraphNode::GraphNode()
 {

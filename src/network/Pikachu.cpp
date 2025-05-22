@@ -19,7 +19,39 @@ void NetWork::copy(NetWork& source)
 }
 void NetWork::forward(size_t No)
 {
+	buffer<Node*> queue;
+	size_t i, length, now, site;
+	Node* here, * Out;
+	LeafNode* TempLeaf;
+	vector<bool> valid;
+	vector<Node*> label;
+	vector<Node*> sequence;
+	vector<size_t> H;
 
+	Out = output[No];
+	queue.append(Out);
+	net.BFTbackward(valid, queue);
+	net.TopoSortBFSBack(sequence);
+
+	length = net.count();
+
+	label.recount(length);
+	label.value(NULL);
+
+	TempLeaf = new LeafNode(this, Node::_leafConst_);
+	TempLeaf->Initial(Out->descriptor, H);
+	label[output[No]->site()] = TempLeaf;
+
+	for (i = 0; i < length; i++)
+	{
+		here = sequence[i];
+		here->backward(true, label, H);
+		if (here->Type == Node::_leaf_ && here->Op == (int)Node::_leafIn_)
+		{
+			//TempLeaf = (Leaf*)here;
+			//SetOutput(No, label[now], TempLeaf->Label);
+		}
+	}
 }
 void NetWork::backward(size_t No)
 {

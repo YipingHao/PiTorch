@@ -350,6 +350,7 @@ namespace Pikachu
 		};
 		virtual Node* copy(void)const  = 0;
 		//virtual void copy(Node& source) = 0;
+		virtual void forward(bool dYdX, vector<Node*>& label, vector<size_t>& H) = 0;
 		virtual void backward(bool dYdX, vector<Node*>& label, vector<size_t>& H) = 0;
 		virtual void check(void)const = 0;
 		virtual void clear(void) = 0;
@@ -377,6 +378,7 @@ namespace Pikachu
 		LeafNode(NetWork* context, Node::LeafType t);
 		~LeafNode();
 		Node* copy(void) const;
+		void forward(bool dYdX, vector<Node*>& label, vector<size_t>& H);
 		void backward(bool dYdX, vector<Node*>& label, vector<size_t>& H);
 		void Initial(const tensor& desc, vector<size_t>& H);
 		void check(void)const;
@@ -388,6 +390,7 @@ namespace Pikachu
 		MonoLinear();
 		~MonoLinear();
 		Node* copy(void) const;
+		void forward(bool dYdX, vector<Node*>& label, vector<size_t>& H);
 		void backward(bool dYdX, vector<Node*>& label, vector<size_t>& H);
 		void check(void)const;
 		void clear(void);
@@ -405,9 +408,16 @@ namespace Pikachu
 	class DiLinear : public Node
 	{
 	public:
+		friend class NetWork;
+		friend class LeafNode;
+		friend class DiLinear;
+		friend class DiNonlinear;
+		friend class MonoLinear;
+		friend class MonoNonlinear;
 		DiLinear();
 		~DiLinear();
 		Node* copy(void) const; 
+		void forward(bool dYdX, vector<Node*>& label, vector<size_t>& H);
 		void backward(bool dYdX, vector<Node*>& label, vector<size_t>& H);
 		void check(void)const;
 		void clear(void);
@@ -430,10 +440,12 @@ namespace Pikachu
 		MonoNonlinear();
 		~MonoNonlinear();
 		Node* copy(void) const;
+		void forward(bool dYdX, vector<Node*>& label, vector<size_t>& H);
 		void backward(bool dYdX, vector<Node*>& label, vector<size_t>& H);
 		void check(void)const;
 		void clear(void);
 	protected:
+		tensor funcTensor;
 		bool ScalarInput;
 		sint x;
 		vector<sint> function;
@@ -443,16 +455,14 @@ namespace Pikachu
 
 
 		void* formula;
-		//cluster*cl;
-		//manifolds*man;
-		//activation*ac;
-		//ActiParaBackward*apb;
-		//ActiHvForward*ahf;
-		//HvForwardFinal*hff;
 
 		size_t next;
 		size_t SrcDim;
 		
+		sint MaxIndex(void) const;
+		MonoNonlinear* differential(void) const;
+		void inforPrint(hyperlex::dictionary& dict)const;
+		hyperlex::dictionary * ErrorGive(void) const;
 	};
 	class DiNonlinear : public Node
 	{
@@ -460,13 +470,12 @@ namespace Pikachu
 		DiNonlinear();
 		~DiNonlinear();
 		Node* copy(void) const;
+		void forward(bool dYdX, vector<Node*>& label, vector<size_t>& H);
 		void backward(bool dYdX, vector<Node*>& label, vector<size_t>& H);
 		void check(void)const;
 		void clear(void);
 	protected:
-		//double alpha;
-		//dispatch DisDesc1;
-		//condensation CondenDesc2;
+		tensor funcTensor;
 
 		bool ScalarInput;
 		sint x;
@@ -478,6 +487,10 @@ namespace Pikachu
 		vector<sint> indexSrc;
 		vector<sint> indexPara;
 
+		sint MaxIndex(void) const;
+		DiNonlinear* differential(bool X) const;
+		void inforPrint(hyperlex::dictionary& dict)const;
+		hyperlex::dictionary* ErrorGive(void) const;
 	};
 	
 	
