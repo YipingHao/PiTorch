@@ -422,6 +422,7 @@ namespace Pikachu
 		size_t DummyIndex;
 		size_t RepeatedIndex;
 		sint MaxIndex(void) const;
+		void Happend(bool L, bool R, bool D, size_t H);
 	};
 	class MonoNonlinear : public Node
 	{

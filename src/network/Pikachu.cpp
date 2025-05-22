@@ -65,6 +65,7 @@ void NetWork::NodeAppend(Node* rear)
 	rear->network = this;
 	net.append(rear);
 }
+
 void NetWork::BackAcc(size_t target, vector<Node*>& label, Node* source)
 {
 	Node *SrcL;
@@ -80,6 +81,8 @@ void NetWork::BackAcc(size_t target, vector<Node*>& label, Node* source)
 	New->trivial(SrcL, source);
 	label[target] = New;
 }
+
+
 
 network::network()
 {

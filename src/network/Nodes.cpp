@@ -371,6 +371,9 @@ void DiLinear::backward(bool dYdX, vector<Node*>& label, vector<size_t>& H)
 		diff = new DiLinear();
 		//diff->build(indexDst, indexSrcL, H, 1.0);
 		diff->setDesc(in[0]->descriptor, H);
+		diff->value(indexDst, indexSrcR, indexSrcL);
+		diff->Happend(true, false, true, H.count());
+		diff->build();
 		network->NodeAppend(diff);
 		network->net.ArcAdd(SrcBack_, in[1], diff);
 		network->BackAcc(in[0]->site(), label, diff);
@@ -378,6 +381,9 @@ void DiLinear::backward(bool dYdX, vector<Node*>& label, vector<size_t>& H)
 		diff = new DiLinear();
 		//diff->build(indexDst, indexSrcR, H, Ralpha);
 		diff->setDesc(in[1]->descriptor, H);
+		diff->value(indexDst, indexSrcL, indexSrcR);
+		diff->Happend(false, true, true, H.count());
+		diff->build();
 		network->NodeAppend(diff);
 		network->net.ArcAdd(SrcBack_, in[0], diff);
 		network->BackAcc(in[1]->site(), label, diff);
@@ -687,6 +693,20 @@ sint DiLinear::MaxIndex(void) const
 	}
 
 	return temp;
+}
+void DiLinear::Happend(bool L, bool R, bool D, size_t H)
+{
+	sint temp, delta;
+	temp = MaxIndex();
+	delta = temp + 1;
+	for (size_t i = 0; i < H; i++)
+	{
+		if (L) indexSrcL.append(delta);
+		if (R) indexSrcR.append(delta);
+		if (D) indexDst.append(delta);
+		delta += 1;
+	}
+	return;
 }
 
 GraphNode::GraphNode()
