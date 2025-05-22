@@ -61,14 +61,14 @@ size_t NewIndex;
 size_t RepeatedIndex;
 ```
 
-其中`indexDst`，和`indexSrc`存储了源操作和目的操作张量的指标。这两个数组的长度正是对应张量的维数。其中每个不同的指标会分配到不同的整数。相同的整数对应到相同的指标。其中如果一个指标同时出现在了源操作和目的操作张量的指标的指标中，这个指标用正数表示，(大于零)，反之则用负数表示。换言之源张量的被求和的哑指标是负数，目的操作张量中新出现的指标是也是负数。 源操作张量的任意两个指标和其对应的整数不能相同，同理目的张量的的任意两个指标和其对应的整数不能相同。`DummyIndex`是哑指标的数量，`NewIndex`是目的张量中新出现的指标的数量。 `RepeatedIndex`，则是同时在源操作和目的操作张量中出现的指标。`DummyIndex + RepeatedIndex`是`indexSrc.count()`，`NewIndex + RepeatedIndex`是`indexDst.count()`。
+其中`indexDst`，和`indexSrc`存储了源操作和目的操作张量的指标。这两个数组的长度正是对应张量的维数。其中每个不同的指标会分配到不同的整数。相同的整数对应到相同的指标。其中如果一个指标同时出现在了源操作和目的操作张量的指标的指标中，这个指标为重复指标。源张量的被求和的指标是哑指标，目的操作张量中新出现的指标被称为新指标。 源操作张量的任意两个指标和其对应的整数不能相同，同理目的张量的的任意两个指标和其对应的整数不能相同。`DummyIndex`是哑指标的数量，`NewIndex`是目的张量中新出现的指标的数量。 `RepeatedIndex`，则是同时在源操作和目的操作张量中出现的指标。`DummyIndex + RepeatedIndex`是`indexSrc.count()`，`NewIndex + RepeatedIndex`是`indexDst.count()`。
 
 对于例子
 $$b[i,k,m,n]=\alpha \sum_{jl} a[i,j, k, l]$$
 而言，可以有
 ```
-indexDst = [1, 2, -1, -2];
-indexSrc = [1, -1, 2, -2];
+indexDst = [1, 2, 3, 4];
+indexSrc = [1, 5, 2, 6];
 DummyIndex = 2;
 NewIndex = 2;
 RepeatedIndex= 2;
