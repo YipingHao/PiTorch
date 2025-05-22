@@ -412,8 +412,8 @@ namespace Pikachu
 		void check(void)const;
 		void clear(void);
 		void trivial(Node* SrcL, Node* SrcR);
-		void build(const vector<sint>& SrcL, const vector<sint>& SrcR, const vector<sint>& Dst);
-
+		void value(const vector<sint>& SrcL, const vector<sint>& SrcR, const vector<sint>& Dst);
+		void build(void);
 	protected:
 		//elementwise descE;
 		vector<sint> indexDst;

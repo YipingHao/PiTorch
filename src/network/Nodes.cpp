@@ -620,9 +620,53 @@ void MonoLinear::build(const vector<sint>& Src, const vector<sint>& Dst, const v
 }
 
 
-void DiLinear::build(const vector<sint>& SrcL, const vector<sint>& SrcR, const vector<sint>& Dst)
+void DiLinear::value(const vector<sint>& SrcL, const vector<sint>& SrcR, const vector<sint>& Dst)
 {
-	
+	indexSrcL.copy(SrcL);
+	indexSrcR.copy(SrcR);
+	indexDst.copy(Dst);
+	return;
+}
+void DiLinear::build(void)
+{
+	DummyIndex = 0;
+	RepeatedIndex = 0;
+	size_t countL, countR, count;
+	for (size_t i = 0; i < indexDst.count(); i++)
+	{
+		countL = indexSrcL.Tcount(indexDst[i]);
+		countR = indexSrcR.Tcount(indexDst[i]);
+		count = countL + countR;
+		if (countL > 1L || countR > 1L)
+		{
+			hyperlex::dictionary* error;
+			error = new hyperlex::dictionary;
+			error->append("location", "DiLinear::build");
+			error->append("error", "countL > 1L || countR > 1L");
+			error->append("countL", countL);
+			error->append("countR", countR);
+			error->append("i", i);
+			throw error;
+		}
+		if (count == 2) RepeatedIndex += 1;
+	}
+	count = 0;
+	for (size_t i = 0; i < indexSrcL.count(); i++)
+	{
+		countL = indexDst.Tcount(indexSrcL[i]);
+		if (countL > 1L)
+		{
+			hyperlex::dictionary* error;
+			error = new hyperlex::dictionary;
+			error->append("location", "DiLinear::build");
+			error->append("error", "countL > 1L");
+			error->append("countL", countL);
+			throw error;
+		}
+		if (countL == 1) count += 1;
+	}
+
+	DummyIndex = RepeatedIndex - count;
 }
 sint DiLinear::MaxIndex(void) const
 {
