@@ -280,16 +280,16 @@ $$out[i,j, k, l,H]=\alpha \frac{\partial O[H]}{\partial a[i,j, k, l]}=\alpha \su
 $$b[i,k,m,n]=\alpha \sum_{jl} a[i,j, k, l]$$
 而言，可以有
 ```
-indexDst = [1, 2, -1, -2];
-indexSrc = [1, -1, 2, -2];
+indexDst = [1, 2, 3, 4];
+indexSrc = [1, 5, 2, 6];
 DummyIndex = 2;
 NewIndex = 2;
 RepeatedIndex= 2;
 ```
 得到的微分实质上是先将`DummyIndex`和`NewIndex`对调，`RepeatedIndex`加上`H`的维数。再将`indexDst`和`indexSrc`对调,并补充上`H`对应的指标，我们假设`H`是三维的。那么我们有
 ```
-indexDst = [1, -1, 2, -2, 4， 5， 6]\\[1, -1, 2, -2, H];
-indexSrc = [1, 2, -1, -2, 4， 5， 6]\\[1, -1, 2, -2, H];
+indexDst = [1, 5, 2, 6, 7, 8, 9]
+indexSrc = [1, 2, 3, 4, 7, 8, 9]
 DummyIndex = 2;
 NewIndex = 2;
 RepeatedIndex= 2 + 3;
@@ -319,7 +319,7 @@ $$out_1[a,b,c,e,H]=\frac{\partial O[H]}{\partial X1[a, b,c,e]}=\sum_d\frac{\part
 微分的结果是一个单张量基本操作。
 ```
 indexDst = [1, 2, 3, 5, H];
-indexSrc = [1, 2, 3, -4, 5, H];
+indexSrc = [1, 2, 3, 4, 5, H];
 DummyIndex = 1;
 NewIndex = 0;
 RepeatedIndex = 4;
@@ -330,7 +330,7 @@ $$out_2[a,c,d,H]=\frac{\partial O[H]}{\partial X2[a,c,d]}=\sum_{be}\frac{\partia
 微分的结果是一个单张量基本操作。
 ```
 indexDst = [1, 3, 4, H];
-indexSrc = [1, -2, 3, 4, -5, H];
+indexSrc = [1, 2, 3, 4, 5, H];
 DummyIndex = 2;
 NewIndex = 0;
 RepeatedIndex = 4;
@@ -354,8 +354,8 @@ $$out_1[a,b,c,e,H]=\frac{\partial O[H]}{\partial X1[a, b,c,e]}=\sum_d\frac{\part
 微分的结果是一个单张量基本操作。
 
 ```
-indexDst = [1, 2, -3, 5, H];
-indexSrc = [1, 2, -4, 5, H];
+indexDst = [1, 2, 3, 5, H];
+indexSrc = [1, 2, 4, 5, H];
 DummyIndex = 1;
 NewIndex = 1;
 RepeatedIndex = 3 + |H|;
@@ -368,8 +368,8 @@ $$out_2[a,c,d,H]=\frac{\partial O[H]}{\partial X2[a,c,d]}=\sum_{be}\frac{\partia
 
 
 ```
-indexDst = [1, -3, 4, H];
-indexSrc = [1, -2, 4, -5, H];
+indexDst = [1, 3, 4, H];
+indexSrc = [1, 2, 4, 5, H];
 DummyIndex = 2;
 NewIndex = 1;
 RepeatedIndex = 2 + |H|;
@@ -864,8 +864,8 @@ $$diff[a,b,c,H]=\frac{\partial Leaf[a,b,c]}{\partial X[H]}$$
 $$b[i,k,m,n]=\sum_{jl} a[i, j, k, l]$$
 
 ```
-indexDst = [1, 2, -1, -2];
-indexSrc = [1, -1, 2, -2];
+indexDst = [1, 2, 3, 4];
+indexSrc = [1, 5, 2, 6];
 DummyIndex = 2;
 NewIndex = 2;
 RepeatedIndex= 2;
@@ -876,8 +876,8 @@ RepeatedIndex= 2;
 $$out[i, k, m, n, H]=\frac{\partial b[i, k, m, n]}{\partial In[H]}=\sum_{jl}\frac{\partial a[i, j, k, l]}{\partial In[H]}  $$
 
 ```
-indexDst = [1, 2, -1, -2, H];
-indexSrc = [1, -1, 2, -2, H];
+indexDst = [1, 2, 3, 4, H];
+indexSrc = [1, 5, 2, 6, H];
 DummyIndex = 2;
 NewIndex = 2;
 RepeatedIndex= 2 + |H|;
