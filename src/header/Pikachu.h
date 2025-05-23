@@ -468,8 +468,10 @@ namespace Pikachu
 		size_t next;
 		size_t SrcDim;
 		
+		MonoNonlinear* gradient;
+
 		sint MaxIndex(void) const;
-		MonoNonlinear* differential(void) const;
+		MonoNonlinear* differential(void);
 		void inforPrint(hyperlex::dictionary& dict)const;
 		hyperlex::dictionary * ErrorGive(void) const;
 	};

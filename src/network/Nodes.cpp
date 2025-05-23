@@ -92,6 +92,8 @@ MonoNonlinear::MonoNonlinear()
 	Type = _MonoNonlinear_;
 	next = _uintMax_;
 	SrcDim = 0;
+
+	gradient = NULL;
 }
 MonoNonlinear::~MonoNonlinear()
 {
@@ -728,7 +730,36 @@ void MonoNonlinear::forward(bool dYdX, vector<Node*>& label, vector<size_t>& H)
 }
 void DiNonlinear::forward(bool dYdX, vector<Node*>& label, vector<size_t>& H)
 {
+	DiLinear* diffL, * diffR, * sum;
+	DiNonlinear* funcX, *funcP;
+	size_t siteL, siteR;
+	size_t siteThis;
+	siteL = in[0]->site();
+	siteR = in[1]->site();
+	siteThis = site();
 
+	funcX = differential(true);
+	funcP = differential(false);
+	//×óÓÒ·´ÁË
+	diffL = new DiLinear(Node::_mul_);
+	diffL->setDesc(descriptor, H);
+	diffL->value(funcX->indexDst, indexSrc, indexDst);
+	diffL->Happend(false, true, true, H.count());
+	diffL->build();
+	network->NodeAppend(diffL);
+	network->net.ArcAdd(funcX, label[siteL], diffL);
+
+	diffR = new DiLinear(Node::_mul_);
+	diffR->setDesc(descriptor, H);
+	diffR->value(funcP->indexDst, indexPara, indexDst);
+	diffR->Happend(false, true, true, H.count());
+	diffR->build();
+	network->NodeAppend(diffR);
+	network->net.ArcAdd(funcP, label[siteR], diffR);
+
+	sum = new DiLinear();
+	sum->trivial(diffL, diffR);
+	label[siteThis] = sum;
 }
 
 
@@ -1012,9 +1043,11 @@ sint MonoNonlinear::MaxIndex(void) const
 	}
 	return temp;
 }
-MonoNonlinear* MonoNonlinear::differential(void) const
+MonoNonlinear* MonoNonlinear::differential(void)
 {
 	MonoNonlinear* diff;
+
+	if (gradient != NULL) return gradient;
 	diff = new MonoNonlinear;
 	diff->x = x;
 	diff->ScalarInput = ScalarInput;
@@ -1048,6 +1081,7 @@ MonoNonlinear* MonoNonlinear::differential(void) const
 	}
 	network->NodeAppend(diff);
 	network->net.ArcAdd(in[0], diff);
+	gradient = diff;
 	return diff;
 }
 
