@@ -613,7 +613,7 @@ void DiLinear::forward(bool dYdX, vector<Node*>& label, vector<size_t>& H)
 {
 
 }
-void MonoLinear::forward(bool dYdX, vector<Node*>& label, vector<size_t>& H)
+void MonoNonlinear::forward(bool dYdX, vector<Node*>& label, vector<size_t>& H)
 {
 
 }
