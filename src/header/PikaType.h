@@ -94,7 +94,20 @@ namespace Pikachu
 		size_t count;
 	};
 	
+	class Tensor : public vector<size_t>
+	{
+	public:
+		inline Tensor()
+		{
 
+		}
+		inline ~Tensor()
+		{
+
+		}
+	protected:
+
+	};
 
 
 	class tensorPara : public tensor

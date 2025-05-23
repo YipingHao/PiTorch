@@ -416,7 +416,6 @@ namespace Pikachu
 	public:
 		friend class NetWork;
 		friend class LeafNode;
-		friend class DiLinear;
 		friend class DiNonlinear;
 		friend class MonoLinear;
 		friend class MonoNonlinear;
