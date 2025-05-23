@@ -310,11 +310,10 @@ namespace Pikachu
 		enum VortexType
 		{
 			_leaf_ = 0,
-			_tansform_ = 1,
-			_elementwise_ = 2,
-			_nonlinear_ = 3,
-			_linear_ = 4,
-			_extra_ = 5,
+			_MonoLinear_ = 1,
+			_DiLinear_ = 2,
+			_MonoNonlinear_ = 3,
+			_DiNonlinear_ = 4,
 		};
 		enum LeafType
 		{
@@ -420,6 +419,7 @@ namespace Pikachu
 		friend class MonoLinear;
 		friend class MonoNonlinear;
 		DiLinear();
+		DiLinear(Node::OpType OT);
 		~DiLinear();
 		Node* copy(void) const; 
 		void compute(Tensor& DescOut)const;

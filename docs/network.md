@@ -938,7 +938,7 @@ descriptor source
 }
 ```
 有前向传播微分:
-$$out[a,b,c,d,e, H]=\frac{\partial Y[a,b,c,d,e]}{\partial In[H]}=\frac{\partial X_1[a,b,c,e]}{\partial In[H]} X_2[a,c,d]\quad + \quad \frac{\partial X_2[a,c,d]}{\partial In[H]}X_1[a,b,c,e]$$
+$$out[a,b,c,d,e, H]=\frac{\partial Y[a,b,c,d,e]}{\partial In[H]}=\frac{\partial X_1[a,b,c,e]}{\partial In[H]} X_2[a,c,d]\quad + \quad X_1[a,b,c,e]\frac{\partial X_2[a,c,d]}{\partial In[H]}$$
 
 微分的结果是三个操作，是两个操作求和生成第三个。
 
@@ -1092,7 +1092,7 @@ descriptor diff
 
 $$\frac{\partial Y[i,j,k,a,b,c]}{ \partial In[H]} = \sum_{d^\prime i^\prime j^\prime k^\prime} \frac{\partial Y[i,j,k,a,b,c]}{\partial X[d^\prime, i^\prime, j^\prime, k^\prime]}\frac{\partial X[d^\prime, i^\prime, j^\prime, k^\prime]}{ \partial In[H]} =        \sum_{d^\prime i^\prime j^\prime k^\prime}  \delta_{ii^\prime}\delta_{jj^\prime}\delta_{kk^\prime}   Y^\prime[a, b, c, i,j,k, d^\prime]   \frac{\partial X[d^\prime, i^\prime, j^\prime, k^\prime]}{ \partial In[H]} =        \sum_{d^\prime}  Y^\prime[a, b, c, i,j,k, d^\prime]   \frac{\partial X[d^\prime, i, j, k]}{ \partial In[H]}$$
 
-$$=        \sum_{d}  Y^\prime[a, b, c, i,j,k,d]   \frac{\partial X[d, i, j, k]}{ \partial In[H]} $$
+$$=        \sum_{d}   \frac{\partial X[d, i, j, k]}{ \partial In[H]} Y^\prime[a, b, c, i,j,k,d]  $$
 
 
 此时生成了一个新的双张量基本操作。
