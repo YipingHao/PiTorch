@@ -9,6 +9,37 @@ using namespace Pikachu;
 #ifndef _uintMax_
 #define _uintMax_ 0xffffffffffffffff
 #endif
+
+void Tensor::Set(const Tensor& source)
+{
+	copy(source);
+}
+bool Tensor::operator==(const Tensor& Right) const
+{
+	size_t i;
+	if (Count != Right.Count) return false;
+	for (i = 0; i < Count; i++)
+		if (content[i] != Right.content[i]) return false;
+	return true;
+}
+bool Tensor::operator!=(const Tensor& Right) const
+{
+	size_t i;
+	if (Count != Right.Count) return true;
+	for (i = 0; i < Count; i++)
+		if (content[i] != Right.content[i]) return true;
+	return false;
+}
+
+
+
+
+
+
+
+
+
+
 tensor::tensor()
 {
 	order = 1;

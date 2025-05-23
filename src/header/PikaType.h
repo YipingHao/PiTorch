@@ -105,6 +105,30 @@ namespace Pikachu
 		{
 
 		}
+		void Set(const Tensor& source);
+		bool operator==(const Tensor& Right) const;
+		bool operator!=(const Tensor& Right) const;
+		inline size_t GetOrder(void)const
+		{
+			return Count;
+		}
+		inline void ChangeOrder(size_t NewOrder)
+		{
+			recount(NewOrder);
+		}
+		inline void ChangeDim(size_t No, size_t NewDim)
+		{
+			content[No] = NewDim;
+		}
+		inline size_t GetCount(void)const
+		{
+			size_t num = 1;
+			for (size_t i = 0; i < Count; i++)
+			{
+				num *= content[i];
+			}
+			return num;
+		}
 	protected:
 
 	};

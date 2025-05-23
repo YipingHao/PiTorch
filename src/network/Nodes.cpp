@@ -26,17 +26,17 @@ void Node::CopyCoreN(Node& dst) const
 	CopyToCore(dst);
 	return;
 }
-void Node::setDesc(const tensor& desc)
+void Node::setDesc(const Tensor& desc)
 {
 	descriptor.Set(desc);
 }
-void Node::setDesc(const tensor& desc, const vector<size_t>& H)
+void Node::setDesc(const Tensor& desc, const vector<size_t>& H)
 {
-	tensor descTemp;
+	Tensor descTemp;
 	size_t i;
 	descTemp.Set(desc);
 	for (i = 0; i < H.count(); i++)
-		descTemp.AppendDim(H[i]);
+		descTemp.append(H[i]);
 	descriptor.Set(descTemp);
 }
 
@@ -282,11 +282,11 @@ void DiNonlinear::clear(void)
 	clearCore();
 }
 
-void LeafNode::compute(tensor& DescOut)const
+void LeafNode::compute(Tensor& DescOut)const
 {
 	DescOut.Set(descriptor);
 }
-void MonoLinear::compute(tensor& DescOut)const
+void MonoLinear::compute(Tensor& DescOut)const
 {
 	DescOut.ChangeOrder(indexDst.count());
 	for (size_t i = 0; i < indexDst.count(); i++)
@@ -299,7 +299,7 @@ void MonoLinear::compute(tensor& DescOut)const
 		else DescOut.ChangeDim(i, in[0]->descriptor[site]);
 	}
 }
-void DiLinear::compute(tensor& DescOut)const
+void DiLinear::compute(Tensor& DescOut)const
 {
 	DescOut.ChangeOrder(indexDst.count());
 	for (size_t i = 0; i < indexDst.count(); i++)
@@ -336,7 +336,7 @@ void DiLinear::compute(tensor& DescOut)const
 		}
 	}
 }
-void MonoNonlinear::compute(tensor& DescOut)const
+void MonoNonlinear::compute(Tensor& DescOut)const
 {
 	DescOut.ChangeOrder(indexDst.count());
 	for (size_t i = 0; i < indexDst.count(); i++)
@@ -368,7 +368,7 @@ void MonoNonlinear::compute(tensor& DescOut)const
 		}
 	}
 }
-void DiNonlinear::compute(tensor& DescOut)const
+void DiNonlinear::compute(Tensor& DescOut)const
 {
 	DescOut.ChangeOrder(indexDst.count());
 	for (size_t i = 0; i < indexDst.count(); i++)
@@ -624,7 +624,7 @@ void DiNonlinear::forward(bool dYdX, vector<Node*>& label, vector<size_t>& H)
 
 
 
-void LeafNode::Initial(const tensor& desc, vector<size_t>& H)
+void LeafNode::Initial(const Tensor& desc, vector<size_t>& H)
 {
 	size_t i, L;
 	FuncConst one_;
@@ -647,14 +647,14 @@ void LeafNode::Initial(const tensor& desc, vector<size_t>& H)
 	}
 	else
 	{
-		descriptor.Clear();
+		descriptor.clear();
 		H.recount(desc.GetOrder());
 		for (i = 0; i < desc.GetOrder(); i++)
 		{
 			H[i] = desc[i];
-			descriptor.AppendDim(desc[i]);
+			descriptor.append(desc[i]);
 		}
-		for (i = 0; i < desc.GetOrder(); i++) descriptor.AppendDim(desc[i]);
+		for (i = 0; i < desc.GetOrder(); i++) descriptor.append(desc[i]);
 		L = desc.GetCount();
 		value.recount(descriptor.GetCount());
 		for (i = 0; i < value.count(); i++)
@@ -934,8 +934,8 @@ MonoNonlinear* MonoNonlinear::differential(void) const
 		diff->x = index;
 		diff->indexSrc[site] = index;
 		
-		diff->descriptor.AppendDim(dimX);
-		diff->funcTensor.AppendDim(dimX);
+		diff->descriptor.append(dimX);
+		diff->funcTensor.append(dimX);
 	}
 	network->NodeAppend(diff);
 	network->net.ArcAdd(in[0], diff);
@@ -1004,8 +1004,8 @@ DiNonlinear* DiNonlinear::differential(bool X) const
 			diff->indexDst.append(x);
 			diff->x = index;
 			diff->indexSrc[site] = index;
-			diff->descriptor.AppendDim(dimX);
-			diff->funcTensor.AppendDim(dimX);
+			diff->descriptor.append(dimX);
+			diff->funcTensor.append(dimX);
 		}
 	}
 	else
@@ -1026,8 +1026,8 @@ DiNonlinear* DiNonlinear::differential(bool X) const
 			diff->indexDst.append(omega);
 			diff->omega = index;
 			diff->indexSrc[site] = index;
-			diff->descriptor.AppendDim(dimX);
-			diff->funcTensor.AppendDim(dimX);
+			diff->descriptor.append(dimX);
+			diff->funcTensor.append(dimX);
 		}
 	}
 	

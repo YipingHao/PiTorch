@@ -352,7 +352,7 @@ namespace Pikachu
 		//virtual void copy(Node& source) = 0;
 		virtual void forward(bool dYdX, vector<Node*>& label, vector<size_t>& H) = 0;
 		virtual void backward(bool dYdX, vector<Node*>& label, vector<size_t>& H) = 0;
-		virtual void compute(tensor& DescOut)const = 0;
+		virtual void compute(Tensor& DescOut)const = 0;
 		virtual void check(void)const = 0;
 		virtual void clear(void) = 0;
 	protected:
@@ -361,12 +361,12 @@ namespace Pikachu
 		int Op;
 		bool IfOutput;
 		bool DataExpand;
-		tensor descriptor;
+		Tensor descriptor;
 		NetWork* network;
 
 		void CopyCoreN(Node& dst) const;
-		void setDesc(const tensor& desc);
-		void setDesc(const tensor& desc, const vector<size_t>& H);
+		void setDesc(const Tensor& desc);
+		void setDesc(const Tensor& desc, const vector<size_t>& H);
 		void clearCore(void);
 	};
 	class LeafNode : public Node
@@ -379,10 +379,10 @@ namespace Pikachu
 		LeafNode(NetWork* context, Node::LeafType t);
 		~LeafNode();
 		Node* copy(void) const;
-		void compute(tensor& DescOut)const;
+		void compute(Tensor& DescOut)const;
 		void forward(bool dYdX, vector<Node*>& label, vector<size_t>& H);
 		void backward(bool dYdX, vector<Node*>& label, vector<size_t>& H);
-		void Initial(const tensor& desc, vector<size_t>& H);
+		void Initial(const Tensor& desc, vector<size_t>& H);
 		void check(void)const;
 		void clear(void);
 	};
@@ -392,7 +392,7 @@ namespace Pikachu
 		MonoLinear();
 		~MonoLinear();
 		Node* copy(void) const;
-		void compute(tensor& DescOut)const;
+		void compute(Tensor& DescOut)const;
 		void forward(bool dYdX, vector<Node*>& label, vector<size_t>& H);
 		void backward(bool dYdX, vector<Node*>& label, vector<size_t>& H);
 		void check(void)const;
@@ -422,7 +422,7 @@ namespace Pikachu
 		DiLinear();
 		~DiLinear();
 		Node* copy(void) const; 
-		void compute(tensor& DescOut)const;
+		void compute(Tensor& DescOut)const;
 		void forward(bool dYdX, vector<Node*>& label, vector<size_t>& H);
 		void backward(bool dYdX, vector<Node*>& label, vector<size_t>& H);
 		void check(void)const;
@@ -448,13 +448,13 @@ namespace Pikachu
 		MonoNonlinear();
 		~MonoNonlinear();
 		Node* copy(void) const;
-		void compute(tensor& DescOut)const;
+		void compute(Tensor& DescOut)const;
 		void forward(bool dYdX, vector<Node*>& label, vector<size_t>& H);
 		void backward(bool dYdX, vector<Node*>& label, vector<size_t>& H);
 		void check(void)const;
 		void clear(void);
 	protected:
-		tensor funcTensor;
+		Tensor funcTensor;
 		bool ScalarInput;
 		sint x;
 		vector<sint> function;
@@ -479,13 +479,13 @@ namespace Pikachu
 		DiNonlinear();
 		~DiNonlinear();
 		Node* copy(void) const;
-		void compute(tensor& DescOut)const;
+		void compute(Tensor& DescOut)const;
 		void forward(bool dYdX, vector<Node*>& label, vector<size_t>& H);
 		void backward(bool dYdX, vector<Node*>& label, vector<size_t>& H);
 		void check(void)const;
 		void clear(void);
 	protected:
-		tensor funcTensor;
+		Tensor funcTensor;
 
 		bool ScalarInput;
 		sint x;
