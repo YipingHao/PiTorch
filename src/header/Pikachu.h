@@ -352,6 +352,7 @@ namespace Pikachu
 		//virtual void copy(Node& source) = 0;
 		virtual void forward(bool dYdX, vector<Node*>& label, vector<size_t>& H) = 0;
 		virtual void backward(bool dYdX, vector<Node*>& label, vector<size_t>& H) = 0;
+		virtual void compute(tensor& DescOut)const = 0;
 		virtual void check(void)const = 0;
 		virtual void clear(void) = 0;
 	protected:
@@ -378,6 +379,7 @@ namespace Pikachu
 		LeafNode(NetWork* context, Node::LeafType t);
 		~LeafNode();
 		Node* copy(void) const;
+		void compute(tensor& DescOut)const;
 		void forward(bool dYdX, vector<Node*>& label, vector<size_t>& H);
 		void backward(bool dYdX, vector<Node*>& label, vector<size_t>& H);
 		void Initial(const tensor& desc, vector<size_t>& H);
@@ -390,6 +392,7 @@ namespace Pikachu
 		MonoLinear();
 		~MonoLinear();
 		Node* copy(void) const;
+		void compute(tensor& DescOut)const;
 		void forward(bool dYdX, vector<Node*>& label, vector<size_t>& H);
 		void backward(bool dYdX, vector<Node*>& label, vector<size_t>& H);
 		void check(void)const;
@@ -404,6 +407,9 @@ namespace Pikachu
 		size_t DummyIndex;
 		size_t NewIndex;
 		size_t RepeatedIndex;
+
+		void inforPrint(hyperlex::dictionary& dict)const;
+		hyperlex::dictionary* ErrorGive(void) const;
 	};
 	class DiLinear : public Node
 	{
@@ -417,6 +423,7 @@ namespace Pikachu
 		DiLinear();
 		~DiLinear();
 		Node* copy(void) const; 
+		void compute(tensor& DescOut)const;
 		void forward(bool dYdX, vector<Node*>& label, vector<size_t>& H);
 		void backward(bool dYdX, vector<Node*>& label, vector<size_t>& H);
 		void check(void)const;
@@ -433,6 +440,8 @@ namespace Pikachu
 		size_t RepeatedIndex;
 		sint MaxIndex(void) const;
 		void Happend(bool L, bool R, bool D, size_t H);
+		void inforPrint(hyperlex::dictionary& dict)const;
+		hyperlex::dictionary* ErrorGive(void) const;
 	};
 	class MonoNonlinear : public Node
 	{
@@ -440,6 +449,7 @@ namespace Pikachu
 		MonoNonlinear();
 		~MonoNonlinear();
 		Node* copy(void) const;
+		void compute(tensor& DescOut)const;
 		void forward(bool dYdX, vector<Node*>& label, vector<size_t>& H);
 		void backward(bool dYdX, vector<Node*>& label, vector<size_t>& H);
 		void check(void)const;
@@ -470,6 +480,7 @@ namespace Pikachu
 		DiNonlinear();
 		~DiNonlinear();
 		Node* copy(void) const;
+		void compute(tensor& DescOut)const;
 		void forward(bool dYdX, vector<Node*>& label, vector<size_t>& H);
 		void backward(bool dYdX, vector<Node*>& label, vector<size_t>& H);
 		void check(void)const;

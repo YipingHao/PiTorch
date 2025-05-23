@@ -281,6 +281,128 @@ void DiNonlinear::clear(void)
 {
 	clearCore();
 }
+
+void LeafNode::compute(tensor& DescOut)const
+{
+	DescOut.Set(descriptor);
+}
+void MonoLinear::compute(tensor& DescOut)const
+{
+	DescOut.ChangeOrder(indexDst.count());
+	for (size_t i = 0; i < indexDst.count(); i++)
+	{
+		size_t site = indexSrc.search(indexDst[i]);
+		if (site == _uintMax_)
+		{
+
+		}
+		else DescOut.ChangeDim(i, in[0]->descriptor[site]);
+	}
+}
+void DiLinear::compute(tensor& DescOut)const
+{
+	DescOut.ChangeOrder(indexDst.count());
+	for (size_t i = 0; i < indexDst.count(); i++)
+	{
+		size_t siteL = indexSrcL.search(indexDst[i]);
+		size_t siteR = indexSrcR.search(indexDst[i]);
+		if (siteL == _uintMax_)
+		{
+			if (siteR == _uintMax_)
+			{
+				hyperlex::dictionary* error = ErrorGive();
+				error->append("location", "DiLinear::compute");
+				error->append("error", "missing index");
+				throw error;
+			}
+			else
+				DescOut.ChangeDim(i, in[1]->descriptor[siteR]);
+		}
+		else
+		{
+			DescOut.ChangeDim(i, in[0]->descriptor[siteL]);
+			if (siteR != _uintMax_)
+			{
+				if (in[0]->descriptor[siteL] != in[1]->descriptor[siteR])
+				{
+					hyperlex::dictionary* error = ErrorGive();
+					error->append("location", "DiLinear::compute");
+					error->append("error", "repeat index");
+					error->append("siteL", "siteL");
+					error->append("siteR", "siteR");
+					throw error;
+				}
+			}
+		}
+	}
+}
+void MonoNonlinear::compute(tensor& DescOut)const
+{
+	DescOut.ChangeOrder(indexDst.count());
+	for (size_t i = 0; i < indexDst.count(); i++)
+	{
+		size_t siteS = indexSrc.search(indexDst[i]);
+		size_t siteF = function.search(indexDst[i]);
+		if (siteS == _uintMax_)
+		{
+			if (siteF == _uintMax_)
+			{
+				hyperlex::dictionary * error = ErrorGive();
+				error->append("location", "MonoNonlinear::compute");
+				error->append("error", "missing index");
+				throw error;
+			}
+			else
+				DescOut.ChangeDim(i, funcTensor[siteF]);
+		}
+		else
+		{
+			DescOut.ChangeDim(i, in[0]->descriptor[siteS]);
+			if (siteF != _uintMax_)
+			{
+				hyperlex::dictionary* error = ErrorGive();
+				error->append("location", "MonoNonlinear::compute");
+				error->append("error", "repeated index");
+				throw error;
+			}
+		}
+	}
+}
+void DiNonlinear::compute(tensor& DescOut)const
+{
+	DescOut.ChangeOrder(indexDst.count());
+	for (size_t i = 0; i < indexDst.count(); i++)
+	{
+		size_t siteS = indexSrc.search(indexDst[i]);
+		size_t siteF = function.search(indexDst[i]);
+		size_t siteP = indexPara.search(indexDst[i]);
+		size_t index = _uintMax_;
+		int count = 0;
+		if (siteS != _uintMax_)
+		{
+			count += 1;
+			DescOut.ChangeDim(i, in[0]->descriptor[siteS]);
+		}
+		if (siteF != _uintMax_)
+		{
+			count += 1;
+			DescOut.ChangeDim(i, funcTensor[siteF]);
+		}
+		if (siteP != _uintMax_)
+		{
+			count += 1;
+			DescOut.ChangeDim(i, in[1]->descriptor[siteP]);
+		}
+		if (count != 0)
+		{
+			hyperlex::dictionary* error = ErrorGive();
+			error->append("location", "DiNonlinear::compute");
+			error->append("error", "error index");
+			throw error;
+		}
+	}
+}
+
 void DiLinear::trivial(Node* SrcL, Node* SrcR)
 {
 	size_t i;
@@ -446,12 +568,6 @@ void MonoLinear::backward(bool dYdX, vector<Node*>& label, vector<size_t>& H)
 	diff = new MonoLinear();
 	diff->build(indexDst, indexSrc, H, alpha);
 	diff->setDesc(source->descriptor, H);
-	//diff->alpha = alpha;
-	//diff->indexDst.copy(indexSrc);
-	//diff->indexSrc.copy(indexDst);
-	//diff->DummyIndex = NewIndex;
-	//diff->NewIndex = DummyIndex;
-	//diff->RepeatedIndex = RepeatedIndex + H.count();
 
 
 	network->NodeAppend(diff);
@@ -550,6 +666,25 @@ void LeafNode::Initial(const tensor& desc, vector<size_t>& H)
 }
 
 
+
+void MonoLinear::inforPrint(hyperlex::dictionary& dict)const
+{
+	dict.append("alpha", alpha);
+	dict.append("DummyIndex", DummyIndex);
+	dict.append("NewIndex", NewIndex);
+	dict.append("RepeatedIndex", RepeatedIndex);
+	for (size_t i = 0; i < indexDst.count(); i++)
+		dict.append("indexDst", (long int)indexDst[i]);
+	for (size_t i = 0; i < indexSrc.count(); i++)
+		dict.append("indexSrcL", (long int)indexSrc[i]);
+}
+hyperlex::dictionary* MonoLinear::ErrorGive(void) const
+{
+	hyperlex::dictionary* error;
+	error = new  hyperlex::dictionary;
+	inforPrint(*error);
+	return error;
+}
 void MonoLinear::build(const vector<sint>& Src, const vector<sint>& Dst, double Alpha)
 {
 	sint max;
@@ -626,6 +761,8 @@ void MonoLinear::build(const vector<sint>& Src, const vector<sint>& Dst, const v
 		if (site == _uintMax_) DummyIndex += 1;
 	}
 }
+
+
 
 void DiLinear::value(const vector<sint>& SrcL, const vector<sint>& SrcR, const vector<sint>& Dst)
 {
@@ -709,6 +846,26 @@ void DiLinear::Happend(bool L, bool R, bool D, size_t H)
 	}
 	return;
 }
+void DiLinear::inforPrint(hyperlex::dictionary& dict)const
+{
+	dict.append("DummyIndex", DummyIndex);
+	dict.append("RepeatedIndex", RepeatedIndex);
+	for (size_t i = 0; i < indexDst.count(); i++)
+		dict.append("indexDst", (long int)indexDst[i]);
+	for (size_t i = 0; i < indexSrcL.count(); i++)
+		dict.append("indexSrcL", (long int)indexSrcL[i]);
+	for (size_t i = 0; i < indexSrcR.count(); i++)
+		dict.append("indexSrcR", (long int)indexSrcR[i]);
+}
+hyperlex::dictionary* DiLinear::ErrorGive(void) const
+{
+	hyperlex::dictionary* error;
+	error = new  hyperlex::dictionary;
+	inforPrint(*error);
+	return error;
+}
+
+
 
 void MonoNonlinear::inforPrint(hyperlex::dictionary& dict)const
 {
@@ -883,6 +1040,16 @@ void DiNonlinear::inforPrint(hyperlex::dictionary& dict)const
 	dict.append("x", x);
 	dict.append("ScalarPara", ScalarPara);
 	dict.append("omega", omega);
+	for (size_t i = 0; i < function.count(); i++)
+		dict.append("function", (long int)function[i]);
+	for (size_t i = 0; i < funcTensor.GetOrder(); i++)
+		dict.append("funcTensor", (long int)funcTensor[i]);
+
+	for (size_t i = 0; i < indexDst.count(); i++)
+		dict.append("indexDst", (long int)indexDst[i]);
+	
+	for (size_t i = 0; i < indexPara.count(); i++)
+		dict.append("indexPara", (long int)indexPara[i]);
 }
 hyperlex::dictionary* DiNonlinear::ErrorGive(void) const
 {

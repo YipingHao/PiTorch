@@ -44,8 +44,8 @@ namespace Pikachu
 		void recapacity(size_t NewSize);
 		void recount(size_t NewCount);
 		void append(const T& element);
-		size_t search(const T& element);
-		size_t Tcount(const T& element);
+		size_t search(const T& element) const;
+		size_t Tcount(const T& element) const;
 		size_t SearchAppend(const T& element);
 		size_t pop(T& element);
 		size_t top(T& element);
@@ -585,7 +585,7 @@ namespace Pikachu
 		}
 		Count -= 1;
 	}
-	template <class T> size_t vector<T>::search(const T& element)
+	template <class T> size_t vector<T>::search(const T& element) const
 	{
 		size_t i;
 		for (i = 0; i < Count; i++)
@@ -594,7 +594,7 @@ namespace Pikachu
 		}
 		return _uintMax_;
 	}
-	template <class T> size_t vector<T>::Tcount(const T& element)
+	template <class T> size_t vector<T>::Tcount(const T& element) const
 	{
 		size_t count = 0;
 		for (size_t i = 0; i < Count; i++)
