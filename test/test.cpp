@@ -509,6 +509,14 @@ int static test16(const parameter& para)
     recur done;
     done.value(12);
     done.demo();
+
+    hyperlex::dictionary error;
+    for (size_t i = 0; i < 16; i++)
+    {
+        error.append("here", i);
+    }
+    error.print(stdout);
+
     return 0;
 }
 
