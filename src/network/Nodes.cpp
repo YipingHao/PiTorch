@@ -410,27 +410,140 @@ void DiNonlinear::compute(Tensor& DescOut)const
 	}
 }
 
+
+void Node::PrintScreenCore(FILE* fp)const
+{
+	demo(fp);
+	switch (Type)
+	{
+	case Pikachu::Node::_leaf_:
+		fprintf(fp, "\ttype: leaf.\n");
+		break;
+	case Pikachu::Node::_MonoLinear_:
+		fprintf(fp, "\ttype: MonoLinear.\n");
+		break;
+	case Pikachu::Node::_DiLinear_:
+		fprintf(fp, "\ttype: DiLinear.\n");
+		break;
+	case Pikachu::Node::_MonoNonlinear_:
+		fprintf(fp, "\ttype: MonoNonlinear.\n");
+		break;
+	case Pikachu::Node::_DiNonlinear_:
+		fprintf(fp, "\ttype: DiNonlinear.\n");
+		break;
+	default:
+		break;
+	}
+	descriptor.demo(fp, "descriptor");
+}
+void static printVecSint(FILE* fp, const char* name, const vector<sint>& source)
+{
+	fprintf(fp, "\t%s(%zu): [", name, source.count());
+	if (source.count() != 0)
+		fprintf(fp, "%zu", source[0]);
+	for (size_t i = 1; i < source.count(); i++)
+		fprintf(fp, ", %zu", source[i]);
+	fprintf(fp, "]\n");
+}
+
 void LeafNode::PrintScreen(FILE* fp)const
 {
-
+	PrintScreenCore(fp);
+	LeafType LT;
+	LT = (Node::LeafType)Op;
+	switch (LT)
+	{
+	case Pikachu::Node::_leafIn_:
+		fprintf(fp, "\tleaf type: input.\n");
+		break;
+	case Pikachu::Node::_leafPara_:
+		fprintf(fp, "\tleaf type: parameter.\n");
+		break;
+	case Pikachu::Node::_leafConst_:
+		fprintf(fp, "\tleaf type: constant.\n");
+		break;
+	default:
+		break;
+	}
 }
 void MonoLinear::PrintScreen(FILE* fp)const
 {
-
+	PrintScreenCore(fp);
+	fprintf(fp, "\talpha: %.16lf\n", alpha);
+	printVecSint(fp, "indexDst", indexDst);
+	printVecSint(fp, "indexSrc", indexSrc);
+	fprintf(fp, "\tDummyIndex: %zu\n", DummyIndex);
+	fprintf(fp, "\tNewIndex: %zu\n", NewIndex);
+	fprintf(fp, "\tRepeatedIndex: %zu\n", RepeatedIndex);
 }
 void DiLinear::PrintScreen(FILE* fp)const
 {
-
+	PrintScreenCore(fp);
+	printVecSint(fp, "indexDst", indexDst);
+	printVecSint(fp, "indexSrcL", indexSrcL);
+	printVecSint(fp, "indexSrcR", indexSrcR);
+	fprintf(fp, "\tDummyIndex: %zu\n", DummyIndex);
+	fprintf(fp, "\tRepeatedIndex: %zu\n", RepeatedIndex);
 }
 void MonoNonlinear::PrintScreen(FILE* fp)const
 {
+	PrintScreenCore(fp);
+	funcTensor.demo(fp, "funcTensor");
+	printVecSint(fp, "function", function);
 
+	printVecSint(fp, "indexDst", indexDst);
+	printVecSint(fp, "indexSrc", indexSrc);
+
+	fprintf(fp, ScalarInput ? "\tScalarInput: true\n" : "\tScalarInput: false\n");
+	fprintf(fp, "\tx: %lld\n", (long long)x);
 }
 void DiNonlinear::PrintScreen(FILE* fp)const
 {
+	PrintScreenCore(fp);
+	funcTensor.demo(fp, "funcTensor");
+
+	fprintf(fp, ScalarInput ? "\tScalarInput: true\n" : "\tScalarInput: false\n");
+	fprintf(fp, "\tx: %lld\n", (long long)x);
+	fprintf(fp, ScalarPara ? "\tScalarPara: true\n" : "\tScalarPara: false\n");
+	fprintf(fp, "\tomega: %lld\n", (long long)omega);
+
+	printVecSint(fp, "function", function);
+
+	printVecSint(fp, "indexDst", indexDst);
+	printVecSint(fp, "indexSrc", indexSrc);
+	printVecSint(fp, "indexPara", indexPara);
+	
+
 
 }
 
+bool LeafNode::IsConst(const FuncConst& Rvalue) const
+{
+	LeafType LT;
+	LT = (Node::LeafType)Op;
+	if (LT != _leafConst_) return false;
+	for (size_t i = 0; i < value.count(); i++)
+	{
+		if (!(value[i] == Rvalue)) return false;
+	}
+	return true;
+}
+bool MonoLinear::IsConst(const FuncConst& Rvalue) const
+{
+	return false;
+}
+bool DiLinear::IsConst(const FuncConst& Rvalue) const
+{
+	return false;
+}
+bool MonoNonlinear::IsConst(const FuncConst& Rvalue) const
+{
+	return false;
+}
+bool DiNonlinear::IsConst(const FuncConst& Rvalue) const
+{
+	return false;
+}
 void DiLinear::trivial(Node* SrcL, Node* SrcR)
 {
 	size_t i;

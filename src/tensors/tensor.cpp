@@ -31,7 +31,24 @@ bool Tensor::operator!=(const Tensor& Right) const
 	return false;
 }
 
-
+void Tensor::demo(FILE* fp)const
+{
+	fprintf(fp, "\ttensor(%zu): [", Count);
+	if (Count != 0)
+		fprintf(fp, "%zu", content[0]);
+	for (size_t i = 1; i < Count; i++)
+		fprintf(fp, ", %zu", content[i]);
+	fprintf(fp, "]\n");
+}
+void Tensor::demo(FILE* fp, const char* name)const
+{
+	fprintf(fp, "\t%s(%zu): [", name, Count);
+	if (Count != 0)
+		fprintf(fp, "%zu", content[0]);
+	for (size_t i = 1; i < Count; i++)
+		fprintf(fp, ", %zu", content[i]);
+	fprintf(fp, "]\n");
+}
 
 
 

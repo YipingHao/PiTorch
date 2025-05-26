@@ -355,6 +355,7 @@ namespace Pikachu
 		virtual void check(void)const = 0;
 		virtual void clear(void) = 0;
 		virtual void PrintScreen(FILE* fp = stdout)const = 0;
+		virtual bool IsConst(const FuncConst & value) const = 0;
 	protected:
 		Affiliation Affi;
 		VortexType Type;
@@ -368,6 +369,7 @@ namespace Pikachu
 		void setDesc(const Tensor& desc);
 		void setDesc(const Tensor& desc, const vector<size_t>& H);
 		void clearCore(void);
+		void PrintScreenCore(FILE* fp)const;
 	};
 	class LeafNode : public Node
 	{
@@ -386,6 +388,7 @@ namespace Pikachu
 		void check(void)const;
 		void clear(void);
 		void PrintScreen(FILE* fp = stdout)const;
+		bool IsConst(const FuncConst& value) const;
 	};
 	class MonoLinear : public Node
 	{
@@ -402,6 +405,7 @@ namespace Pikachu
 		void build(const vector<sint>& Src, const vector<sint>& Dst, const vector<size_t>& H, double Alpha);
 		friend class DiLinear;
 		void PrintScreen(FILE* fp = stdout)const;
+		bool IsConst(const FuncConst& value) const;
 	protected:
 		double alpha;
 		vector<sint> indexDst;
@@ -434,6 +438,7 @@ namespace Pikachu
 		void value(const vector<sint>& SrcL, const vector<sint>& SrcR, const vector<sint>& Dst);
 		void build(void);
 		void PrintScreen(FILE* fp = stdout)const;
+		bool IsConst(const FuncConst& value) const;
 	protected:
 		//elementwise descE;
 		vector<sint> indexDst;
@@ -458,6 +463,7 @@ namespace Pikachu
 		void check(void)const;
 		void clear(void);
 		void PrintScreen(FILE* fp = stdout)const;
+		bool IsConst(const FuncConst& value) const;
 	protected:
 		Tensor funcTensor;
 		bool ScalarInput;
@@ -492,6 +498,7 @@ namespace Pikachu
 		void check(void)const;
 		void clear(void);
 		void PrintScreen(FILE* fp = stdout)const;
+		bool IsConst(const FuncConst& value) const;
 	protected:
 		Tensor funcTensor;
 

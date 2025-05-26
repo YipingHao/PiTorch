@@ -129,6 +129,8 @@ namespace Pikachu
 			}
 			return num;
 		}
+		void demo(FILE* fp)const;
+		void demo(FILE* fp, const char* name)const;
 	protected:
 
 	};
