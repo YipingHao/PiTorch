@@ -354,6 +354,7 @@ namespace Pikachu
 		virtual void compute(Tensor& DescOut)const = 0;
 		virtual void check(void)const = 0;
 		virtual void clear(void) = 0;
+		virtual void PrintScreen(FILE* fp = stdout)const = 0;
 	protected:
 		Affiliation Affi;
 		VortexType Type;
@@ -384,6 +385,7 @@ namespace Pikachu
 		void Initial(const Tensor& desc, vector<size_t>& H);
 		void check(void)const;
 		void clear(void);
+		void PrintScreen(FILE* fp = stdout)const;
 	};
 	class MonoLinear : public Node
 	{
@@ -399,6 +401,7 @@ namespace Pikachu
 		void build(const vector<sint>& Src, const vector<sint>& Dst, double Alpha);
 		void build(const vector<sint>& Src, const vector<sint>& Dst, const vector<size_t>& H, double Alpha);
 		friend class DiLinear;
+		void PrintScreen(FILE* fp = stdout)const;
 	protected:
 		double alpha;
 		vector<sint> indexDst;
@@ -430,6 +433,7 @@ namespace Pikachu
 		void trivial(Node* SrcL, Node* SrcR);
 		void value(const vector<sint>& SrcL, const vector<sint>& SrcR, const vector<sint>& Dst);
 		void build(void);
+		void PrintScreen(FILE* fp = stdout)const;
 	protected:
 		//elementwise descE;
 		vector<sint> indexDst;
@@ -453,6 +457,7 @@ namespace Pikachu
 		void backward(bool dYdX, vector<Node*>& label, vector<size_t>& H);
 		void check(void)const;
 		void clear(void);
+		void PrintScreen(FILE* fp = stdout)const;
 	protected:
 		Tensor funcTensor;
 		bool ScalarInput;
@@ -486,6 +491,7 @@ namespace Pikachu
 		void backward(bool dYdX, vector<Node*>& label, vector<size_t>& H);
 		void check(void)const;
 		void clear(void);
+		void PrintScreen(FILE* fp = stdout)const;
 	protected:
 		Tensor funcTensor;
 

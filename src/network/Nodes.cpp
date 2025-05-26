@@ -410,6 +410,27 @@ void DiNonlinear::compute(Tensor& DescOut)const
 	}
 }
 
+void LeafNode::PrintScreen(FILE* fp = stdout)const
+{
+
+}
+void MonoLinear::PrintScreen(FILE* fp = stdout)const
+{
+
+}
+void DiLinear::PrintScreen(FILE* fp = stdout)const
+{
+
+}
+void MonoNonlinear::PrintScreen(FILE* fp = stdout)const
+{
+
+}
+void DiNonlinear::PrintScreen(FILE* fp = stdout)const
+{
+
+}
+
 void DiLinear::trivial(Node* SrcL, Node* SrcR)
 {
 	size_t i;
