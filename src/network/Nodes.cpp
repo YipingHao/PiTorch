@@ -1240,6 +1240,8 @@ MonoNonlinear* MonoNonlinear::differential(void)
 
 	diff->descriptor.Set(descriptor);
 	diff->funcTensor.Set(funcTensor);
+	diff->formula.copy(formula);
+	diff->formula.differential();
 	if (!ScalarInput)
 	{
 		size_t site = diff->indexSrc.search(x);
@@ -1251,6 +1253,7 @@ MonoNonlinear* MonoNonlinear::differential(void)
 		}
 		sint index = 1 + MaxIndex();
 		size_t dimX;
+		dimX = formula.GetInputDim();
 		dimX = in[0]->descriptor[site];
 		diff->function.append(x);
 		diff->indexDst.append(x);
@@ -1319,6 +1322,8 @@ DiNonlinear* DiNonlinear::differential(bool X)
 
 	diff->descriptor.Set(descriptor);
 	diff->funcTensor.Set(funcTensor);
+	diff->formula.copy(formula);
+	diff->formula.differential(X);
 	if (X)
 	{
 		if (!ScalarInput)

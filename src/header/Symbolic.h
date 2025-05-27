@@ -548,10 +548,15 @@ namespace Pikachu
 		size_t InputDim;
 		size_t ParameterDim;
 		vector<size_t> function;
+		vector<Expres*> original;
+		vector<bool> diffInfor;
 		vector<Expres*> cluster;
 	public:
 		DiFunc();
 		~DiFunc();
+		void diffX(void);
+		void differential(bool X);
+		void copy(const DiFunc& source);
 		inline size_t GetOutputDim(void) const
 		{
 			return OutputDim;

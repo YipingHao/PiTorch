@@ -474,11 +474,10 @@ namespace Pikachu
 		vector<sint> indexDst;
 		vector<sint> indexSrc;
 
+		MonoFunc formula;
+	
 
-		void* formula;
-
-		size_t next;
-		size_t SrcDim;
+		
 		
 		MonoNonlinear* gradient;
 
@@ -513,6 +512,8 @@ namespace Pikachu
 		vector<sint> indexSrc;
 		vector<sint> indexPara;
 
+		DiFunc formula;
+
 		DiNonlinear* gradientX;
 		DiNonlinear* gradientP;
 
@@ -536,6 +537,9 @@ namespace Pikachu
 		void copy(NetWork& source);
 		void forward(size_t No);
 		void backward(size_t No);
+		void forward(void);
+		void backward(void);
+		
 		void NodeAppend(Node* rear);
 		friend class NetWork;
 		friend class LeafNode;
@@ -548,6 +552,8 @@ namespace Pikachu
 
 		vector<Node*> input;
 		vector<Node*> output;
+
+
 		vector<tensor*> descriptor;
 
 

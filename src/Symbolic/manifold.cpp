@@ -436,7 +436,35 @@ MonoFunc::~MonoFunc()
 }
 void MonoFunc::differential(void)
 {
-
+	if (InputDim == 1)
+	{
+		for (size_t i = 0; i < cluster.count(); i++)
+		{
+			cluster[i]->differetial(0, 0, true);
+		}
+	}
+	else
+	{
+		vector<Expres*>primitive;
+		Expres* temp;
+		size_t oldDim = cluster.count();
+		primitive.recount(oldDim);
+		for (size_t i = 0; i < oldDim; i++) primitive[i] = cluster[i];
+		cluster.recount(oldDim * InputDim);
+		for (size_t i = 0; i < oldDim; i++)
+		{
+			for (size_t j = 0; j < InputDim; j++)
+			{
+				temp = new Expres;
+				temp->copy(*primitive[i]);
+				temp->differetial(0, j, true);
+				temp->Simplify();
+				cluster[i * InputDim + j] = temp;
+			}
+		}
+		for (size_t i = 0; i < oldDim; i++) delete primitive[i];
+		function.append(InputDim);
+	}
 }
 void MonoFunc::copy(const MonoFunc& source)
 {
@@ -464,4 +492,74 @@ DiFunc::~DiFunc()
 	{
 		delete cluster[i];
 	}
+	for (size_t i = 0; i < original.count(); i++)
+	{
+		delete original[i];
+	}
 }
+void DiFunc::diffX(void)
+{
+	if (InputDim == 1)
+	{
+		for (size_t i = 0; i < cluster.count(); i++)
+		{
+			cluster[i]->differetial(0, 0, true);
+		}
+	}
+	else
+	{
+		vector<Expres*>primitive;
+		Expres* temp;
+		size_t oldDim = cluster.count();
+		primitive.recount(oldDim);
+		for (size_t i = 0; i < oldDim; i++) primitive[i] = cluster[i];
+		cluster.recount(oldDim * InputDim);
+		for (size_t i = 0; i < oldDim; i++)
+		{
+			for (size_t j = 0; j < InputDim; j++)
+			{
+				temp = new Expres;
+				temp->copy(*primitive[i]);
+				temp->differetial(0, j, true);
+				temp->Simplify();
+				cluster[i * InputDim + j] = temp;
+			}
+		}
+		for (size_t i = 0; i < oldDim; i++) delete primitive[i];
+		function.append(InputDim);
+	}
+}
+void DiFunc::differential(bool X)
+{
+	diffInfor.append(X);
+	if (X)
+	{
+		if (InputDim != 1) function.append(InputDim);
+	}
+	else
+	{
+		if (ParameterDim != 1) function.append(ParameterDim);
+	}
+}
+void DiFunc::copy(const DiFunc& source)
+{
+	OutputFusion = source.OutputFusion;
+	OutputDim = source.OutputDim;
+	InputDim = source.InputDim;
+	ParameterDim = source.ParameterDim;
+
+	diffInfor.copy(source.diffInfor);
+	function.copy(source.function);
+	cluster.recount(source.cluster.count());
+	for (size_t i = 0; i < cluster.count(); i++)
+	{
+		cluster[i] = new Expres();
+		cluster[i]->copy(*(source[i]));
+	}
+	for (size_t i = 0; i < original.count(); i++)
+	{
+		original[i] = new Expres();
+		original[i]->copy(*(source.original[i]));
+	}
+}
+
