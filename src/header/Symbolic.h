@@ -448,7 +448,7 @@ namespace Pikachu
 		int build(GLTree*Tree, hyperlex::Morpheme&eme, int*state);
 	};
 
-	
+
 
 
 	class manifold : public expression
@@ -505,7 +505,77 @@ namespace Pikachu
 		bool StackNext(vector<size_t>& stack, const long long int label)const;
 	};
 
+	class MonoFunc
+	{
+	protected:
+		bool OutputFusion;
+		size_t OutputDim;
+		size_t InputDim;
+		vector<size_t> function;
+		vector<Expres*> cluster;
+	public:
+		MonoFunc();
+		~MonoFunc();
+		void differential(void);
+		void copy(const MonoFunc& source);
+		inline size_t GetOutputDim(void) const
+		{
+			return OutputDim;
+		}
+		inline size_t GetInputDim(void) const
+		{
+			return InputDim;
+		}
+		inline size_t GetFuncDim(size_t No) const
+		{
+			return function[No];
+		}
+		inline Expres* & operator[](size_t No)
+		{
+			return cluster[No];
+		}
+		inline Expres* const &  operator[](size_t No) const
+		{
+			return cluster[No];
+		}
+
+	};
+	class DiFunc
+	{
+	protected:
+		bool OutputFusion;
+		size_t OutputDim;
+		size_t InputDim;
+		size_t ParameterDim;
+		vector<size_t> function;
+		vector<Expres*> cluster;
+	public:
+		DiFunc();
+		~DiFunc();
+		inline size_t GetOutputDim(void) const
+		{
+			return OutputDim;
+		}
+		inline size_t GetInputDim(void) const
+		{
+			return InputDim;
+		}
+		inline size_t GetFuncDim(size_t No) const
+		{
+			return function[No];
+		}
+		inline Expres*& operator[](size_t No)
+		{
+			return cluster[No];
+		}
+		inline Expres* const& operator[](size_t No) const
+		{
+			return cluster[No];
+		}
 	
+
+	};
+
 
 	
 

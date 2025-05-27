@@ -421,3 +421,47 @@ void manifolds::backward(void)
 }
 
 */
+
+
+MonoFunc::MonoFunc()
+{
+	OutputFusion = true;
+}
+MonoFunc::~MonoFunc()
+{
+	for (size_t i = 0; i < cluster.count(); i++)
+	{
+		delete cluster[i];
+	}
+}
+void MonoFunc::differential(void)
+{
+
+}
+void MonoFunc::copy(const MonoFunc& source)
+{
+	OutputFusion = source.OutputFusion;
+	OutputDim = source.OutputDim;
+	InputDim = source.InputDim;
+
+	function.copy(source.function);
+	cluster.recount(source.cluster.count());
+	for (size_t i = 0; i < cluster.count(); i++)
+	{
+		cluster[i] = new Expres();
+		cluster[i]->copy(*(source[i]));
+	}
+}
+
+
+DiFunc::DiFunc()
+{
+	OutputFusion = true;
+}
+DiFunc::~DiFunc()
+{
+	for (size_t i = 0; i < cluster.count(); i++)
+	{
+		delete cluster[i];
+	}
+}

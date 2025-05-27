@@ -389,6 +389,7 @@ namespace Pikachu
 		void clear(void);
 		void PrintScreen(FILE* fp = stdout)const;
 		bool IsConst(const FuncConst& value) const;
+		void zero(void);
 	};
 	class MonoLinear : public Node
 	{
@@ -512,8 +513,11 @@ namespace Pikachu
 		vector<sint> indexSrc;
 		vector<sint> indexPara;
 
+		DiNonlinear* gradientX;
+		DiNonlinear* gradientP;
+
 		sint MaxIndex(void) const;
-		DiNonlinear* differential(bool X) const;
+		DiNonlinear* differential(bool X);
 		void inforPrint(hyperlex::dictionary& dict)const;
 		hyperlex::dictionary* ErrorGive(void) const;
 	};

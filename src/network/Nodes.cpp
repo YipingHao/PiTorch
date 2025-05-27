@@ -75,6 +75,9 @@ DiLinear::~DiLinear()
 DiNonlinear::DiNonlinear()
 {
 	Type = _DiNonlinear_;
+
+	gradientX = NULL;
+	gradientP = NULL;
 }
 DiNonlinear::~DiNonlinear()
 {
@@ -741,10 +744,41 @@ void MonoNonlinear::backward(bool dYdX, vector<Node*>& label, vector<size_t>& H)
 	return;
 }
 
-
 void LeafNode::forward(bool dYdX, vector<Node*>& label, vector<size_t>& H)
 {
-
+	LeafType LT;
+	LT = (Node::LeafType)Op;
+	
+	switch (LT)
+	{
+	case Pikachu::Node::_leafIn_:
+		
+		break;
+	case Pikachu::Node::_leafPara_:
+		
+		break;
+	case Pikachu::Node::_leafConst_:
+	{
+		LeafNode* diff;
+		size_t siteThis;
+		siteThis = site();
+		diff = new LeafNode(network, Node::_leafConst_);
+		diff->setDesc(descriptor, H);
+		diff->zero();
+		label[siteThis] = diff;
+		break;
+	}
+	default:
+	{
+		hyperlex::dictionary* error;
+		error = new hyperlex::dictionary;
+		error->append("location", "LeafNode::forward");
+		error->append("error", "switch (OT) unknown type");
+		error->append("Op", Op);
+		throw error;
+		break;
+	}
+	}
 }
 void MonoLinear::forward(bool dYdX, vector<Node*>& label, vector<size_t>& H)
 {
@@ -938,7 +972,19 @@ void LeafNode::Initial(const Tensor& desc, vector<size_t>& H)
 	}
 	return;
 }
-
+void LeafNode::zero(void)
+{
+	size_t L;
+	FuncConst zero_;
+	//zero_.SetValue((long long)0);
+	zero_.SetValue((long long)0);
+	Op = (int)_leafConst_;
+	L = descriptor.GetCount();
+	for (size_t i = 0; i < L; i++)
+	{
+		value.append(zero_);
+	}
+}
 
 
 void MonoLinear::inforPrint(hyperlex::dictionary& dict)const
@@ -1141,6 +1187,8 @@ hyperlex::dictionary* DiLinear::ErrorGive(void) const
 
 
 
+
+
 void MonoNonlinear::inforPrint(hyperlex::dictionary& dict)const
 {
 	dict.append("ScalarInput", ScalarInput);
@@ -1246,8 +1294,16 @@ sint DiNonlinear::MaxIndex(void) const
 	}
 	return temp;
 }
-DiNonlinear* DiNonlinear::differential(bool X) const
+DiNonlinear* DiNonlinear::differential(bool X)
 {
+	if (X)
+	{
+		if (gradientX != NULL) return gradientX;
+	}
+	else
+	{
+		if (gradientP != NULL) return gradientP;
+	}
 	DiNonlinear* diff;
 	diff = new DiNonlinear;
 	diff->ScalarInput = ScalarInput;
@@ -1284,6 +1340,7 @@ DiNonlinear* DiNonlinear::differential(bool X) const
 			diff->descriptor.append(dimX);
 			diff->funcTensor.append(dimX);
 		}
+		gradientX = diff;
 	}
 	else
 	{
@@ -1306,6 +1363,7 @@ DiNonlinear* DiNonlinear::differential(bool X) const
 			diff->descriptor.append(dimX);
 			diff->funcTensor.append(dimX);
 		}
+		gradientP = diff;
 	}
 	
 	network->NodeAppend(diff);
