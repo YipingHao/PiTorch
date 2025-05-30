@@ -347,7 +347,7 @@ void NetWork::NodeAppend(Node* rear)
 	net.append(rear);
 }
 
-void NetWork::BackAcc(size_t target, vector<Node*>& label, Node* source)
+void NetWork::BackAcc(Affiliation AA, size_t target, vector<Node*>& label, Node* source)
 {
 	Node *SrcL;
 	DiLinear* New;
@@ -359,7 +359,7 @@ void NetWork::BackAcc(size_t target, vector<Node*>& label, Node* source)
 	}
 	SrcL = label[target];
 	New = new DiLinear();
-	New->trivial(SrcL, source);
+	New->trivial(SrcL, source, AA);
 	label[target] = New;
 }
 

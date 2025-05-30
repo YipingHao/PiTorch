@@ -644,7 +644,7 @@ void DiNonlinear::backward(Affiliation AA, vector<Node*>& label, vector<size_t>&
 	diff->build();
 	network->NodeAppend(diff);
 	network->net.ArcAdd(SrcBack_, func, diff);
-	network->BackAcc(in[0]->site(), label, diff);
+	network->BackAcc(AA, in[0]->site(), label, diff);
 
 	func = differential(false, AA);
 	diff = new DiLinear(Node::_mul_, AA);
@@ -654,7 +654,7 @@ void DiNonlinear::backward(Affiliation AA, vector<Node*>& label, vector<size_t>&
 	diff->build();
 	network->NodeAppend(diff);
 	network->net.ArcAdd(SrcBack_, func, diff);
-	network->BackAcc(in[1]->site(), label, diff);
+	network->BackAcc(AA, in[1]->site(), label, diff);
 
 }
 void MonoLinear::backward(Affiliation AA, vector<Node*>& label, vector<size_t>& H) 
@@ -675,7 +675,7 @@ void MonoLinear::backward(Affiliation AA, vector<Node*>& label, vector<size_t>& 
 
 	network->NodeAppend(diff);
 	network->net.ArcAdd(SrcBack_, diff);
-	network->BackAcc(siteSource, label, diff);
+	network->BackAcc(AA, siteSource, label, diff);
 
 	return;
 }
@@ -699,7 +699,7 @@ void MonoNonlinear::backward(Affiliation AA, vector<Node*>& label, vector<size_t
 	diff->build();
 	network->NodeAppend(diff);
 	network->net.ArcAdd(SrcBack_, func, diff);
-	network->BackAcc(in[0]->site(), label, diff);
+	network->BackAcc(AA, in[0]->site(), label, diff);
 	return;
 }
 

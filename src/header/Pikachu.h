@@ -546,8 +546,6 @@ namespace Pikachu
 		void gradient(void);
 		void jacobi(void);
 		void Hv(void);
-		void forward(void);
-		void backward(void);
 		
 		void NodeAppend(Node* rear);
 		friend class NetWork;
@@ -579,7 +577,7 @@ namespace Pikachu
 		
 
 
-		void BackAcc(size_t target, vector<Node*>& label, Node* source);
+		void BackAcc(Node::Affiliation AA, size_t target, vector<Node*>& label, Node* source);
 	};
 }
 
