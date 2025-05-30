@@ -574,14 +574,14 @@ void DiLinear::backward(Affiliation AA, vector<Node*>& label, vector<size_t>& H)
 		diff->setDesc(in[0]->descriptor, H);
 		network->NodeAppend(diff);
 		network->net.ArcAdd(SrcBack_, diff);
-		network->BackAcc(in[0]->site(), label, diff);
+		network->BackAcc(AA, in[0]->site(), label, diff);
 
 		diff = new MonoLinear(AA);
 		diff->build(indexDst, indexSrcR, H, Ralpha);
 		diff->setDesc(in[1]->descriptor, H);
 		network->NodeAppend(diff);
 		network->net.ArcAdd(SrcBack_, diff);
-		network->BackAcc(in[1]->site(), label, diff);
+		network->BackAcc(AA, in[1]->site(), label, diff);
 		break;
 	}
 	case Pikachu::Node::_mul_:
@@ -601,7 +601,7 @@ void DiLinear::backward(Affiliation AA, vector<Node*>& label, vector<size_t>& H)
 		diff->build();
 		network->NodeAppend(diff);
 		network->net.ArcAdd(SrcBack_, in[1], diff);
-		network->BackAcc(in[0]->site(), label, diff);
+		network->BackAcc(AA, in[0]->site(), label, diff);
 
 		diff = new DiLinear(Node::_mul_, AA);
 		//diff->build(indexDst, indexSrcR, H, Ralpha);
@@ -611,7 +611,7 @@ void DiLinear::backward(Affiliation AA, vector<Node*>& label, vector<size_t>& H)
 		diff->build();
 		network->NodeAppend(diff);
 		network->net.ArcAdd(SrcBack_, in[0], diff);
-		network->BackAcc(in[1]->site(), label, diff);
+		network->BackAcc(AA, in[1]->site(), label, diff);
 		break;
 	}
 	default:
