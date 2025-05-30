@@ -298,7 +298,7 @@ namespace Pikachu
 		
 
 		Node();
-		~Node();
+		virtual ~Node();
 		enum Affiliation
 		{
 			unknown = 0,

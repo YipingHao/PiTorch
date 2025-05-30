@@ -30,7 +30,7 @@ void NetWork::copy(NetWork& source)
 void NetWork::forward(size_t No)
 {
 	buffer<Node*> queue;
-	size_t length, now, site;
+	size_t length;
 	Node* here;
 	LeafNode* TempLeaf;
 	vector<bool> valid;
@@ -85,7 +85,7 @@ void NetWork::forward(size_t No)
 void NetWork::backward(size_t No)
 {
 	buffer<Node*> queue;
-	size_t i, length, now, site;
+	size_t i, length;
 	Node* here, * Out;
 	LeafNode* TempLeaf;
 	vector<bool> valid;
@@ -190,6 +190,7 @@ void NetWork::gradient(void)
 				if(parameter[j] == here)
 				{
 					BackOut[j] = label[here->site()];
+					BackOut[j]->IfOutput = true;
 					break;
 				}
 			}
@@ -254,6 +255,7 @@ void NetWork::jacobi(void)
 				if (parameter[j] == here)
 				{
 					JacobiOut[j] = label[here->site()];
+					JacobiOut[j]->IfOutput = true;
 					break;
 				}
 			}
@@ -324,7 +326,12 @@ void NetWork::Hv(void)
 	{
 		here = sequence[i];
 		here->forward(Node::Hdv, label, H);
-		if (here->IfOutput)
+		if (!here->IfOutput) continue;
+		for (size_t j = 0; j < length; j++)
+		{
+			BackOut[j] == here;
+
+		}
 		{
 			Node* Out;
 			Tensor* diff;
