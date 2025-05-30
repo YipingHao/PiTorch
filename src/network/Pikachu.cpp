@@ -453,10 +453,77 @@ bool NetWork::simplify02Zerotensor(void)
 		if (net[i] == NULL) continue;
 		here = net[i];
 		if (here->Type == Node::_leaf_) continue;
+		if (here->Type == Node::_MonoLinear_ && here->in[0]->IsZero())
+		{
+			LeafNode* Zero;
+			Zero = new LeafNode(here->network, Node::_leafConst_, here->Affi);
+			Zero->setDesc(here->descriptor);
+			replace(here, Zero);
+		}
+		if (here->Type == Node::_DiLinear_)
+		{
+			bool leftZero = here->in[0]->IsZero();
+			bool rightZero = here->in[1]->IsZero();
+			if (leftZero || rightZero)
+			{
+				Node::OpType Op = (Node::OpType)here->Op;
+				switch (Op)
+				{
+				case Pikachu::Node::_add_:
+				case Pikachu::Node::_sub_:
+				{
+					Node* Src = leftZero ? here->in[1] : here->in[0];
+					double alpha = leftZero && (Op == Node::_sub_) ? 1.0 : -1.0;
+					MonoLinear* NewOne;
+					DiLinear* Now = (DiLinear*)here;
+					NewOne = new MonoLinear(here->Affi);
+					if(leftZero)
+						NewOne->build(Now->indexSrcR, Now->indexDst, alpha);
+					else 
+						NewOne->build(Now->indexSrcL, Now->indexDst, alpha);
+					replace(here, NewOne);
+					break;
+				}
+					
+				case Pikachu::Node::_mul_:
+				{
+					LeafNode* Zero;
+					Zero = new LeafNode(here->network, Node::_leafConst_, here->Affi);
+					Zero->setDesc(here->descriptor);
+					replace(here, Zero);
+					break;
+				}
+				default:
+					break;
+				}
+			}
+		}
 	}
 	return changed_;
 }
 
+void NetWork::replace(Node* target, Node* source)
+{
+	net.lift(target, source);
+	OutputShift(target, source);
+	net.ruin(target->site());
+}
+void NetWork::OutputShift(Node* target, Node* source)
+{
+	if (target->IfOutput)
+	{
+		for (size_t i = 0; i < output.count(); i++)
+			if (output[i] == target) output[i] = source;
+		for (size_t i = 0; i < BackOut.count(); i++)
+			if (BackOut[i] == target) BackOut[i] = source;
+		for (size_t i = 0; i < HvOut.count(); i++)
+			if (HvOut[i] == target) HvOut[i] = source;
+		for (size_t i = 0; i < JacobiOut.count(); i++)
+			if (JacobiOut[i] == target) JacobiOut[i] = source;
+		target->IfOutput = false;
+		source->IfOutput = true;
+	}
+}
 
 network::network()
 {

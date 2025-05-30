@@ -544,6 +544,36 @@ void DiLinear::trivial(Node* SrcL, Node* SrcR, Affiliation AA)
 
 }
 
+bool LeafNode::IsZero(void) const
+{
+	LeafType LT;
+	LT = (Node::LeafType)Op;
+	FuncConst Rvalue;
+	Rvalue.SetValue(0LL);
+	if (LT != _leafConst_) return false;
+	for (size_t i = 0; i < value.count(); i++)
+	{
+		if (!(value[i] == Rvalue)) return false;
+	}
+	return true;
+}
+bool MonoLinear::IsZero(void)  const
+{
+	return false;
+}
+bool DiLinear::IsZero(void) const
+{
+	return false;
+}
+bool MonoNonlinear::IsZero(void) const
+{
+	return false;
+}
+bool DiNonlinear::IsZero(void) const
+{
+	return false;
+}
+
 void LeafNode::backward(Affiliation AA, vector<Node*>& label, vector<size_t>& H)
 {
 

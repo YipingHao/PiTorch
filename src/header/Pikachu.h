@@ -357,6 +357,7 @@ namespace Pikachu
 		virtual void clear(void) = 0;
 		virtual void PrintScreen(FILE* fp = stdout)const = 0;
 		virtual bool IsConst(const FuncConst & value) const = 0;
+		virtual bool IsZero(void) const = 0;
 		void setDesc(const Tensor& desc);
 	protected:
 		Affiliation Affi;
@@ -391,6 +392,7 @@ namespace Pikachu
 		void clear(void);
 		void PrintScreen(FILE* fp = stdout)const;
 		bool IsConst(const FuncConst& value) const;
+		bool IsZero(void) const;
 		void zero(void);
 	};
 	class MonoLinear : public Node
@@ -410,6 +412,7 @@ namespace Pikachu
 		friend class DiLinear;
 		void PrintScreen(FILE* fp = stdout)const;
 		bool IsConst(const FuncConst& value) const;
+		bool IsZero(void) const;
 	protected:
 		double alpha;
 		vector<sint> indexDst;
@@ -443,6 +446,7 @@ namespace Pikachu
 		void build(void);
 		void PrintScreen(FILE* fp = stdout)const;
 		bool IsConst(const FuncConst& value) const;
+		bool IsZero(void) const;
 	protected:
 		//elementwise descE;
 		vector<sint> indexDst;
@@ -469,6 +473,7 @@ namespace Pikachu
 		void clear(void);
 		void PrintScreen(FILE* fp = stdout)const;
 		bool IsConst(const FuncConst& value) const;
+		bool IsZero(void) const;
 	protected:
 		Tensor funcTensor;
 		bool ScalarInput;
@@ -504,6 +509,7 @@ namespace Pikachu
 		void clear(void);
 		void PrintScreen(FILE* fp = stdout)const;
 		bool IsConst(const FuncConst& value) const;
+		bool IsZero(void) const;
 	protected:
 		Tensor funcTensor;
 
@@ -571,7 +577,7 @@ namespace Pikachu
 		vector<Node*> JacobiOut;
 
 		
-
+		void replace(Node* target, Node* source);
 		bool simplify(void);
 		bool simplify01RedundancyCut(void);
 		bool simplify02Zerotensor(void);
