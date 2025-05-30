@@ -578,6 +578,7 @@ namespace Pikachu
 
 		
 		void replace(Node* target, Node* source);
+		void OutputShift(Node* target, Node* source);
 		bool simplify(void);
 		bool simplify01RedundancyCut(void);
 		bool simplify02Zerotensor(void);
