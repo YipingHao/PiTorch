@@ -548,7 +548,6 @@ namespace Pikachu
 		void Hv(void);
 		
 		void NodeAppend(Node* rear);
-		friend class NetWork;
 		friend class LeafNode;
 		friend class DiLinear;
 		friend class DiNonlinear;
