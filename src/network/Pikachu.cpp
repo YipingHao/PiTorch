@@ -294,6 +294,10 @@ void NetWork::Hv(void)
 	label.recount(length);
 	label.value(NULL);
 
+	HvSrc.recount(parameter.count());
+	HvOut.recount(parameter.count());
+	HvSrc.value(NULL);
+	HvOut.value(NULL);
 	for (size_t i = 0; i < length; i++)
 	{
 		here = sequence[i];
@@ -307,7 +311,7 @@ void NetWork::Hv(void)
 					TempLeaf = new LeafNode(this, Node::_leafIn_, Node::Hdv);
 					TempLeaf->setDesc(here->descriptor);
 					label[here->site()] = TempLeaf;
-					HvSrc.append(TempLeaf);
+					HvSrc[j] = TempLeaf;
 					break;
 				}
 			}
@@ -329,20 +333,30 @@ void NetWork::Hv(void)
 		if (!here->IfOutput) continue;
 		for (size_t j = 0; j < length; j++)
 		{
-			BackOut[j] == here;
+			if (BackOut[j] == here)
+			{
+				Node* Out;
+				size_t hereSite = here->site();
+				Out = label[hereSite];
+				Out->IfOutput = true;
+				HvOut[j] = Out;
+				break;
+			}
 
 		}
+	}
+
+	for (size_t i = 0; i < HvOut.count(); i++)
+	{
+		if (HvOut[i] == NULL || HvSrc[i] == NULL) 
 		{
-			Node* Out;
-			Tensor* diff;
-			size_t hereSite = here->site();
-			Out = label[hereSite];
-			Out->IfOutput = true;
-			output.append(label);
-			diff = new Tensor;
-			diff->copy(*OutDesc[hereSite]);
-			//diff->append(No);
-			OutDesc.append(diff);
+			hyperlex::dictionary* error;
+			error = new hyperlex::dictionary;
+			error->append("location", "NetWork::Hv");
+			error->append("ParaCount", "HvOut.count()");
+			error->append("i", i);
+			error->append("error", "HvOut[i] == NULL || HvSrc[i] == NULL");
+			throw error;
 		}
 	}
 }
@@ -370,6 +384,78 @@ void NetWork::BackAcc(Node::Affiliation AA, size_t target, vector<Node*>& label,
 	label[target] = New;
 }
 
+bool NetWork::simplify(void)
+{
+	bool changed_;
+	size_t round_;
+	round_ = 0;
+	do
+	{
+		round_ += 1;
+		changed_ = false;
+		changed_ = changed_ || simplify01RedundancyCut();
+		changed_ = changed_ || simplify02Zerotensor();
+		//changed_ = changed_ || Simplify03();
+
+
+	} while (changed_);
+	//changed_ = changed_ || Simplify05();
+	if (round_ > 1)
+	{
+
+	}
+	return round_ > 1;
+}
+bool NetWork::simplify01RedundancyCut(void)
+{
+	bool changed_;
+	buffer<Node*> queue;
+	Node* here;
+	vector<bool> valid;
+	changed_ = false;
+	queue.clear();
+	for (size_t i = 0; i < output.count(); i++)
+		queue.append(output[i]);
+	for (size_t i = 0; i < BackOut.count(); i++)
+		queue.append(BackOut[i]);
+	for (size_t i = 0; i < HvOut.count(); i++)
+		queue.append(HvOut[i]);
+	for (size_t i = 0; i < JacobiOut.count(); i++)
+		queue.append(JacobiOut[i]);
+
+	net.BFTbackward(valid, queue);
+
+	for (size_t i = 0; i < net.count(); i++)
+	{
+		if (net[i] == NULL) continue;
+		here = net[i]; 
+		if (valid[i])continue;
+		if (here->Type != Node::_leaf_)
+		{
+			net.ruin(i);
+			changed_ = true;
+		}
+		else if ((Node::LeafType)here->Op == Node::_leafConst_)
+		{
+			net.ruin(i);
+			changed_ = true;
+		}
+	}
+	return changed_;
+}
+bool NetWork::simplify02Zerotensor(void)
+{
+	bool changed_;
+	Node* here;
+	changed_ = false;
+	for (size_t i = 0; i < net.count(); i++)
+	{
+		if (net[i] == NULL) continue;
+		here = net[i];
+		if (here->Type == Node::_leaf_) continue;
+	}
+	return changed_;
+}
 
 
 network::network()
