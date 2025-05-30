@@ -11,24 +11,39 @@ NetWork::NetWork()
 }
 NetWork::~NetWork()
 {
-
+	for (size_t i = 0; i < OutDesc.count(); i++)
+	{
+		delete OutDesc[i];
+	}
 }
 void NetWork::copy(NetWork& source)
 {
+	net.copy(source.net);
 
+	vector<Node*> input;
+	vector<Node*> parameter;
+	vector<Node*> output;
+
+	vector<Node*> gradient;
+	vector<Node*> Hv;
 }
 void NetWork::forward(size_t No)
 {
 	buffer<Node*> queue;
-	size_t i, length, now, site;
-	Node* here, * Out;
+	size_t length, now, site;
+	Node* here;
 	LeafNode* TempLeaf;
 	vector<bool> valid;
 	vector<Node*> label;
 	vector<Node*> sequence;
 	vector<size_t> H;
-
-	net.TopoSortDFS(sequence);
+	Node::Affiliation AA = Node::dYdX;
+	
+	for (size_t i = 0; i < output.count(); i++)
+		queue.append(output[i]);
+	net.BFTbackward(valid, queue);
+	net.TopoSortBFSBack(sequence);
+	net.Shrink(valid, sequence);
 
 	length = net.count();
 
@@ -38,26 +53,34 @@ void NetWork::forward(size_t No)
 	for (size_t i = 0; i < length; i++)
 	{
 		here = sequence[i];
-		if (here->Type == Node::_leaf_ && here->Op == (int)Node::_leafIn_)
+		if (here == input[No])
 		{
-			TempLeaf = new LeafNode(this, Node::_leafConst_);
-			TempLeaf->Initial(Out->descriptor, H);
-			label[output[No]->site()] = TempLeaf;
+			TempLeaf = new LeafNode(this, Node::_leafConst_, AA);
+			TempLeaf->Initial(here->descriptor, H);
+			label[input[No]->site()] = TempLeaf;
 		}
 	}
 
-	
-
-	for (i = 0; i < length; i++)
+	for (size_t i = 0; i < length; i++)
 	{
 		here = sequence[i];
-		here->backward(true, label, H);
-		if (here->Type == Node::_leaf_ && here->Op == (int)Node::_leafIn_)
+		here->forward(Node::dYdX, label, H);
+		if (here->IfOutput)
 		{
-			//TempLeaf = (Leaf*)here;
-			//SetOutput(No, label[now], TempLeaf->Label);
+			Node* Out;
+			Tensor* diff;
+			size_t hereSite = here->site();
+			Out = label[hereSite];
+			Out->IfOutput = true;
+			output.append(label);
+			diff = new Tensor;
+			diff->copy(*OutDesc[hereSite]);
+			diff->append(No);
+			OutDesc.append(diff);
 		}
 	}
+
+
 }
 void NetWork::backward(size_t No)
 {
@@ -68,45 +91,255 @@ void NetWork::backward(size_t No)
 	vector<bool> valid;
 	vector<Node*> label;
 	vector<Node*> sequence;
-	vector<size_t> H;
+	vector<size_t> H; 
+	Node::Affiliation AA = Node::dYdX;
+
 
 	Out = output[No];
 	queue.append(Out);
 	net.BFTbackward(valid, queue);
 	net.TopoSortBFSBack(sequence);
+	net.Shrink(valid, sequence);
 
 	length = net.count();
 
 	label.recount(length);
 	label.value(NULL);
 
-	TempLeaf = new LeafNode(this, Node::_leafConst_);
+	TempLeaf = new LeafNode(this, Node::_leafConst_, AA);
 	TempLeaf->Initial(Out->descriptor, H);
 	label[output[No]->site()] = TempLeaf;
 
 	for (i = 0; i < length; i++)
 	{
 		here = sequence[i];
-		here->backward(true, label, H);
-		//here->backward(true, now, label, *this);
+		here->backward(Node::dYdX, label, H);
 		if (here->Type == Node::_leaf_ && here->Op == (int)Node::_leafIn_)
 		{
-			//TempLeaf = (Leaf*)here;
-			//SetOutput(No, label[now], TempLeaf->Label);
+			Node* OutB;
+			Tensor* diff;
+			size_t hereSite = here->site();
+			OutB = label[hereSite];
+			if (OutB == NULL)
+			{
+				hyperlex::dictionary* error;
+				error = new hyperlex::dictionary;
+				error->append("location", "NetWork::backward");
+				error->append("error", "OutB == NULL");
+				throw error;
+			}
+			OutB->IfOutput = true;
+			output.append(label);
+			diff = new Tensor;
+			diff->copy(*OutDesc[hereSite]);
+			diff->append(No);
+			OutDesc.append(diff);
 		}
 	}
 
 
 }
 
-void NetWork::forward(void)
-{
 
-}
-void NetWork::backward(void)
+void NetWork::gradient(void)
 {
+	buffer<Node*> queue;
+	size_t length;
+	Node* here, * Out;
+	LeafNode* TempLeaf;
+	vector<bool> valid;
+	vector<Node*> label;
+	vector<Node*> sequence;
+	vector<size_t> H;
+	Node::Affiliation AA = Node::dLdW;
+	for (size_t i = 0; i < output.count(); i++)
+	{
+		Out = output[i];
+		queue.append(Out);
+	}
+	
+	net.BFTbackward(valid, queue);
+	net.TopoSortBFSBack(sequence);
+	net.Shrink(valid, sequence);
 
+	length = net.count();
+
+	label.recount(length);
+	label.value(NULL);
+
+	for (size_t i = 0; i < output.count(); i++)
+	{
+		Out = output[i];
+		TempLeaf = new LeafNode(this, Node::_leafIn_, AA);
+		TempLeaf->setDesc(Out->descriptor);
+		label[output[i]->site()] = TempLeaf;
+		BackSrc.append(TempLeaf);
+	}
+	
+	BackOut.recount(parameter.count());
+	BackOut.value(NULL);
+	for (size_t i = 0; i < length; i++)
+	{
+		here = sequence[i];
+		here->backward(Node::dLdW, label, H);
+		if (here->Type == Node::_leaf_ && here->Op == (int)Node::_leafPara_)
+		{
+			size_t j;
+			for (j = 0; j < parameter.count(); j++)
+			{
+				if(parameter[j] == here)
+				{
+					BackOut[j] = label[here->site()];
+					break;
+				}
+			}
+			if (j == parameter.count())
+			{
+				hyperlex::dictionary* error;
+				error = new hyperlex::dictionary;
+				error->append("location", "NetWork::gradient");
+				error->append("error", "j == parameter.count()");
+				throw error;
+			}
+			
+		}
+	}
 }
+void NetWork::jacobi(void)
+{
+	buffer<Node*> queue;
+	size_t length;
+	Node* here, * Out;
+	LeafNode* TempLeaf;
+	vector<bool> valid;
+	vector<Node*> label;
+	vector<Node*> sequence;
+	vector<size_t> H;
+	Node::Affiliation AA = Node::Jacobi_;
+	for (size_t i = 0; i < output.count(); i++)
+	{
+		Out = output[i];
+		queue.append(Out);
+	}
+
+	net.BFTbackward(valid, queue);
+	net.TopoSortBFSBack(sequence);
+	net.Shrink(valid, sequence);
+
+	length = net.count();
+
+	label.recount(length);
+	label.value(NULL);
+
+	for (size_t i = 0; i < output.count(); i++)
+	{
+		Out = output[i];
+		TempLeaf = new LeafNode(this, Node::_leafIn_, AA);
+		TempLeaf->setDesc(Out->descriptor);
+		label[output[i]->site()] = TempLeaf;
+		JacobiSrc.append(TempLeaf);
+	}
+
+	JacobiOut.recount(parameter.count());
+	JacobiOut.value(NULL);
+	for (size_t i = 0; i < length; i++)
+	{
+		here = sequence[i];
+		here->backward(Node::Jacobi_, label, H);
+		if (here->Type == Node::_leaf_ && here->Op == (int)Node::_leafPara_)
+		{
+			size_t j;
+			for (j = 0; j < parameter.count(); j++)
+			{
+				if (parameter[j] == here)
+				{
+					JacobiOut[j] = label[here->site()];
+					break;
+				}
+			}
+			if (j == parameter.count())
+			{
+				hyperlex::dictionary* error;
+				error = new hyperlex::dictionary;
+				error->append("location", "NetWork::jacobi");
+				error->append("error", "j == parameter.count()");
+				throw error;
+			}
+
+		}
+	}
+}
+void NetWork::Hv(void)
+{
+	gradient();
+	buffer<Node*> queue;
+	size_t length, now, site;
+	Node* here;
+	LeafNode* TempLeaf;
+	vector<bool> valid;
+	vector<Node*> label;
+	vector<Node*> sequence;
+	vector<size_t> H;
+
+	for (size_t i = 0; i < BackOut.count(); i++)
+		queue.append(BackOut[i]);
+	net.BFTbackward(valid, queue);
+	net.TopoSortBFSBack(sequence);
+	net.Shrink(valid, sequence);
+
+	length = net.count();
+
+	label.recount(length);
+	label.value(NULL);
+
+	for (size_t i = 0; i < length; i++)
+	{
+		here = sequence[i];
+		if (here->Type == Node::_leaf_ && here->Op == (int)Node::_leafPara_)
+		{
+			size_t j;
+			for (j = 0; j < parameter.count(); j++)
+			{
+				if (parameter[j] == here)
+				{
+					TempLeaf = new LeafNode(this, Node::_leafIn_, Node::Hdv);
+					TempLeaf->setDesc(here->descriptor);
+					label[here->site()] = TempLeaf;
+					HvSrc.append(TempLeaf);
+					break;
+				}
+			}
+			if (j == parameter.count())
+			{
+				hyperlex::dictionary* error;
+				error = new hyperlex::dictionary;
+				error->append("location", "NetWork::Hv");
+				error->append("error", "j == parameter.count()");
+				throw error;
+			}
+		}
+	}
+
+	for (size_t i = 0; i < length; i++)
+	{
+		here = sequence[i];
+		here->forward(Node::Hdv, label, H);
+		if (here->IfOutput)
+		{
+			Node* Out;
+			Tensor* diff;
+			size_t hereSite = here->site();
+			Out = label[hereSite];
+			Out->IfOutput = true;
+			output.append(label);
+			diff = new Tensor;
+			diff->copy(*OutDesc[hereSite]);
+			//diff->append(No);
+			OutDesc.append(diff);
+		}
+	}
+}
+
 
 void NetWork::NodeAppend(Node* rear)
 {

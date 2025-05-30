@@ -305,7 +305,8 @@ namespace Pikachu
 			initial = 1,
 			dYdX = 2,
 			dLdW = 3,
-			Hdv = 4,
+			Jacobi_ = 4,
+			Hdv = 5,
 		};
 		enum VortexType
 		{
@@ -349,13 +350,14 @@ namespace Pikachu
 		};
 		virtual Node* copy(void)const  = 0;
 		//virtual void copy(Node& source) = 0;
-		virtual void forward(bool dYdX, vector<Node*>& label, vector<size_t>& H) = 0;
-		virtual void backward(bool dYdX, vector<Node*>& label, vector<size_t>& H) = 0;
+		virtual void forward(Affiliation AA, vector<Node*>& label, vector<size_t>& H) = 0;
+		virtual void backward(Affiliation AA, vector<Node*>& label, vector<size_t>& H) = 0;
 		virtual void compute(Tensor& DescOut)const = 0;
 		virtual void check(void)const = 0;
 		virtual void clear(void) = 0;
 		virtual void PrintScreen(FILE* fp = stdout)const = 0;
 		virtual bool IsConst(const FuncConst & value) const = 0;
+		void setDesc(const Tensor& desc);
 	protected:
 		Affiliation Affi;
 		VortexType Type;
@@ -366,7 +368,7 @@ namespace Pikachu
 		NetWork* network;
 
 		void CopyCoreN(Node& dst) const;
-		void setDesc(const Tensor& desc);
+		
 		void setDesc(const Tensor& desc, const vector<size_t>& H);
 		void clearCore(void);
 		void PrintScreenCore(FILE* fp)const;
@@ -378,12 +380,12 @@ namespace Pikachu
 		size_t Label;
 	public:
 		LeafNode();
-		LeafNode(NetWork* context, Node::LeafType t);
+		LeafNode(NetWork* context, Node::LeafType t, Affiliation AA);
 		~LeafNode();
 		Node* copy(void) const;
 		void compute(Tensor& DescOut)const;
-		void forward(bool dYdX, vector<Node*>& label, vector<size_t>& H);
-		void backward(bool dYdX, vector<Node*>& label, vector<size_t>& H);
+		void forward(Affiliation AA, vector<Node*>& label, vector<size_t>& H);
+		void backward(Affiliation AA, vector<Node*>& label, vector<size_t>& H);
 		void Initial(const Tensor& desc, vector<size_t>& H);
 		void check(void)const;
 		void clear(void);
@@ -395,11 +397,12 @@ namespace Pikachu
 	{
 	public:
 		MonoLinear();
+		MonoLinear(Affiliation AA);
 		~MonoLinear();
 		Node* copy(void) const;
 		void compute(Tensor& DescOut)const;
-		void forward(bool dYdX, vector<Node*>& label, vector<size_t>& H);
-		void backward(bool dYdX, vector<Node*>& label, vector<size_t>& H);
+		void forward(Affiliation AA, vector<Node*>& label, vector<size_t>& H);
+		void backward(Affiliation AA, vector<Node*>& label, vector<size_t>& H);
 		void check(void)const;
 		void clear(void);
 		void build(const vector<sint>& Src, const vector<sint>& Dst, double Alpha);
@@ -427,15 +430,15 @@ namespace Pikachu
 		friend class MonoLinear;
 		friend class MonoNonlinear;
 		DiLinear();
-		DiLinear(Node::OpType OT);
+		DiLinear(Node::OpType OT, Affiliation AA);
 		~DiLinear();
 		Node* copy(void) const; 
 		void compute(Tensor& DescOut)const;
-		void forward(bool dYdX, vector<Node*>& label, vector<size_t>& H);
-		void backward(bool dYdX, vector<Node*>& label, vector<size_t>& H);
+		void forward(Affiliation AA, vector<Node*>& label, vector<size_t>& H);
+		void backward(Affiliation AA, vector<Node*>& label, vector<size_t>& H);
 		void check(void)const;
 		void clear(void);
-		void trivial(Node* SrcL, Node* SrcR);
+		void trivial(Node* SrcL, Node* SrcR, Affiliation AA);
 		void value(const vector<sint>& SrcL, const vector<sint>& SrcR, const vector<sint>& Dst);
 		void build(void);
 		void PrintScreen(FILE* fp = stdout)const;
@@ -456,11 +459,12 @@ namespace Pikachu
 	{
 	public:
 		MonoNonlinear();
+		MonoNonlinear(Affiliation AA);
 		~MonoNonlinear();
 		Node* copy(void) const;
 		void compute(Tensor& DescOut)const;
-		void forward(bool dYdX, vector<Node*>& label, vector<size_t>& H);
-		void backward(bool dYdX, vector<Node*>& label, vector<size_t>& H);
+		void forward(Affiliation AA, vector<Node*>& label, vector<size_t>& H);
+		void backward(Affiliation AA, vector<Node*>& label, vector<size_t>& H);
 		void check(void)const;
 		void clear(void);
 		void PrintScreen(FILE* fp = stdout)const;
@@ -482,7 +486,7 @@ namespace Pikachu
 		MonoNonlinear* gradient;
 
 		sint MaxIndex(void) const;
-		MonoNonlinear* differential(void);
+		MonoNonlinear* differential(Affiliation AA);
 		void inforPrint(hyperlex::dictionary& dict)const;
 		hyperlex::dictionary * ErrorGive(void) const;
 	};
@@ -490,11 +494,12 @@ namespace Pikachu
 	{
 	public:
 		DiNonlinear();
+		DiNonlinear(Affiliation AA);
 		~DiNonlinear();
 		Node* copy(void) const;
 		void compute(Tensor& DescOut)const;
-		void forward(bool dYdX, vector<Node*>& label, vector<size_t>& H);
-		void backward(bool dYdX, vector<Node*>& label, vector<size_t>& H);
+		void forward(Affiliation AA, vector<Node*>& label, vector<size_t>& H);
+		void backward(Affiliation AA, vector<Node*>& label, vector<size_t>& H);
 		void check(void)const;
 		void clear(void);
 		void PrintScreen(FILE* fp = stdout)const;
@@ -518,7 +523,7 @@ namespace Pikachu
 		DiNonlinear* gradientP;
 
 		sint MaxIndex(void) const;
-		DiNonlinear* differential(bool X);
+		DiNonlinear* differential(bool X, Affiliation AA);
 		void inforPrint(hyperlex::dictionary& dict)const;
 		hyperlex::dictionary* ErrorGive(void) const;
 	};
@@ -532,11 +537,15 @@ namespace Pikachu
 	class NetWork
 	{
 	public:
+		
 		NetWork();
 		~NetWork();
 		void copy(NetWork& source);
 		void forward(size_t No);
 		void backward(size_t No);
+		void gradient(void);
+		void jacobi(void);
+		void Hv(void);
 		void forward(void);
 		void backward(void);
 		
@@ -551,16 +560,25 @@ namespace Pikachu
 		graph<Node> net;
 
 		vector<Node*> input;
-		vector<Node*> output;
-
-
-		vector<tensor*> descriptor;
-
-
 		vector<Node*> parameter;
+		vector<Node*> output;
+		vector<Tensor*> OutDesc;
+		//gradient
+		vector<Node*> BackSrc;
+		vector<Node*> BackOut;
+		//Hv
+		vector<Node*> HvSrc;
+		vector<Node*> HvOut;
+		//jacobi
+		vector<Node*> JacobiSrc;
+		vector<Node*> JacobiOut;
+
+		
 
 
-		vector<Node*> hahahah;
+		
+
+
 		void BackAcc(size_t target, vector<Node*>& label, Node* source);
 	};
 }

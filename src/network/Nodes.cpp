@@ -17,15 +17,7 @@ Node::~Node()
 {
 
 }
-void Node::CopyCoreN(Node& dst) const
-{
-	dst.Type = Type;
-	dst.Op = Op;
-	dst.IfOutput = IfOutput;
-	dst.descriptor.Set(descriptor);
-	CopyToCore(dst);
-	return;
-}
+
 void Node::setDesc(const Tensor& desc)
 {
 	descriptor.Set(desc);
@@ -50,11 +42,12 @@ LeafNode::LeafNode()
 {
 	Type = _leaf_;
 }
-LeafNode::LeafNode(NetWork* context, Node::LeafType t)
+LeafNode::LeafNode(NetWork* context, Node::LeafType t, Affiliation AA)
 {
 	Type = _leaf_;
 	Op = (int)t;
 	network = context;
+	Affi = AA;
 }
 LeafNode::~LeafNode()
 {
@@ -64,10 +57,11 @@ DiLinear::DiLinear()
 {
 	Type = _DiLinear_;
 }
-DiLinear::DiLinear(Node::OpType OT)
+DiLinear::DiLinear(Node::OpType OT, Affiliation AA)
 {
 	Type = _DiLinear_;
 	Op = (int)OT;
+	Affi = AA;
 }
 DiLinear::~DiLinear()
 {
@@ -79,104 +73,68 @@ DiNonlinear::DiNonlinear()
 	gradientX = NULL;
 	gradientP = NULL;
 }
+DiNonlinear::DiNonlinear(Affiliation AA)
+{
+	Type = _DiNonlinear_;
+
+	gradientX = NULL;
+	gradientP = NULL;
+	Affi = AA;
+}
 DiNonlinear::~DiNonlinear()
 {
 }
 MonoLinear::MonoLinear()
 {
 	Type = _MonoLinear_;
+
+}
+MonoLinear::MonoLinear(Affiliation AA)
+{
+	Type = _MonoLinear_;
+	Affi = AA;
 }
 MonoLinear::~MonoLinear()
 {
 }
 MonoNonlinear::MonoNonlinear()
 {
-	formula = NULL;
 	Type = _MonoNonlinear_;
-	next = _uintMax_;
-	SrcDim = 0;
+
 
 	gradient = NULL;
+}
+MonoNonlinear::MonoNonlinear(Affiliation AA)
+{
+	Type = _MonoNonlinear_;
+
+
+	gradient = NULL;
+	Affi = AA;
 }
 MonoNonlinear::~MonoNonlinear()
 {
 	NonlinearType NT;
 	NT = (NonlinearType)Op;
-	switch (NT)
-	{
-	case Pikachu::Node::_activation_:
-	{
-		cluster*cl;
-		cl = (cluster*)formula;
-		delete cl;
-		break;
-	}
-	case Pikachu::Node::_manifold_:
-	{
-		manifolds*man;
-		man = (manifolds*)formula;
-		delete man;
-		break;
-	}
-	case Pikachu::Node::_cluster_:
-	{
-		activation* ac;
-		ac = (activation*)formula;
-		delete ac;
-		break;
-	}
-	case Pikachu::Node::_activationBack_:
-	{
-		ActiParaBackward* apb;
-		apb = (ActiParaBackward*)formula;
-		delete apb;
-		break;
-	}
-	case Pikachu::Node::_activationHv_:
-	{
-		ActiHvForward*ahf;
-		ahf = (ActiHvForward*)formula;
-		delete ahf;
-		break;
-	}
-	case Pikachu::Node::_HvFinal_:
-	{
-		HvForwardFinal*hff;
-		hff = (HvForwardFinal*)formula;
-		delete hff;
-		break;
-	}
-	default:
-		break;
-	}
-	formula = NULL;
 }
 
+void Node::CopyCoreN(Node& dst) const
+{
+	dst.Type = Type;
+	dst.Op = Op;
+	dst.IfOutput = IfOutput;
+	dst.descriptor.Set(descriptor);
+	CopyToCore(dst);
+	return;
+}
 Node* LeafNode::copy(void) const
 {
-	Node* node;
+	LeafNode* node;
 	node = new LeafNode;
 	//node->CopyCore(*this);
 	CopyCoreN(*node);
+	node->value.copy(value);
 	//node->Desc.Set(Desc);
-	return node;
-}
-Node* DiLinear::copy(void) const
-{
-	DiLinear* node;
-	node = new DiLinear();
-	CopyCoreN(*node);
-	//node->descE.Set(descE);
-	return node;
-}
-Node* DiNonlinear::copy(void) const
-{
-	DiNonlinear* node;
-	node = new DiNonlinear();
-	CopyCoreN(*node);
-	//node->DisDesc1.Set(DisDesc1);
-	//node->CondenDesc2.Set(CondenDesc2);
-	//node->alpha = alpha;
 	return node;
 }
 Node* MonoLinear::copy(void) const
@@ -184,7 +142,24 @@ Node* MonoLinear::copy(void) const
 	MonoLinear* node;
 	node = new MonoLinear();
 	CopyCoreN(*node);
-	//node->Desc.Set(Desc);
+	node->alpha = alpha;
+	node->indexDst.copy(indexDst);
+	node->indexSrc.copy(indexSrc);
+	node->DummyIndex = DummyIndex;
+	node->NewIndex = NewIndex;
+	node->RepeatedIndex = RepeatedIndex;
+	return node;
+}
+Node* DiLinear::copy(void) const
+{
+	DiLinear* node;
+	node = new DiLinear();
+	CopyCoreN(*node);
+	node->indexDst.copy(indexDst);
+	node->indexSrcL.copy(indexSrcL);
+	node->indexSrcR.copy(indexSrcR);
+	node->DummyIndex = DummyIndex;
+	node->RepeatedIndex = RepeatedIndex;
 	return node;
 }
 Node* MonoNonlinear::copy(void) const
@@ -192,63 +167,46 @@ Node* MonoNonlinear::copy(void) const
 	MonoNonlinear* node;
 	node = new MonoNonlinear();
 	CopyCoreN(*node);
-	NonlinearType NT;
-	NT = (NonlinearType)Op;
-	switch (NT)
-	{
-	case Pikachu::Node::_activation_:
-	{
-		cluster* cl;
-		cl = new cluster;
-		cl->copy(*((cluster*)formula));
-		node->formula = (void*)cl;
-		break;
-	}
-	case Pikachu::Node::_manifold_:
-	{
-		manifolds* man;
-		man = new manifolds;
-		man->copy(*((manifolds*)formula));
-		node->formula = (void*)man;
-		break;
-	}
-	case Pikachu::Node::_cluster_:
-	{
-		activation* ac;
-		ac = new activation;
-		ac->copy(*((activation*)formula));
-		node->formula = (void*)ac;
-		break;
-	}
-	case Pikachu::Node::_activationBack_:
-	{
-		ActiParaBackward* apb;
-		apb = new ActiParaBackward;
-		apb->copy(*((ActiParaBackward*)formula));
-		node->formula = (void*)apb;
-		break;
-	}
-	case Pikachu::Node::_activationHv_:
-	{
-		ActiHvForward* ahf;
-		ahf = new ActiHvForward;
-		ahf->copy(*((ActiHvForward*)formula));
-		node->formula = (void*)ahf;
-		break;
-	}
-	case Pikachu::Node::_HvFinal_:
-	{
-		HvForwardFinal* hff;
-		hff = new HvForwardFinal;
-		hff->copy(*((HvForwardFinal*)formula));
-		node->formula = (void*)hff;
-		break;
-	}
-	default:
-		break;
-	}
+	node->funcTensor.copy(funcTensor);
+	node->ScalarInput = ScalarInput;
+	node->x = x;
+	node->function.copy(function);
+
+	node->indexDst.copy(indexDst);
+	node->indexSrc.copy(indexSrc);
+
+	node->formula.copy(formula);
 	return node;
 }
+Node* DiNonlinear::copy(void) const
+{
+	DiNonlinear* node;
+	node = new DiNonlinear();
+	CopyCoreN(*node);
+
+	node->funcTensor.copy(funcTensor);
+
+	node->ScalarInput = ScalarInput;
+	node->x = x;
+
+	node->ScalarPara = ScalarPara;
+	node->omega = omega;
+
+	node->function.copy(function);
+
+	node->indexDst.copy(indexDst);
+	node->indexSrc.copy(indexSrc);
+	node->indexPara.copy(indexPara);
+
+	node->formula.copy(formula);
+
+	
+
+
+	return node;
+}
+
+
 
 void LeafNode::check(void) const
 {
@@ -547,7 +505,7 @@ bool DiNonlinear::IsConst(const FuncConst& Rvalue) const
 {
 	return false;
 }
-void DiLinear::trivial(Node* SrcL, Node* SrcR)
+void DiLinear::trivial(Node* SrcL, Node* SrcR, Affiliation AA)
 {
 	size_t i;
 	hyperlex::dictionary* error = NULL;
@@ -569,6 +527,7 @@ void DiLinear::trivial(Node* SrcL, Node* SrcR)
 		throw error;
 	}
 	Op = OpType::_add_;
+	Affi = AA;
 	DummyIndex = 0;
 	RepeatedIndex = SrcL->descriptor.GetOrder();
 	indexDst.recount(RepeatedIndex);
@@ -585,12 +544,12 @@ void DiLinear::trivial(Node* SrcL, Node* SrcR)
 
 }
 
-void LeafNode::backward(bool dYdX, vector<Node*>& label, vector<size_t>& H)
+void LeafNode::backward(Affiliation AA, vector<Node*>& label, vector<size_t>& H)
 {
 
 	return;
 }
-void DiLinear::backward(bool dYdX, vector<Node*>& label, vector<size_t>& H) 
+void DiLinear::backward(Affiliation AA, vector<Node*>& label, vector<size_t>& H) 
 {
 	Node::OpType OT;
 	OT = (Node::OpType)Op;
@@ -610,14 +569,14 @@ void DiLinear::backward(bool dYdX, vector<Node*>& label, vector<size_t>& H)
 		SrcBack_ = label[siteThis];
 
 
-		diff = new MonoLinear();
+		diff = new MonoLinear(AA);
 		diff->build(indexDst, indexSrcL, H, 1.0);
 		diff->setDesc(in[0]->descriptor, H);
 		network->NodeAppend(diff);
 		network->net.ArcAdd(SrcBack_, diff);
 		network->BackAcc(in[0]->site(), label, diff);
 
-		diff = new MonoLinear();
+		diff = new MonoLinear(AA);
 		diff->build(indexDst, indexSrcR, H, Ralpha);
 		diff->setDesc(in[1]->descriptor, H);
 		network->NodeAppend(diff);
@@ -634,7 +593,7 @@ void DiLinear::backward(bool dYdX, vector<Node*>& label, vector<size_t>& H)
 		SrcBack_ = label[siteThis];
 
 
-		diff = new DiLinear(Node::_mul_);
+		diff = new DiLinear(Node::_mul_, AA);
 		//diff->build(indexDst, indexSrcL, H, 1.0);
 		diff->setDesc(in[0]->descriptor, H);
 		diff->value(indexDst, indexSrcR, indexSrcL);
@@ -644,7 +603,7 @@ void DiLinear::backward(bool dYdX, vector<Node*>& label, vector<size_t>& H)
 		network->net.ArcAdd(SrcBack_, in[1], diff);
 		network->BackAcc(in[0]->site(), label, diff);
 
-		diff = new DiLinear(Node::_mul_);
+		diff = new DiLinear(Node::_mul_, AA);
 		//diff->build(indexDst, indexSrcR, H, Ralpha);
 		diff->setDesc(in[1]->descriptor, H);
 		diff->value(indexDst, indexSrcL, indexSrcR);
@@ -668,7 +627,7 @@ void DiLinear::backward(bool dYdX, vector<Node*>& label, vector<size_t>& H)
 		
 	}
 }
-void DiNonlinear::backward(bool dYdX, vector<Node*>& label, vector<size_t>& H) 
+void DiNonlinear::backward(Affiliation AA, vector<Node*>& label, vector<size_t>& H) 
 {
 	DiNonlinear* func;
 	DiLinear* diff;
@@ -677,8 +636,8 @@ void DiNonlinear::backward(bool dYdX, vector<Node*>& label, vector<size_t>& H)
 	siteThis = site();
 	SrcBack_ = label[siteThis];
 
-	func = differential(true);
-	diff = new DiLinear();
+	func = differential(true, AA);
+	diff = new DiLinear(Node::_mul_, AA);
 	diff->setDesc(in[0]->descriptor, H);
 	diff->value(indexDst, func->indexDst, indexSrc);
 	diff->Happend(true, false, true, H.count());
@@ -687,8 +646,8 @@ void DiNonlinear::backward(bool dYdX, vector<Node*>& label, vector<size_t>& H)
 	network->net.ArcAdd(SrcBack_, func, diff);
 	network->BackAcc(in[0]->site(), label, diff);
 
-	func = differential(false);
-	diff = new DiLinear();
+	func = differential(false, AA);
+	diff = new DiLinear(Node::_mul_, AA);
 	diff->setDesc(in[1]->descriptor, H);
 	diff->value(indexDst, func->indexDst, indexPara);
 	diff->Happend(true, false, true, H.count());
@@ -698,7 +657,7 @@ void DiNonlinear::backward(bool dYdX, vector<Node*>& label, vector<size_t>& H)
 	network->BackAcc(in[1]->site(), label, diff);
 
 }
-void MonoLinear::backward(bool dYdX, vector<Node*>& label, vector<size_t>& H) 
+void MonoLinear::backward(Affiliation AA, vector<Node*>& label, vector<size_t>& H) 
 {
 	MonoLinear* diff;
 	Node* SrcBack_, *source;
@@ -709,7 +668,7 @@ void MonoLinear::backward(bool dYdX, vector<Node*>& label, vector<size_t>& H)
 	SrcBack_ = label[siteThis];
 
 
-	diff = new MonoLinear();
+	diff = new MonoLinear(AA);
 	diff->build(indexDst, indexSrc, H, alpha);
 	diff->setDesc(source->descriptor, H);
 
@@ -720,10 +679,10 @@ void MonoLinear::backward(bool dYdX, vector<Node*>& label, vector<size_t>& H)
 
 	return;
 }
-void MonoNonlinear::backward(bool dYdX, vector<Node*>& label, vector<size_t>& H) 
+void MonoNonlinear::backward(Affiliation AA, vector<Node*>& label, vector<size_t>& H) 
 {
 	MonoNonlinear* func;
-	func = differential();
+	func = differential(AA);
 
 	DiLinear* diff;
 	Node* SrcBack_;
@@ -732,7 +691,7 @@ void MonoNonlinear::backward(bool dYdX, vector<Node*>& label, vector<size_t>& H)
 	SrcBack_ = label[siteThis];
 
 
-	diff = new DiLinear(Node::_mul_);
+	diff = new DiLinear(Node::_mul_, AA);
 	//diff->build(indexDst, indexSrcL, H, 1.0);
 	diff->setDesc(in[0]->descriptor, H);
 	diff->value(indexDst, func->indexDst, indexSrc);
@@ -744,43 +703,20 @@ void MonoNonlinear::backward(bool dYdX, vector<Node*>& label, vector<size_t>& H)
 	return;
 }
 
-void LeafNode::forward(bool dYdX, vector<Node*>& label, vector<size_t>& H)
+void LeafNode::forward(Affiliation AA, vector<Node*>& label, vector<size_t>& H)
 {
 	LeafType LT;
 	LT = (Node::LeafType)Op;
-	
-	switch (LT)
-	{
-	case Pikachu::Node::_leafIn_:
-		
-		break;
-	case Pikachu::Node::_leafPara_:
-		
-		break;
-	case Pikachu::Node::_leafConst_:
-	{
-		LeafNode* diff;
-		size_t siteThis;
-		siteThis = site();
-		diff = new LeafNode(network, Node::_leafConst_);
-		diff->setDesc(descriptor, H);
-		diff->zero();
-		label[siteThis] = diff;
-		break;
-	}
-	default:
-	{
-		hyperlex::dictionary* error;
-		error = new hyperlex::dictionary;
-		error->append("location", "LeafNode::forward");
-		error->append("error", "switch (OT) unknown type");
-		error->append("Op", Op);
-		throw error;
-		break;
-	}
-	}
+	LeafNode* diff;
+	size_t siteThis;
+	siteThis = site();
+	if (label[siteThis] != NULL) return;
+	diff = new LeafNode(network, Node::_leafConst_, AA);
+	diff->setDesc(descriptor, H);
+	diff->zero();
+	label[siteThis] = diff;
 }
-void MonoLinear::forward(bool dYdX, vector<Node*>& label, vector<size_t>& H)
+void MonoLinear::forward(Affiliation AA, vector<Node*>& label, vector<size_t>& H)
 {
 	MonoLinear* diff;
 	Node* SrcForward_, * source;
@@ -791,7 +727,7 @@ void MonoLinear::forward(bool dYdX, vector<Node*>& label, vector<size_t>& H)
 	SrcForward_ = label[siteSource];
 
 
-	diff = new MonoLinear();
+	diff = new MonoLinear(AA);
 	diff->build(indexSrc, indexDst, H, alpha);
 	diff->setDesc(descriptor, H);
 
@@ -802,7 +738,7 @@ void MonoLinear::forward(bool dYdX, vector<Node*>& label, vector<size_t>& H)
 
 	return;
 }
-void DiLinear::forward(bool dYdX, vector<Node*>& label, vector<size_t>& H)
+void DiLinear::forward(Affiliation AA, vector<Node*>& label, vector<size_t>& H)
 {
 	Node::OpType OT;
 	OT = (Node::OpType)Op;
@@ -820,7 +756,7 @@ void DiLinear::forward(bool dYdX, vector<Node*>& label, vector<size_t>& H)
 		siteThis = site();
 
 
-		diff = new DiLinear(Node::_mul_);
+		diff = new DiLinear(Node::_mul_, AA);
 		//diff->build(indexDst, indexSrcL, H, 1.0);
 		diff->setDesc(descriptor, H);
 		diff->value(indexDst, indexSrcR, indexSrcL);
@@ -841,7 +777,7 @@ void DiLinear::forward(bool dYdX, vector<Node*>& label, vector<size_t>& H)
 		siteThis = site();
 
 
-		diffL = new DiLinear(Node::_mul_);
+		diffL = new DiLinear(Node::_mul_, AA);
 		diffL->setDesc(descriptor, H);
 		diffL->value(indexSrcL, indexSrcR, indexDst);
 		diffL->Happend(true, false, true, H.count());
@@ -849,7 +785,7 @@ void DiLinear::forward(bool dYdX, vector<Node*>& label, vector<size_t>& H)
 		network->NodeAppend(diffL);
 		network->net.ArcAdd(label[siteL], in[1], diffL);
 
-		diffR = new DiLinear(Node::_mul_);
+		diffR = new DiLinear(Node::_mul_, AA);
 		diffR->setDesc(descriptor, H);
 		diffR->value(indexSrcL, indexSrcR, indexDst);
 		diffR->Happend(false, true, true, H.count());
@@ -858,7 +794,7 @@ void DiLinear::forward(bool dYdX, vector<Node*>& label, vector<size_t>& H)
 		network->net.ArcAdd(in[0], label[siteR], diffR);
 
 		sum = new DiLinear();
-		sum->trivial(diffL, diffR);
+		sum->trivial(diffL, diffR, AA);
 		label[siteThis] = sum;
 		break;
 	}
@@ -875,10 +811,10 @@ void DiLinear::forward(bool dYdX, vector<Node*>& label, vector<size_t>& H)
 
 	}
 }
-void MonoNonlinear::forward(bool dYdX, vector<Node*>& label, vector<size_t>& H)
+void MonoNonlinear::forward(Affiliation AA, vector<Node*>& label, vector<size_t>& H)
 {
 	MonoNonlinear* func;
-	func = differential();
+	func = differential(AA);
 
 	DiLinear* diff;
 	Node* sourceF;
@@ -887,7 +823,7 @@ void MonoNonlinear::forward(bool dYdX, vector<Node*>& label, vector<size_t>& H)
 	sourceF = label[siteThis];
 
 
-	diff = new DiLinear(Node::_mul_);
+	diff = new DiLinear(Node::_mul_, AA);
 	diff->setDesc(descriptor, H);
 	diff->value(indexSrc, func->indexDst, indexDst);
 	diff->Happend(true, false, true, H.count());
@@ -896,7 +832,7 @@ void MonoNonlinear::forward(bool dYdX, vector<Node*>& label, vector<size_t>& H)
 	network->net.ArcAdd(sourceF, func, diff);
 	label[siteThis] = diff;
 }
-void DiNonlinear::forward(bool dYdX, vector<Node*>& label, vector<size_t>& H)
+void DiNonlinear::forward(Affiliation AA, vector<Node*>& label, vector<size_t>& H)
 {
 	DiLinear* diffL, * diffR, * sum;
 	DiNonlinear* funcX, *funcP;
@@ -906,10 +842,10 @@ void DiNonlinear::forward(bool dYdX, vector<Node*>& label, vector<size_t>& H)
 	siteR = in[1]->site();
 	siteThis = site();
 
-	funcX = differential(true);
-	funcP = differential(false);
+	funcX = differential(true, AA);
+	funcP = differential(false, AA);
 	//×óÓÒ·´ÁË
-	diffL = new DiLinear(Node::_mul_);
+	diffL = new DiLinear(Node::_mul_, AA);
 	diffL->setDesc(descriptor, H);
 	diffL->value(funcX->indexDst, indexSrc, indexDst);
 	diffL->Happend(false, true, true, H.count());
@@ -917,7 +853,7 @@ void DiNonlinear::forward(bool dYdX, vector<Node*>& label, vector<size_t>& H)
 	network->NodeAppend(diffL);
 	network->net.ArcAdd(funcX, label[siteL], diffL);
 
-	diffR = new DiLinear(Node::_mul_);
+	diffR = new DiLinear(Node::_mul_, AA);
 	diffR->setDesc(descriptor, H);
 	diffR->value(funcP->indexDst, indexPara, indexDst);
 	diffR->Happend(false, true, true, H.count());
@@ -926,7 +862,7 @@ void DiNonlinear::forward(bool dYdX, vector<Node*>& label, vector<size_t>& H)
 	network->net.ArcAdd(funcP, label[siteR], diffR);
 
 	sum = new DiLinear();
-	sum->trivial(diffL, diffR);
+	sum->trivial(diffL, diffR, AA);
 	label[siteThis] = sum;
 }
 
@@ -1225,12 +1161,13 @@ sint MonoNonlinear::MaxIndex(void) const
 	}
 	return temp;
 }
-MonoNonlinear* MonoNonlinear::differential(void)
+MonoNonlinear* MonoNonlinear::differential(Affiliation AA)
 {
 	MonoNonlinear* diff;
 
 	if (gradient != NULL) return gradient;
 	diff = new MonoNonlinear;
+	diff->Affi = AA;
 	diff->x = x;
 	diff->ScalarInput = ScalarInput;
 
@@ -1297,7 +1234,7 @@ sint DiNonlinear::MaxIndex(void) const
 	}
 	return temp;
 }
-DiNonlinear* DiNonlinear::differential(bool X)
+DiNonlinear* DiNonlinear::differential(bool X, Affiliation AA)
 {
 	if (X)
 	{
@@ -1309,6 +1246,7 @@ DiNonlinear* DiNonlinear::differential(bool X)
 	}
 	DiNonlinear* diff;
 	diff = new DiNonlinear;
+	diff->Affi = AA;
 	diff->ScalarInput = ScalarInput;
 	diff->x = x;
 	diff->ScalarPara = ScalarPara;
