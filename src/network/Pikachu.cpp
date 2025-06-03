@@ -80,7 +80,7 @@ void NetWork::forward(size_t No)
 		}
 	}
 
-
+	//simplify();
 }
 void NetWork::backward(size_t No)
 {
@@ -137,7 +137,7 @@ void NetWork::backward(size_t No)
 		}
 	}
 
-
+	//simplify();
 }
 
 
