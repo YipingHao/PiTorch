@@ -1,5 +1,9 @@
-cp /home/hyper/code/lex/automata.h .
-cp /home/hyper/code/lex/automata.cpp .
-cp /home/hyper/code/lex/dictionary.cpp .
-cp /home/hyper/code/lex/dictionary.h .
+
+path="/home/hyper/code/code/lex2/src"
+
+#ls ${path}
+cp ${path}/automata.h .
+cp ${path}/automata.cpp .
+cp ${path}/dictionary.cpp .
+cp ${path}/dictionary.h .
 

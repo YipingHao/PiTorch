@@ -9,8 +9,9 @@ using namespace hyperlex;
 //typedef long long int sint;
 #include<iostream>
 #include <bitset>
-
+static char* CopyMalloc(const char* s);
 static bool compare(const char* str1, const char* str2);
+static void write_escaped_string(const char* str, FILE* file);
 static size_t strlength(const char* str);
 static void strfree(const char** strs, size_t length);
 static void inverse(list<size_t>& out, const list<size_t>& in);
@@ -59,7 +60,7 @@ void BufferChar::operator+=(const char* input)
 }
 void BufferChar::operator+=(long int source)
 {
-	size_t i;
+	//size_t i;
 	long long int r, ele, top;
 	char stack[32];
 	ele = source;
@@ -370,12 +371,12 @@ char BufferChar::QueueHead(void)
 Morpheme::Morpheme()
 {
 	count = 0;
-
+	AppendEnd(0);
 	//index = 0;
 }
 Morpheme::~Morpheme()
 {
-
+	ruin();
 }
 char* Morpheme::Copy(size_t site) const
 {
@@ -413,8 +414,13 @@ void Morpheme::append(const BufferChar& input, int accept, int category)
 	temp.begin = offset__;
 	temp.valid = true;
 	temp.line = 0;
+	temp.file = 0;
 	lex.append(temp);
 	return;
+}
+void Morpheme::append(const char* fileName)
+{
+	SrcFile.append(CopyMalloc(fileName));
 }
 void Morpheme::AppendEnd(int TerminalCount)
 {
@@ -429,18 +435,23 @@ void Morpheme::AppendEnd(int TerminalCount)
 	temp.category = TerminalCount;
 	temp.length = 1;
 	temp.line = 0;
+	temp.file = 0;
 	temp.begin = storage.count() - 2;
 	lex.append(temp);
 }
 void Morpheme::Demo(FILE* fp)const
 {
-	size_t i;
 	fprintf(fp, "count = %zu\n", count);
-	for (i = 0; i < count; i++)
+	for (size_t i = 0; i < count; i++)
 	{
-		if(lex[i].valid)
-			fprintf(fp, "<%4d (valid) : %4d , %s>\n", lex[i].category, lex[i].accept, storage.ptr(lex[i].begin));
-		else fprintf(fp, "<%4d(invalid): %4d , %s>\n", lex[i].category, lex[i].accept, storage.ptr(lex[i].begin));
+		const char* temp = NULL;
+		if (lex[i].valid) temp = "( valid )";
+		else temp = "(invalid)";
+
+		fprintf(fp, "No[%6zu]: file: %4zu, line: %6zu, unit: ", i, lex[i].file, lex[i].line);
+		fprintf(fp, "<%4d %s : %4d, ", lex[i].category, temp, lex[i].accept);
+		write_escaped_string(storage.ptr(lex[i].begin), fp);
+		fprintf(fp, ">\n");
 	}
 }
 char Morpheme::GetChar(size_t site) const
@@ -485,17 +496,202 @@ void Morpheme::CountReset(size_t NewCount)
 	count = NewCount;
 }
 
-void Morpheme::clear(void)
+bool Morpheme::withTernimal(void)const
+{
+	if (lex.count() == 0) return false;
+	return lex[lex.count() - 1].accept == 0 && lex[lex.count() - 1].category == 0;
+}
+void Morpheme::insert(size_t from, size_t deleted, const Morpheme& src)
+{
+	size_t NewCount;
+	/*
+	A:[0,from)
+	B:[from, from + deleted) = [from, rear)
+	C:[from + deleted, count - 1) = [rear, count - 1)
+	D:[count - 1, count - 1] END-EOF
+
+	a:[0,from)
+	b:[from, from + NewCount)
+	c:[from + NewCount, NewCount + count - deleted - 1)
+	d:[NewCount + count - deleted - 1, NewCount + count - deleted - 1]
+	*/
+	NewCount = src.count - 1;
+	if (from + 1 >= count) from = count - 1; 
+	if (from + deleted + 1 >= count) deleted = count - from - 1;
+	lex.recount(NewCount + count - deleted);
+	size_t rear_ = from + deleted;
+	size_t RearCount = count - rear_;
+	size_t OldStorage = storage.count();
+	
+	for (size_t i = RearCount; i > 0; i--)
+	{
+		lex[i - 1 + NewCount + from] = lex[i - 1 + rear_];
+	}
+	storage.append(src.storage);
+	for (size_t i = 0; i < NewCount; i++)
+	{
+		lex[i + from] = src.lex[i];
+		lex[i + from].begin += OldStorage;
+	}
+	count = lex.count();
+}
+void Morpheme::shrink(void)
+{
+	size_t offset = 0;
+	for (size_t i = 0; i < lex.count(); i++)
+	{
+		if (lex[i].valid)
+		{
+			if (i != offset)
+			{
+				lex[offset] = lex[i];
+			}
+			offset += 1;
+		}
+	}
+	sort();
+}
+void Morpheme::sort(void)
+{
+	vector<char> temp;
+	temp.copy(storage); 
+	size_t offset = 0;
+	for (size_t i = 0; i < lex.count(); i++)
+	{
+		size_t from = lex[i].begin;
+		size_t length = lex[i].length;
+		for (size_t j = 0; j < length; j++)
+		{
+			storage[offset + j] = temp[from + j];
+		}
+		//storage[offset + length] = temp[from + length];
+		storage[offset + length] = '\0';
+		lex[i].begin = offset;
+		offset += length + 1;
+	}
+	storage.recount(offset);
+}
+void Morpheme::SetFile(size_t value)
+{
+	for (size_t i = 0; i < count; i++)
+	{
+		lex[i].file = value;
+	}
+	lex[count - 1].file = 0;
+}
+const char* Morpheme::GetFile(size_t value) const
+{
+	return SrcFile[value];
+}
+size_t Morpheme::FileCount(void) const
+{
+	return SrcFile.count();
+}
+void Morpheme::print(BufferChar& input) const
+{
+	size_t countLex;
+	countLex = lex.count() - 1;
+	for (size_t i = 0; i < countLex; i++)
+	{
+		size_t from = lex[i].begin;
+		size_t length = lex[i].length;
+		for (size_t j = 0; j < length; j++)
+		{
+			input.append(storage[from + j]);
+		}
+	}
+}
+bool Morpheme::dequeue(char& out, indexT& index) const
+{
+	size_t &now = index.UnitOffest;
+	size_t& offset = index.CharOffset;
+	while (true)
+	{
+		if (now + 1 >= count) return false;
+
+		if (offset < lex[now].length) break;
+		now += 1;
+
+		if (lex[now].valid)
+			offset = 0;
+		else
+			offset = lex[now].length;
+	} 
+	out = storage[lex[now].begin + offset];
+	offset += 1;
+	return true;
+}
+void Morpheme::backspace(indexT& index, size_t count) const
+{
+	size_t& now = index.UnitOffest;
+	size_t& offset = index.CharOffset;
+	for (size_t i = 0; i < count; i++)
+	{
+		while (offset == 0)
+		{
+			if (now == 0) break;
+			now -= 1;
+			if (lex[now].valid)
+				offset = lex[now].length;
+			else
+				offset = 0;
+		}
+		offset -= 1;
+	}
+}
+bool Morpheme::operator==(const Morpheme& source) const
+{
+	if (count != source.count) return false;
+	//if (SrcFile.count() != source.SrcFile.count()) return false;
+	for (size_t i = 0; i < SrcFile.count(); i++)
+	{
+		//if (!compare(SrcFile[i], source.SrcFile[i])) return false;
+	}
+	if (lex.count() != source.lex.count()) return false;
+	for (size_t i = 0; i < lex.count(); i++)
+	{
+		
+		if (lex[i].accept != source.lex[i].accept) return false;
+		if (lex[i].category != source.lex[i].category) return false;
+		if (lex[i].valid != source.lex[i].valid) return false;
+		if (lex[i].length != source.lex[i].length) return false;
+		if (lex[i].file != source.lex[i].file) return false;
+		if (lex[i].line != source.lex[i].line) return false;
+		if(!compare(GetWord(i), source.GetWord(i))) return false;
+		//std::cout << "i: " << i << std::endl;
+	}
+	//std::cout << "i: " << i << std::endl;
+	return true;
+}
+
+void Morpheme::ruin(void)
 {
 	count = 0;
 	lex.clear();
 	storage.clear();
+	for (size_t i = 0; i < SrcFile.count(); i++)
+	{
+		char* temp = (char*)SrcFile[i];
+		free(temp);
+	}
+	SrcFile.clear();
+}
+void Morpheme::clear(void)
+{
+	ruin();
+	AppendEnd(0);
 }
 void Morpheme::copy(const Morpheme& source)
 {
+	clear();
 	count = source.count;
 	lex.copy(source.lex);
 	storage.copy(source.storage);
+	SrcFile.recount(source.SrcFile.count());
+	for (size_t i = 0; i < source.SrcFile.count(); i++)
+	{
+		SrcFile[i] = CopyMalloc(source.SrcFile[i]);
+	}
 }
 
 bool& Morpheme::valid(size_t site)
@@ -542,14 +738,17 @@ void Morpheme::SetLine(void)
 		temp = GetWord(i);
 		LineNo += CountEnter(temp);
 	}
+	lex[count - 1].line = 0;
 }
 
 GrammarTree::GrammarTree()
 {
-	error_record00 = true;
+	error_record00 = Undone;
 	error_record01 = 0;
 	error_record02 = 0;
 	GT = NULL;
+
+	//printf("GrammarTree::GrammarTree()\n");
 }
 GrammarTree::~GrammarTree()
 {
@@ -616,6 +815,9 @@ void GrammarTree::clear(void)
 		delete GT;
 	}
 	GT = NULL;
+	error_record00 = Undone;
+	error_record01 = 0;
+	error_record02 = 0;
 }
 GrammarTree::TreeInfor::TreeInfor(void)
 {
@@ -1444,7 +1646,268 @@ void RegularExp::set(const Morpheme& eme, hyperlex::tree<GrammarTree::TreeInfor>
 	set(TreeNow);
 }
 
+#include<string.h>
+FilePath::FilePath()
+{
+	absolute = false;
+}
+FilePath::~FilePath()
+{
+	clear();
+}
+void FilePath::clear()
+{
+	for (size_t i = 0; i < PathUnit.count(); ++i)
+	{
+		free(PathUnit[i]);
+	}
+	PathUnit.clear();
 
+}
+void FilePath::build(const char* path)
+{
+	clear();
+	if (!path || *path == '\0') return;
+
+	absolute = (path[0] == '/' || path[0] == '\\');
+	const char* start = absolute ? path + 1 : path;
+
+	while (*start) {
+		while (*start == '/' || *start == '\\') ++start;
+		if (!*start) break;
+
+		const char* end = start;
+		while (*end && *end != '/' && *end != '\\') ++end;
+
+		char* unit = (char*)malloc(end - start + 1);
+		memcpy(unit, start, end - start);
+		unit[end - start] = '\0';
+
+		append_copy(unit);
+		free(unit);
+		
+
+		start = end;
+	}
+}
+void FilePath::operator+=(const FilePath& rhs)
+{
+	if (rhs.absolute) {
+		clear();
+		absolute = true;
+		for (size_t i = 0; i < rhs.PathUnit.count(); ++i) {
+			append_copy(rhs.PathUnit[i]);
+		}
+	}
+	else {
+		for (size_t i = 0; i < rhs.PathUnit.count(); ++i) {
+			append_copy(rhs.PathUnit[i]);
+		}
+	}
+}
+bool FilePath::operator==(const FilePath& rhs) const
+{
+	// 比较绝对路径标志是否相同
+	if (absolute != rhs.absolute)
+		return false;
+
+	// 比较路径单元数量是否相同
+	if (PathUnit.count() != rhs.PathUnit.count())
+		return false;
+
+	// 逐个比较每个路径单元
+	for (size_t i = 0; i < PathUnit.count(); ++i) {
+		if (strcmp(PathUnit[i], rhs.PathUnit[i]) != 0)
+			return false;
+	}
+
+	return true;
+}
+char* FilePath::print(char divider)const
+{
+	size_t total = absolute ? 1 : 0;
+	const size_t count = PathUnit.count();
+
+	for (size_t i = 0; i < count; ++i) {
+		total += strlen(PathUnit[i]) + (i != count - 1 ? 1 : 0);
+	}
+
+	char* buf = (char*)malloc(total + 1);
+	char* ptr = buf;
+
+	if (absolute && count > 0)
+	{
+		*ptr = divider;
+		ptr++;
+	}
+
+	for (size_t i = 0; i < count; ++i) {
+		const char* unit = PathUnit[i];
+		const size_t len = strlen(unit);
+		memcpy(ptr, unit, len);
+		ptr += len;
+		if (i != count - 1) 
+		{
+			*ptr = divider;
+			ptr++;
+		}
+	}
+	*ptr = '\0';
+
+	return buf;
+}
+void FilePath::copy(const FilePath& source)
+{
+	clear();
+	absolute = source.absolute;
+	for (size_t i = 0; i < source.PathUnit.count(); i++)
+	{
+		append_copy(source.PathUnit[i]);
+	}
+}
+void FilePath::demo(FILE* fp)const
+{
+	fprintf(fp, "[FilePath Demo]");
+	fprintf(fp, "-Absolute: %s, ", absolute ? "true" : "false");
+
+	char* pathStr = print();
+	fprintf(fp, "-Path: [%s], ", pathStr);
+	free((void*)pathStr);
+
+	fprintf(fp, "-Units: ");
+	for (size_t i = 0; i < PathUnit.count(); i++)
+	{
+		const char* unit = PathUnit[i];
+		fprintf(fp, "[%s] ", unit);
+	}
+	fprintf(fp, "\n");
+}
+void FilePath::append_copy(const char* str)
+{
+	if (strcmp(str, ".") == 0)
+	{
+		if (PathUnit.count() == 0)
+		{
+			char* copy = (char*)malloc(strlen(str) + 1);
+			strcpy(copy, str);
+			PathUnit.append(copy);
+		}
+	}
+	else if (strcmp(str, "..") == 0) {
+		// 父目录符号
+		if (PathUnit.count() > 1) {
+			// 移除前一个路径单元（回退一级）
+			char* last;
+			PathUnit.pop(last);
+			free(last);
+		}
+		else if (PathUnit.count() == 1)
+		{
+			if (strcmp(PathUnit[0], "..") == 0)
+			{
+				char* copy = (char*)malloc(strlen("..") + 1);
+				strcpy(copy, "..");
+				PathUnit.append(copy);
+			}
+			else if (strcmp(PathUnit[0], ".") == 0)
+			{
+				char* copy = (char*)malloc(strlen("..") + 1);
+				strcpy(copy, "..");
+				free(PathUnit[0]);
+				PathUnit[0] = copy;
+			}
+			else
+			{
+				PathUnit[0][0] = '.';
+				PathUnit[0][1] = '\0';
+			}
+			
+		}
+		else if (!absolute)
+		{
+			char* copy = (char*)malloc(strlen(str) + 1);
+			strcpy(copy, str);
+			PathUnit.append(copy);
+		}
+		
+	}
+	else {
+		char* copy = (char*)malloc(strlen(str) + 1);
+		strcpy(copy, str);
+		PathUnit.append(copy);
+	}
+
+}
+void FilePath::RearCut(void)
+{
+	if (PathUnit.count() != 0)
+	{
+		char* out;
+		PathUnit.pop(out);
+		free(out);
+		return;
+	}
+	else if(absolute)
+	{
+		absolute = false;
+	}
+}
+void FilePath::clean(void)
+{
+	if (PathUnit.count() == 0)return;
+
+	vector<char*>temp;
+	temp.copy(PathUnit);
+	
+	for (size_t i = 0; i < temp.count(); i++)
+	{
+		char* unit = temp[i];
+		if (strcmp(unit, "..") == 0)
+		{
+			long int j;
+			for (j = i - 1; j >= 0L; j--)
+				if (strcmp(temp[j], ".") != 0) break;
+			if (j >= 0L)
+			{
+				unit[1] = '\0';
+				temp[j][0] = '.';
+				temp[j][1] = '\0';
+			}
+			else if(absolute) unit[1] = '\0';
+		}
+	}
+	size_t offset = 0;
+	PathUnit[offset] = temp[0];
+	offset++;
+	for (size_t i = 1; i < temp.count(); i++)
+	{
+		char* unit = temp[i];
+		if (strcmp(unit, ".") == 0)
+			free(unit);
+		else
+		{
+			PathUnit[offset] = unit;
+			offset++;
+		}
+	}
+	PathUnit.recount(offset);
+}
+void FilePath::RearCutAppend(const FilePath& rhs)
+{
+	RearCut();
+	if (rhs.absolute) {
+		clear();
+		absolute = true;
+		for (size_t i = 0; i < rhs.PathUnit.count(); ++i) {
+			append_copy(rhs.PathUnit[i]);
+		}
+	}
+	else {
+		for (size_t i = 0; i < rhs.PathUnit.count(); ++i) {
+			append_copy(rhs.PathUnit[i]);
+		}
+	}
+}
 
 static const char* Copy(const char* input)
 {
@@ -1641,7 +2104,7 @@ void InputPanel::demo(FILE* fp) const
 void InputPanel::ErrorDemo(FILE* fp) const
 {
 	const char* s_temp_1, * s_temp_2; 
-	size_t i, j, record, uintTemp;
+	size_t i, j, record;
 	switch (errorCode)
 	{
 	case InputPanel::NoError:
@@ -1669,6 +2132,54 @@ void InputPanel::ErrorDemo(FILE* fp) const
 		s_temp_1 = GrammarG[errorInfor1]->rules[errorInfor2]->name;
 		fprintf(fp, "repeatGName: Conflict grammar rule name: %s\n", s_temp_1);
 		break;
+	case InputPanel::PretreatLEXICAL:
+	{
+		fprintf(fp, "PretreatLEXICAL: Error happenned during pretreatment.\n");
+		fprintf(fp, "Lexical analysis of No.%zu ", errorInfor1);
+		fprintf(fp, "source file %s made a mistake\n", LexicalSource.GetFile(errorInfor1));
+		break;
+	}	
+	case InputPanel::PretreatGRAMMAR:
+	{
+		fprintf(fp, "PretreatGRAMMAR: Error happenned during pretreatment.\n");
+		fprintf(fp, "Grammar analysis of No.%zu ", errorInfor1);
+		fprintf(fp, "source file %s made a mistake ", LexicalSource.GetFile(errorInfor1));
+
+		size_t RLine = LexicalSource[errorInfor2].line;
+		size_t RFile = LexicalSource[errorInfor2].file;
+
+		fprintf(fp, "in line %zu, file: %zu, unit: %zu\n", RLine, RFile, errorInfor2);
+
+		//fprintf(fp, "%zu\n", record);
+		for (i = 0; i < LexicalSource.GetCount(); i++)
+		{
+			size_t uintTemp1 = LexicalSource[i].line;
+			size_t uintTemp2 = LexicalSource[i].file;
+			if ((RLine == uintTemp1 || uintTemp1 + 1 == RLine) && uintTemp2 == RFile)
+			{
+				if (i == errorInfor1)
+					fprintf(fp, "| %s |", LexicalSource.GetWord(i));
+				else
+					fprintf(fp, "%s", LexicalSource.GetWord(i));
+			}
+		}
+		break;
+	}
+	case InputPanel::PretreatRepeat:
+	{
+		fprintf(fp, "PretreatRepeat: Error happenned during pretreatment.\n");
+		fprintf(fp, "No.%zu ", errorInfor1);
+		fprintf(fp, "source file %s repeats with existed ", LexicalSource.GetFile(errorInfor1));
+		fprintf(fp, "%zu file %s\n", errorInfor2, LexicalSource.GetFile(errorInfor2));
+		break;
+	}
+	case InputPanel::PretreatOpenfail:
+	{
+		fprintf(fp, "PretreatOpenfail: Error happenned during pretreatment.\n");
+		fprintf(fp, "Open of No.%zu ", errorInfor1);
+		fprintf(fp, "source file %s made a mistake\n", LexicalSource.GetFile(errorInfor1));
+		break;
+	}
 	case InputPanel::ErrorNonTernimal:
 		fprintf(fp, "ErrorNonTernimal: Non-ternimal symbols in rules' body are conflict with their names.\n");
 		fprintf(fp, "Non-ternimal count in body: %zu, in their head: %zu\n", NontTerminal.count(), GrammarG.count());
@@ -1691,11 +2202,12 @@ void InputPanel::ErrorDemo(FILE* fp) const
 		fprintf(fp, "\n");
 		break;
 	case InputPanel::ErrorinputLEXICAL:
+	{
 		fprintf(fp, "ErrorinputLEXICAL: \n");
 		record = 0;
 		for (i = 0; i < LexicalSource.GetCount(); i++)
 		{
-			if(LexicalSource[i].accept<0) 
+			if (LexicalSource[i].accept < 0)
 			{
 				record = LexicalSource[i].line;
 				break;
@@ -1704,20 +2216,22 @@ void InputPanel::ErrorDemo(FILE* fp) const
 		fprintf(fp, "line[%zu]: ", record + 1);
 		for (i = 0; i < LexicalSource.GetCount(); i++)
 		{
-			uintTemp = LexicalSource[i].line;
+			size_t  uintTemp = LexicalSource[i].line;
 			if (record == uintTemp)
 			{
 				fprintf(fp, "%s", LexicalSource.GetWord(i));
 			}
 		}
 		break;
+	}
 	case InputPanel::ErrorinputGrammar:
+	{
 		fprintf(fp, "ErrorinputGrammar: Something was wrong when parsing of line:");
 		record = LexicalSource[errorInfor1].line;
 		fprintf(fp, "%zu\n", record);
 		for (i = 0; i < LexicalSource.GetCount(); i++)
 		{
-			uintTemp = LexicalSource[i].line;
+			size_t uintTemp = LexicalSource[i].line;
 			if (record == uintTemp || uintTemp + 1 == record)
 			{
 				if (i == errorInfor1)
@@ -1727,20 +2241,23 @@ void InputPanel::ErrorDemo(FILE* fp) const
 			}
 		}
 		break;
+	}
 	case InputPanel::regGroupMissing:
-		fprintf(fp, "ErrorinputGrammar: There is no corresponding regular expression group as:");
+	{
+		fprintf(fp, "regGroupMissing: There is no corresponding regular expression group as:");
 		fprintf(fp, "%s\n", LexicalSource.GetWord(errorInfor1));
 		record = LexicalSource[errorInfor1].line;
 		fprintf(fp, "line[%zu]: ", record + 1);
 		for (i = 0; i < LexicalSource.GetCount(); i++)
 		{
-			uintTemp = LexicalSource[i].line;
+			size_t uintTemp = LexicalSource[i].line;
 			if (i == errorInfor1)
 				fprintf(fp, "| %s |", LexicalSource.GetWord(i));
 			else
 				fprintf(fp, "%s", LexicalSource.GetWord(i));
 		}
 		break;
+	}
 	case InputPanel::buildUndone:
 		fprintf(fp, "buildUndone: has not been built.\n");
 		fprintf(fp, "\n");
@@ -2166,32 +2683,298 @@ struct Panel
 	static const char* const RulesName[60];
 	static const int Implicit[60];
 };
-
-
-
-
-int InputPanel::build(FILE* fp)
+struct PreTreat
 {
-	//Morpheme eme;
+	enum regular
+	{
+		_identifier_ = 1,
+		_integer_ = 2,
+		_CommonChar_ = 3,
+		_idChar_ = 4,
+		_string_ = 5,
+		_include_ = 6,
+		_spaces_ = 7,
+		_enters_ = 8,
+		_tab_ = 9,
+		_semicolon_ = 10,
+		_colon_ = 11,
+		_dot_ = 12,
+		_braceL_ = 13,
+		_braceR_ = 14,
+		_left_ = 15,
+		_right_ = 16,
+		_squareL_ = 17,
+		_squareR_ = 18,
+		_angleL_ = 19,
+		_angleR_ = 20,
+		_anntationS_ = 21,
+		_anntationM_ = 22,
+		_range_ = 23,
+		_star_ = 24,
+		_plus_ = 25,
+		_question_ = 26,
+		_or_ = 27
+	};
+	enum group
+	{
+		_identifier___ = 1,
+		_const___ = 2,
+		_string___ = 3,
+		_include___ = 4,
+		_format___ = 5,
+		_division___ = 6,
+		_braket___ = 7,
+		_anntation___ = 8,
+		_RegSymbol___ = 9
+	};
+	static int next(int state, const char c);
+	static int action(int state);
+	static int GroupGet(int state);
+};
+struct Preparser
+{
+	enum type
+	{
+		accept = 0,
+		error = 1,
+		push = 2,
+		reduce = 3
+	};
+	enum rules
+	{
+		all_all_ = 0,
+		TEXT_meow_ = 1,
+		//<DEF*>_first_ = 2,
+		//<DEF*>_multi_ = 3,
+		DEF_anntation_ = 4,
+		DEF_anything_ = 5,
+		DEF_include_ = 6,
+		//[anntation]_anntationS_ = 7,
+		//[anntation]_anntationM_ = 8,
+		INCLUDE_include_ = 9,
+		INCLUDE_include2_ = 10,
+		ANY_identifier_ = 11,
+		ANY_const_ = 12,
+		ANY_RegSymbol_ = 13,
+		ANY_braket_ = 14,
+		ANY_division_ = 15,
+		ANY_format_ = 16,
+		//[identifier]_identifier_ = 17,
+		//[const]_integer_ = 18,
+		//[const]_CommonChar_ = 19,
+		//[const]_idChar_ = 20,
+		//[RegSymbol]_range_ = 21,
+		//[RegSymbol]_star_ = 22,
+		//[RegSymbol]_plus_ = 23,
+		//[RegSymbol]_question_ = 24,
+		//[RegSymbol]_or_ = 25,
+		//[braket]_braceL_ = 26,
+		//[braket]_braceR_ = 27,
+		//[braket]_left_ = 28,
+		//[braket]_right_ = 29,
+		//[braket]_squareL_ = 30,
+		//[braket]_squareR_ = 31,
+		//[braket]_angleL_ = 32,
+		//[braket]_angleR_ = 33,
+		//[division]_semicolon_ = 34,
+		//[division]_colon_ = 35,
+		//[division]_dot_ = 36,
+		//[format]_spaces_ = 37,
+		//[format]_enters_ = 38,
+		//[format]_tab_ = 39
+	};
+	enum nonterminal
+	{
+		_all_ = 0,
+		_TEXT_ = 1,
+		//_<DEF*>_ = 2,
+		_DEF_ = 3,
+		//_[anntation]_ = 4,
+		_INCLUDE_ = 5,
+		_ANY_ = 6,
+		//_[identifier]_ = 7,
+		//_[const]_ = 8,
+		//_[RegSymbol]_ = 9,
+		//_[braket]_ = 10,
+		//_[division]_ = 11,
+		//_[format]_ = 12
+	};
+	static const size_t StateCount;
+	static const size_t NonTerminalCount;
+	static const size_t TerminalCount;
+	static const size_t RulesCount;
+	static const int GOTO[42][13];
+	static const int ACTION[42][28];
+	static const int RulesToSymbol[40];
+	static const int RulesLength[40];
+	static const char* const RulesName[40];
+	static const int Implicit[40];
+};
+
+
+int InputPanel::build_v02(const char* file)
+{
 	int error;
+	Morpheme temp;
 	clear();
 	initial();
-	error = LexicalSource.Build<Reg>(fp);
-	if (error != 0)
-	{
-		errorCode = ErrorinputLEXICAL;
-		return error;
-	}
+	error = pretreatment(file, temp);
+	if (error != 0) return error;
+
+	error = LexicalSource.Build<Reg>(temp);
+	if (error != 0) return error;
 	NeglectNullToken(LexicalSource);
 	//eme.Demo(stdout);
 	error = buildGanalysis(LexicalSource);
 	if (error != 0) return error;
 	errorCode = NoError;
-	return 0;
+	return error;
+}
+
+
+int InputPanel::pretreatment(const char* input, Morpheme& output)
+{
+	typedef hyperlex::tree<hyperlex::GrammarTree::TreeInfor> GTNode;
+	typedef hyperlex::tree<hyperlex::GrammarTree::TreeInfor>::PostIterator GTiterator;
+	FILE* fp = fopen(input, "r");
+	if (fp == NULL)
+	{
+		errorCode = PretreatOpenfail;
+		return 445624;
+	}
+	int error = output.Build<PreTreat>(fp);
+	output.append(input);
+	if (error != 0)
+	{
+		errorInfor1 = output.FileCount();
+		errorCode = PretreatLEXICAL;
+		return error;
+	}
+	bool include;
+	do
+	{
+		include = false;
+		size_t begin = 0;
+		size_t count = 0;
+		size_t file = 0;
+		const char* name = NULL;
+		hyperlex::GrammarTree Tree;
+		error = Tree.build<Preparser>(output);
+		if (error != 0)
+		{
+			errorInfor1 = output.FileCount() - 1;
+			errorInfor2 = Tree.error_record01;
+			//std::cout << "Tree.error_record01: " << Tree.error_record01 << std::endl;
+			//std::cout << "Tree.error_record02: " << Tree.error_record02 << std::endl;
+			errorCode = PretreatGRAMMAR;
+			return error;
+		}
+		GTiterator iterator;
+		iterator.initial(Tree.GT);
+		while (iterator.still())
+		{
+			GTNode* GT = iterator.target();
+			if (iterator.state() == 0)
+			{
+				size_t infor = GT->root().site;
+				
+				if (GT->root().rules)
+				{
+					if (infor == (int)Preparser::INCLUDE_include2_)
+					{
+						size_t site = GT->child(1)->root().site;
+						include = true;
+						begin = GT->child(0)->root().site;
+						count = 2;
+						name = output.GetString(site);
+						file = output[site].file;
+						break;
+					}
+					else if (infor == (int)Preparser::INCLUDE_include_)
+					{
+						size_t site = GT->child(2)->root().site;
+						include = true;
+						begin = GT->child(0)->root().site;
+						count = 3;
+						//std::cout << "2begin: " << begin << std::endl;
+						name = output.GetString(site);
+						//std::cout << "2name: " << name << std::endl;
+						file = output[site].file;
+						break;
+					}
+				}
+			}
+			iterator.next();
+		}
+		if (include)
+		{
+			hyperlex::Morpheme eme;
+			hyperlex::FilePath left, here;
+			here.build(name);
+			//std::cout << "file: " << file << std::endl;
+			//std::cout << "output.GetFile(file): " << output.GetFile(file) << std::endl;
+			left.build(output.GetFile(file));
+			//here.demo();
+			//left.demo();
+			//std::cout << "begin: " << begin << std::endl;
+			//std::cout << "name: " << name << std::endl;
+			//std::cout << "count: " << count << std::endl;
+			left.RearCutAppend(here);
+
+			//left.demo();
+			//std::cout << "=============" << std::endl;
+			char* newFile = left.print();
+			FILE* fp2 = fopen(newFile, "r");
+			output.append(newFile);
+			free(newFile);
+			if (fp2 == NULL)
+			{
+				errorCode = PretreatOpenfail;
+				return 445625;
+			}
+			int error = eme.Build<PreTreat>(fp2);
+			fclose(fp2);
+			if (error != 0)
+			{
+				errorInfor1 = output.FileCount();
+				errorCode = PretreatLEXICAL;
+				return error;
+			}
+			eme.SetFile(output.FileCount() - 1);
+
+			for (size_t i = 0; i + 1 < output.FileCount(); i++)
+			{
+				hyperlex::FilePath right;
+				right.build(output.GetFile(i));
+				if (left == right)
+				{
+					errorInfor1 = output.FileCount() - 1;
+					errorInfor2 = i;
+					errorCode = PretreatRepeat;
+					return 12345678;
+				}
+			}
+			//eme.Demo(stdout);
+			//output.Demo(stdout);
+			output.insert(begin, count, eme);
+			//std::cout << "=============" << std::endl;
+			//output.Demo(stdout);
+		}
+	} while (include);
+
+	return error;
+}
+
+int InputPanel::build(FILE* fp)
+{
+	//Morpheme eme;
+	int error;
+	BufferChar input;
+	input << fp;
+	return build(input.ptr());
 }
 int InputPanel::build(const char* input)
 {
-	//Morpheme LexicalSource;
 	int error;
 	clear();
 	initial();
@@ -2790,8 +3573,8 @@ int InputPanel::RulesAppend(size_t GroupSite, GLTree* Name, const Morpheme& eme,
 		{
 			errorCode = repeatGName;
 			
-			errorInfor1 = i; 
-			errorInfor2 = now->rules.count() - 1;
+			errorInfor1 = GroupSite;
+			errorInfor2 = i;
 			return 4441;
 		}
 	}
@@ -6121,11 +6904,53 @@ void Gsheet::CppStructPrint02(const char* name, FILE* fp, const grammerS* gramme
 	grammer->Demo(fp, RulesCount - 1);
 	fprintf(fp, "\"};\n");
 }
+
+
+static char* CopyMalloc(const char* s)
+{
+	char* v;
+	size_t size;
+	size = strlength(s);
+	v = (char*)malloc(sizeof(char) * (size + 4));
+	for (size_t i = 0; i < size; i++) v[i] = s[i];
+	v[size] = '\0';
+	return v;
+}
 static bool compare(const char* str1, const char* str2)
 {
 	size_t i;
 	for (i = 0; (str1[i] != '\0') && (str1[i] == str2[i]); i++);
 	return str1[i] == str2[i];
+}
+static void write_escaped_string(const char* str, FILE* file)
+{
+	if (!str || !file) return;
+
+	fputc('\"', file);  // 字符常量起始引号
+
+	for (int i = 0; str[i] != '\0'; i++) {
+		switch (str[i]) {
+			// 处理必须转义的特殊字符
+		case '\"': fputs("\\\"", file); break;   // 双引号[6,8](@ref)
+		case '\\': fputs("\\\\", file); break;   // 反斜杠[6,7](@ref)
+		case '\n': fputs("\\n", file); break;    // 换行符[1,6](@ref)
+		case '\t': fputs("\\t", file); break;    // 制表符[1,8](@ref)
+		case '\v': fputs("\\v", file); break;    // 制表符[1,8](@ref)
+		case '\r': fputs("\\r", file); break;    // 回车符[6,8](@ref)
+		case '\b': fputs("\\b", file); break;    // 退格符[7,8](@ref)
+		case '\f': fputs("\\f", file); break;    // 换页符[8](@ref)
+		case '\a': fputs("\\a", file); break;    // 响铃符[8](@ref)
+			// 其他不可打印字符用十六进制转义
+		default:
+			if (str[i] < 32 || str[i] > 126) {  // 非ASCII可打印字符
+				fprintf(file, "\\x%02X", (unsigned char)str[i]);  // 十六进制转义[6](@ref)
+			}
+			else {
+				fputc(str[i], file);  // 直接写入可打印字符
+			}
+		}
+	}
+	fputc('\"', file);  // 字符常量结束引号
 }
 static size_t strlength(const char* str)
 {
@@ -6133,6 +6958,7 @@ static size_t strlength(const char* str)
 	for (i = 0; str[i] != '\0'; i++);
 	return i;
 }
+
 static void strfree(const char** strs, size_t length)
 {
 	size_t i;
@@ -6182,7 +7008,6 @@ static int PostfixSwitch_small(char c)
 		return -1;
 	}
 }
-
 
 
 
@@ -7393,600 +8218,39 @@ const int Panel::Implicit[60] = { \
 
 
 
-
-
-
-
-/*
-struct Reg
-{
-	enum regular
-	{
-		_identifier_ = 1,
-		_integer_ = 2,
-		_CommonChar_ = 3,
-		_idChar_ = 4,
-		_lexical_ = 5,
-		_grammar_ = 6,
-		_void_ = 7,
-		_all_ = 8,
-		_spaces_ = 9,
-		_enters_ = 10,
-		_tab_ = 11,
-		_semicolon_ = 12,
-		_colon_ = 13,
-		_dot_ = 14,
-		_braceL_ = 15,
-		_braceR_ = 16,
-		_left_ = 17,
-		_right_ = 18,
-		_squareL_ = 19,
-		_squareR_ = 20,
-		_angleL_ = 21,
-		_angleR_ = 22,
-		_anntationS_ = 23,
-		_anntationM_ = 24,
-		_range_ = 25,
-		_star_ = 26,
-		_plus_ = 27,
-		_question_ = 28,
-		_or_ = 29
-	};
-	enum group
-	{
-		_identifier___ = 1,
-		_const___ = 2,
-		_reserved___ = 3,
-		_format___ = 4,
-		_division___ = 5,
-		_braket___ = 6,
-		_annotation___ = 7,
-		_RegSymbol___ = 8
-	};
-	static int next(int state, const char c);
-	static int action(int state);
-	static int GroupGet(int state);
-};
-struct Panel
-{
-	enum type
-	{
-		accept = 0,
-		error = 1,
-		push = 2,
-		reduce = 3
-	};
-	enum nonterminal
-	{
-		_all_ = 0,
-		_TEXT_ = 1,
-		_LEXICAL_ = 2,
-		_RegGROUP_ = 3,
-		_REGDEFS_ = 4,
-		_RegDEF_ = 5,
-		_RegGROUPNAME_ = 6,
-		_RegNAME_ = 7,
-		_RegNAMEHead_ = 8,
-		_REGBODY_ = 9,
-		_REGEXPRESSor_ = 10,
-		_REGEXPRESS_ = 11,
-		_RegCOMPLEX_ = 12,
-		_RegNODE_ = 13,
-		_RegLEAF_ = 14,
-		_RegCHAR_ = 15,
-		_GRAMMAR_ = 16,
-		_GrammerDEF_ = 17,
-		_GnameFORMULAS_ = 18,
-		_GFORMULA_ = 19,
-		_GFORMULAUnit_ = 20,
-		_END_ = 21,
-		_BEGIN_ = 22
-	};
-	enum rules
-	{
-		_all_all_ = 0,
-		_TEXT_OnlyL_ = 1,
-		_TEXT_LG_ = 2,
-		_LEXICAL_single_ = 3,
-		_LEXICAL_multi_ = 4,
-		_RegGROUP_single_ = 5,
-		_RegGROUP_multi_ = 6,
-		_REGDEFS_single_ = 7,
-		_REGDEFS_multi_ = 8,
-		_RegDEF_default_ = 9,
-		_RegDEF_full_ = 10,
-		_RegGROUPNAME_blocks_ = 11,
-		_RegGROUPNAME_bare_ = 12,
-		_RegGROUPNAME_priority_ = 13,
-		_RegNAME_bare_ = 14,
-		_RegNAME_priority_ = 15,
-		_RegNAMEHead_avoid_ = 16,
-		_RegNAMEHead_alexical_ = 17,
-		_RegNAMEHead_agrammar_ = 18,
-		_RegNAMEHead_aall_ = 19,
-		_RegNAMEHead_aid_ = 20,
-		_REGBODY_REGBODY_ = 21,
-		_REGEXPRESSor_single_ = 22,
-		_REGEXPRESSor_ororor_ = 23,
-		_REGEXPRESS_single_ = 24,
-		_REGEXPRESS_multi_ = 25,
-		_RegCOMPLEX_single_ = 26,
-		_RegCOMPLEX_multi1_ = 27,
-		_RegCOMPLEX_multi2_ = 28,
-		_RegCOMPLEX_multi3_ = 29,
-		_RegNODE_single_ = 30,
-		_RegNODE_braket_ = 31,
-		_RegNODE_replace_ = 32,
-		_RegLEAF_single_ = 33,
-		_RegLEAF_single2_ = 34,
-		_RegLEAF_range_ = 35,
-		_RegCHAR_commom_ = 36,
-		_RegCHAR_id_ = 37,
-		_GRAMMAR_single_ = 38,
-		_GRAMMAR_multi_ = 39,
-		_GrammerDEF_single_ = 40,
-		_GrammerDEF_multi_ = 41,
-		_GnameFORMULAS_single_ = 42,
-		_GnameFORMULAS_multi_ = 43,
-		_GFORMULA_unit_ = 44,
-		_GFORMULA_more_ = 45,
-		_GFORMULAUnit_avoid_ = 46,
-		_GFORMULAUnit_alexical_ = 47,
-		_GFORMULAUnit_agrammar_ = 48,
-		_GFORMULAUnit_aid_ = 49,
-		_GFORMULAUnit_aall_ = 50,
-		_END_full_ = 51,
-		_END_half_ = 52,
-		_BEGIN_BEGIN_ = 53
-	};
-
-
-	static const size_t StateCount;
-	static const size_t NonTerminalCount;
-	static const size_t TerminalCount;
-	static const size_t RulesCount;
-	static const int GOTO[95][23];
-	static const int ACTION[95][30];
-	static const int RulesToSymbol[54];
-	static const int RulesLength[54];
-	static const char* const RulesName[54];
-	static const int Implicit[23];
-};
-*/
-/*
-
-const size_t Panel::StateCount = 95;
-const size_t Panel::NonTerminalCount = 23;
-const size_t Panel::TerminalCount = 29;
-const size_t Panel::RulesCount = 54;
-const int Panel::GOTO[95][23] = { \
-{1, 6, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1}, \
-{1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1}, \
-{1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 14}, \
-{1, 1, 26, 30, 1, 1, 34, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1}, \
-{1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1}, \
-{1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1}, \
-{1, 1, 1, 254, 1, 1, 34, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 258, 1}, \
-{1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1}, \
-{1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 58}, \
-{1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1}, \
-{1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1}, \
-{1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1}, \
-{1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1}, \
-{1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1}, \
-{1, 1, 1, 1, 230, 234, 1, 70, 74, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1}, \
-{1, 1, 1, 1, 1, 66, 1, 70, 74, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1}, \
-{1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1}, \
-{1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1}, \
-{1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1}, \
-{1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1}, \
-{1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1}, \
-{1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1}, \
-{1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1}, \
-{1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1}, \
-{1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1}, \
-{1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1}, \
-{1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1}, \
-{1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1}, \
-{1, 1, 1, 1, 1, 1, 1, 1, 1, 118, 122, 126, 130, 134, 138, 142, 1, 1, 1, 1, 1, 1, 1}, \
-{1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1}, \
-{1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1}, \
-{1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 210, 134, 138, 142, 1, 1, 1, 1, 1, 1, 1}, \
-{1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1}, \
-{1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1}, \
-{1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1}, \
-{1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1}, \
-{1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1}, \
-{1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1}, \
-{1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 194, 126, 130, 134, 138, 142, 1, 1, 1, 1, 1, 1, 1}, \
-{1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 174, 1, 1, 1, 1, 1, 1, 1}, \
-{1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1}, \
-{1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1}, \
-{1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1}, \
-{1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1}, \
-{1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1}, \
-{1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 186, 1, 1, 1, 1, 1, 1, 1}, \
-{1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1}, \
-{1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1}, \
-{1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1}, \
-{1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1}, \
-{1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 206, 130, 134, 138, 142, 1, 1, 1, 1, 1, 1, 1}, \
-{1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 210, 134, 138, 142, 1, 1, 1, 1, 1, 1, 1}, \
-{1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1}, \
-{1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1}, \
-{1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1}, \
-{1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1}, \
-{1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1}, \
-{1, 1, 1, 1, 1, 238, 1, 70, 74, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 242, 1}, \
-{1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1}, \
-{1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1}, \
-{1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1}, \
-{1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1}, \
-{1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1}, \
-{1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1}, \
-{1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1}, \
-{1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1}, \
-{1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1}, \
-{1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 274}, \
-{1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 278, 282, 1, 1, 1, 1, 1}, \
-{1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 374, 1, 1, 1, 378, 1}, \
-{1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1}, \
-{1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 290}, \
-{1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 334, 1, 1, 1, 1}, \
-{1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 298, 302, 1, 1}, \
-{1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 326, 1, 1}, \
-{1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1}, \
-{1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1}, \
-{1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1}, \
-{1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1}, \
-{1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1}, \
-{1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1}, \
-{1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1}, \
-{1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1}, \
-{1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 354, 1}, \
-{1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1}, \
-{1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 346, 302, 1, 1}, \
-{1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 326, 1, 1}, \
-{1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1}, \
-{1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1}, \
-{1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1}, \
-{1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 366, 302, 1, 1}, \
-{1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 326, 1, 1}, \
-{1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1}, \
-{1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1}, \
-{1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1} };
-//==============================
-const int Panel::ACTION[95][30] = { \
-{1, 1, 1, 1, 1, 10, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1}, \
-{0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1}, \
-{1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 18, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1}, \
-{1, 38, 1, 1, 1, 1, 1, 42, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1}, \
-{1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 22, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1}, \
-{1, 215, 1, 1, 1, 215, 215, 215, 215, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1}, \
-{1, 38, 1, 1, 1, 1, 1, 42, 1, 1, 1, 1, 1, 1, 1, 1, 246, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1}, \
-{1, 15, 1, 1, 1, 1, 1, 15, 1, 1, 1, 1, 1, 1, 1, 1, 15, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1}, \
-{1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 62, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1}, \
-{1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 47, 1, 1, 1, 46, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1}, \
-{1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 51, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1}, \
-{1, 1, 50, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1}, \
-{1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 54, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1}, \
-{1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 55, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1}, \
-{1, 78, 1, 1, 1, 82, 86, 90, 94, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1}, \
-{1, 78, 1, 1, 1, 82, 86, 90, 94, 1, 1, 1, 1, 1, 1, 22, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1}, \
-{1, 23, 1, 1, 1, 1, 1, 23, 1, 1, 1, 1, 1, 1, 1, 1, 23, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1}, \
-{1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 110, 114, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1}, \
-{1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 59, 59, 1, 1, 1, 98, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1}, \
-{1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 83, 83, 1, 1, 1, 83, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1}, \
-{1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 71, 71, 1, 1, 1, 71, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1}, \
-{1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 75, 75, 1, 1, 1, 75, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1}, \
-{1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 67, 67, 1, 1, 1, 67, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1}, \
-{1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 79, 79, 1, 1, 1, 79, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1}, \
-{1, 1, 102, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1}, \
-{1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 106, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1}, \
-{1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 63, 63, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1}, \
-{1, 39, 1, 1, 1, 39, 39, 39, 39, 1, 1, 1, 1, 1, 1, 1, 39, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1}, \
-{1, 1, 1, 146, 150, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 154, 1, 158, 1, 162, 1, 1, 1, 1, 1, 1, 1, 1}, \
-{1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 226, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1}, \
-{1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 87, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 202}, \
-{1, 1, 1, 146, 150, 1, 1, 1, 1, 1, 1, 1, 91, 1, 1, 1, 1, 154, 91, 158, 1, 162, 1, 1, 1, 1, 1, 1, 1, 91}, \
-{1, 1, 1, 99, 99, 1, 1, 1, 1, 1, 1, 1, 99, 1, 1, 1, 1, 99, 99, 99, 1, 99, 1, 1, 1, 1, 214, 218, 222, 99}, \
-{1, 1, 1, 107, 107, 1, 1, 1, 1, 1, 1, 1, 107, 1, 1, 1, 1, 107, 107, 107, 1, 107, 1, 1, 1, 1, 107, 107, 107, 107}, \
-{1, 1, 1, 123, 123, 1, 1, 1, 1, 1, 1, 1, 123, 1, 1, 1, 1, 123, 123, 123, 1, 123, 1, 1, 1, 1, 123, 123, 123, 123}, \
-{1, 1, 1, 135, 135, 1, 1, 1, 1, 1, 1, 1, 135, 1, 1, 1, 1, 135, 135, 135, 1, 135, 1, 1, 1, 1, 135, 135, 135, 135}, \
-{1, 1, 1, 147, 147, 1, 1, 1, 1, 1, 1, 1, 147, 1, 1, 1, 1, 147, 147, 147, 147, 147, 1, 1, 1, 147, 147, 147, 147, 147}, \
-{1, 1, 1, 151, 151, 1, 1, 1, 1, 1, 1, 1, 151, 1, 1, 1, 1, 151, 151, 151, 151, 151, 1, 1, 1, 151, 151, 151, 151, 151}, \
-{1, 1, 1, 146, 150, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 154, 1, 158, 1, 162, 1, 1, 1, 1, 1, 1, 1, 1}, \
-{1, 1, 1, 146, 150, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1}, \
-{1, 166, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1}, \
-{1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 170, 1, 1, 1, 1, 1, 1, 1}, \
-{1, 1, 1, 131, 131, 1, 1, 1, 1, 1, 1, 1, 131, 1, 1, 1, 1, 131, 131, 131, 1, 131, 1, 1, 1, 1, 131, 131, 131, 131}, \
-{1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 178, 1, 1, 1, 1, 182, 1, 1, 1, 1}, \
-{1, 1, 1, 139, 139, 1, 1, 1, 1, 1, 1, 1, 139, 1, 1, 1, 1, 139, 139, 139, 1, 139, 1, 1, 1, 1, 139, 139, 139, 139}, \
-{1, 1, 1, 146, 150, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1}, \
-{1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 190, 1, 1, 1, 1, 1, 1, 1, 1, 1}, \
-{1, 1, 1, 143, 143, 1, 1, 1, 1, 1, 1, 1, 143, 1, 1, 1, 1, 143, 143, 143, 1, 143, 1, 1, 1, 1, 143, 143, 143, 143}, \
-{1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 198, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 202}, \
-{1, 1, 1, 127, 127, 1, 1, 1, 1, 1, 1, 1, 127, 1, 1, 1, 1, 127, 127, 127, 1, 127, 1, 1, 1, 1, 127, 127, 127, 127}, \
-{1, 1, 1, 146, 150, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 154, 1, 158, 1, 162, 1, 1, 1, 1, 1, 1, 1, 1}, \
-{1, 1, 1, 146, 150, 1, 1, 1, 1, 1, 1, 1, 95, 1, 1, 1, 1, 154, 95, 158, 1, 162, 1, 1, 1, 1, 1, 1, 1, 95}, \
-{1, 1, 1, 103, 103, 1, 1, 1, 1, 1, 1, 1, 103, 1, 1, 1, 1, 103, 103, 103, 1, 103, 1, 1, 1, 1, 214, 218, 222, 103}, \
-{1, 1, 1, 115, 115, 1, 1, 1, 1, 1, 1, 1, 115, 1, 1, 1, 1, 115, 115, 115, 1, 115, 1, 1, 1, 1, 115, 115, 115, 115}, \
-{1, 1, 1, 111, 111, 1, 1, 1, 1, 1, 1, 1, 111, 1, 1, 1, 1, 111, 111, 111, 1, 111, 1, 1, 1, 1, 111, 111, 111, 111}, \
-{1, 1, 1, 119, 119, 1, 1, 1, 1, 1, 1, 1, 119, 1, 1, 1, 1, 119, 119, 119, 1, 119, 1, 1, 1, 1, 119, 119, 119, 119}, \
-{1, 43, 1, 1, 1, 43, 43, 43, 43, 1, 1, 1, 1, 1, 1, 1, 43, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1}, \
-{1, 78, 1, 1, 1, 82, 86, 90, 94, 1, 1, 1, 1, 1, 1, 1, 246, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1}, \
-{1, 31, 1, 1, 1, 31, 31, 31, 31, 1, 1, 1, 1, 1, 1, 1, 31, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1}, \
-{1, 35, 1, 1, 1, 35, 35, 35, 35, 1, 1, 1, 1, 1, 1, 1, 35, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1}, \
-{1, 27, 1, 1, 1, 1, 1, 27, 1, 1, 1, 1, 1, 1, 1, 1, 27, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1}, \
-{211, 211, 1, 1, 1, 1, 211, 211, 1, 1, 1, 1, 250, 1, 1, 1, 211, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1}, \
-{207, 207, 1, 1, 1, 1, 207, 207, 1, 1, 1, 1, 1, 1, 1, 1, 207, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1}, \
-{1, 19, 1, 1, 1, 1, 1, 19, 1, 1, 1, 1, 1, 1, 1, 1, 19, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1}, \
-{7, 1, 1, 1, 1, 1, 262, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1}, \
-{1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 266, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1}, \
-{1, 270, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1}, \
-{1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 18, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1}, \
-{1, 286, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1}, \
-{1, 286, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 246, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1}, \
-{1, 155, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 155, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1}, \
-{1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 294, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1}, \
-{1, 338, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1}, \
-{1, 306, 1, 1, 1, 310, 314, 318, 322, 1, 1, 1, 1, 1, 1, 22, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1}, \
-{1, 306, 1, 1, 1, 310, 314, 318, 322, 1, 1, 1, 330, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1}, \
-{1, 179, 1, 1, 1, 179, 179, 179, 179, 1, 1, 1, 179, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1}, \
-{1, 199, 1, 1, 1, 199, 199, 199, 199, 1, 1, 1, 199, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1}, \
-{1, 191, 1, 1, 1, 191, 191, 191, 191, 1, 1, 1, 191, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1}, \
-{1, 195, 1, 1, 1, 195, 195, 195, 195, 1, 1, 1, 195, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1}, \
-{1, 187, 1, 1, 1, 187, 187, 187, 187, 1, 1, 1, 187, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1}, \
-{1, 203, 1, 1, 1, 203, 203, 203, 203, 1, 1, 1, 203, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1}, \
-{1, 183, 1, 1, 1, 183, 183, 183, 183, 1, 1, 1, 183, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1}, \
-{1, 163, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 163, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1}, \
-{1, 358, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 246, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1}, \
-{1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 342, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1}, \
-{1, 306, 1, 1, 1, 310, 314, 318, 322, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1}, \
-{1, 306, 1, 1, 1, 310, 314, 318, 322, 1, 1, 1, 350, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1}, \
-{1, 171, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 171, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1}, \
-{1, 167, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 167, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1}, \
-{1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 362, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1}, \
-{1, 306, 1, 1, 1, 310, 314, 318, 322, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1}, \
-{1, 306, 1, 1, 1, 310, 314, 318, 322, 1, 1, 1, 370, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1}, \
-{1, 175, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 175, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1}, \
-{1, 159, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 159, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1}, \
-{11, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1} };
-//==============================
-const int Panel::RulesToSymbol[54] = { \
-0,\
-1,\
-1,\
-2,\
-2,\
-3,\
-3,\
-4,\
-4,\
-5,\
-5,\
-6,\
-6,\
-6,\
-7,\
-7,\
-8,\
-8,\
-8,\
-8,\
-8,\
-9,\
-10,\
-10,\
-11,\
-11,\
-12,\
-12,\
-12,\
-12,\
-13,\
-13,\
-13,\
-14,\
-14,\
-14,\
-15,\
-15,\
-16,\
-16,\
-17,\
-17,\
-18,\
-18,\
-19,\
-19,\
-20,\
-20,\
-20,\
-20,\
-20,\
-21,\
-21,\
-22 };
-//==============================
-const int Panel::RulesLength[54] = { \
-1,\
-4,\
-10,\
-1,\
-2,\
-3,\
-4,\
-1,\
-2,\
-2,\
-4,\
-1,\
-1,\
-4,\
-1,\
-4,\
-1,\
-1,\
-1,\
-1,\
-1,\
-1,\
-1,\
-3,\
-1,\
-2,\
-1,\
-2,\
-2,\
-2,\
-1,\
-3,\
-3,\
-1,\
-3,\
-5,\
-1,\
-1,\
-1,\
-2,\
-4,\
-4,\
-4,\
-5,\
-1,\
-2,\
-1,\
-1,\
-1,\
-1,\
-1,\
-2,\
-1,\
-2 };
-//==============================
-const char* const Panel::RulesName[54] = { \
-"Ep->TEXT ",\
-"TEXT->lexical BEGIN LEXICAL END ",\
-"TEXT->lexical BEGIN LEXICAL END grammar colon identifier BEGIN GRAMMAR END ",\
-"LEXICAL->RegGROUP ",\
-"LEXICAL->LEXICAL RegGROUP ",\
-"RegGROUP->RegGROUPNAME colon RegDEF ",\
-"RegGROUP->RegGROUPNAME BEGIN REGDEFS END ",\
-"REGDEFS->RegDEF ",\
-"REGDEFS->REGDEFS RegDEF ",\
-"RegDEF->RegNAME semicolon ",\
-"RegDEF->RegNAME colon REGBODY semicolon ",\
-"RegGROUPNAME->identifier ",\
-"RegGROUPNAME->void ",\
-"RegGROUPNAME->identifier left integer right ",\
-"RegNAME->RegNAMEHead ",\
-"RegNAME->RegNAMEHead left integer right ",\
-"RegNAMEHead->void ",\
-"RegNAMEHead->lexical ",\
-"RegNAMEHead->grammar ",\
-"RegNAMEHead->all ",\
-"RegNAMEHead->identifier ",\
-"REGBODY->REGEXPRESSor ",\
-"REGEXPRESSor->REGEXPRESS ",\
-"REGEXPRESSor->REGEXPRESSor or REGEXPRESS ",\
-"REGEXPRESS->RegCOMPLEX ",\
-"REGEXPRESS->REGEXPRESS RegCOMPLEX ",\
-"RegCOMPLEX->RegNODE ",\
-"RegCOMPLEX->RegCOMPLEX plus ",\
-"RegCOMPLEX->RegCOMPLEX star ",\
-"RegCOMPLEX->RegCOMPLEX question ",\
-"RegNODE->RegLEAF ",\
-"RegNODE->left REGEXPRESSor right ",\
-"RegNODE->angleL identifier angleR ",\
-"RegLEAF->RegCHAR ",\
-"RegLEAF->squareL RegCHAR squareR ",\
-"RegLEAF->squareL RegCHAR range RegCHAR squareR ",\
-"RegCHAR->CommonChar ",\
-"RegCHAR->idChar ",\
-"GRAMMAR->GrammerDEF ",\
-"GRAMMAR->GRAMMAR GrammerDEF ",\
-"GrammerDEF->identifier colon GFORMULA semicolon ",\
-"GrammerDEF->identifier BEGIN GnameFORMULAS END ",\
-"GnameFORMULAS->identifier colon GFORMULA semicolon ",\
-"GnameFORMULAS->GnameFORMULAS identifier colon GFORMULA semicolon ",\
-"GFORMULA->GFORMULAUnit ",\
-"GFORMULA->GFORMULA GFORMULAUnit ",\
-"GFORMULAUnit->void ",\
-"GFORMULAUnit->lexical ",\
-"GFORMULAUnit->grammar ",\
-"GFORMULAUnit->identifier ",\
-"GFORMULAUnit->all ",\
-"END->braceR semicolon ",\
-"END->braceR ",\
-"BEGIN->colon braceL " };
-//==============================
-const int Panel::Implicit[23] = { \
-0, \
-0, \
-0, \
-0, \
-0, \
-0, \
-0, \
-0, \
-0, \
-0, \
-0, \
-0, \
-0, \
-0, \
-0, \
-0, \
-0, \
-0, \
-0, \
-0, \
-0, \
-0, \
-0 };
-
-
-
-
-int Reg::next(int state, const char c)
+int PreTreat::next(int state, const char c)
 {
 	switch (state)
 	{
 	case 0:
-		if (c == (char)9) return 11;
-		else if (c == (char)10) return 10;
-		else if (c == (char)13) return 30;
-		else if (c == ' ') return 9;
-		else if (c == '\'') return 45;
-		else if (c == '(') return 17;
-		else if (c == ')') return 18;
-		else if (c == '*') return 26;
-		else if (c == '+') return 27;
-		else if (c == '-') return 25;
-		else if (c == '.') return 14;
-		else if (c == '/') return 54;
+		if (c == (char)9) return 9;
+		else if (c == (char)10) return 8;
+		else if (c == (char)13) return 28;
+		else if (c == ' ') return 7;
+		else if (c == '\"') return 31;
+		else if (c == '#') return 35;
+		else if (c == '\'') return 36;
+		else if (c == '(') return 15;
+		else if (c == ')') return 16;
+		else if (c == '*') return 24;
+		else if (c == '+') return 25;
+		else if (c == '-') return 23;
+		else if (c == '.') return 12;
+		else if (c == '/') return 39;
 		else if ('0' <= c && c <= '9') return 4;
-		else if (c == ':') return 13;
-		else if (c == ';') return 12;
-		else if (c == '<') return 21;
-		else if (c == '>') return 22;
-		else if (c == '\?') return 28;
-		else if ('A' <= c && c <= 'Z') return 43;
-		else if (c == '[') return 19;
-		else if (c == ']') return 20;
-		else if (c == '_') return 43;
-		else if (c == 'a') return 48;
-		else if ('b' <= c && c <= 'f') return 43;
-		else if (c == 'g') return 50;
-		else if ('h' <= c && c <= 'k') return 43;
-		else if (c == 'l') return 47;
-		else if ('m' <= c && c <= 'u') return 43;
-		else if (c == 'v') return 49;
-		else if ('w' <= c && c <= 'z') return 43;
-		else if (c == '{') return 15;
-		else if (c == '|') return 29;
-		else if (c == '}') return 16;
+		else if (c == ':') return 11;
+		else if (c == ';') return 10;
+		else if (c == '<') return 19;
+		else if (c == '>') return 20;
+		else if (c == '\?') return 26;
+		else if ('A' <= c && c <= 'Z') return 29;
+		else if (c == '[') return 17;
+		else if (c == ']') return 18;
+		else if (c == '_') return 29;
+		else if ('a' <= c && c <= 'z') return 29;
+		else if (c == '{') return 13;
+		else if (c == '|') return 27;
+		else if (c == '}') return 14;
 		else return 0;
 	case 1:
 		if ('0' <= c && c <= '9') return 1;
@@ -8002,36 +8266,20 @@ int Reg::next(int state, const char c)
 	case 4:
 		return 0;
 	case 5:
-		if ('0' <= c && c <= '9') return 1;
-		else if ('A' <= c && c <= 'Z') return 1;
-		else if (c == '_') return 1;
-		else if ('a' <= c && c <= 'z') return 1;
-		else return 0;
+		return 0;
 	case 6:
-		if ('0' <= c && c <= '9') return 1;
-		else if ('A' <= c && c <= 'Z') return 1;
-		else if (c == '_') return 1;
-		else if ('a' <= c && c <= 'z') return 1;
-		else return 0;
+		return 0;
 	case 7:
-		if ('0' <= c && c <= '9') return 1;
-		else if ('A' <= c && c <= 'Z') return 1;
-		else if (c == '_') return 1;
-		else if ('a' <= c && c <= 'z') return 1;
+		if (c == ' ') return 7;
 		else return 0;
 	case 8:
-		if ('0' <= c && c <= '9') return 1;
-		else if ('A' <= c && c <= 'Z') return 1;
-		else if (c == '_') return 1;
-		else if ('a' <= c && c <= 'z') return 1;
+		if (c == (char)10) return 8;
+		else if (c == (char)13) return 28;
 		else return 0;
 	case 9:
-		if (c == ' ') return 9;
-		else return 0;
+		return 0;
 	case 10:
-		if (c == (char)10) return 10;
-		else if (c == (char)13) return 30;
-		else return 0;
+		return 0;
 	case 11:
 		return 0;
 	case 12:
@@ -8061,396 +8309,529 @@ int Reg::next(int state, const char c)
 	case 24:
 		return 0;
 	case 25:
-		return 0;
+		if ('0' <= c && c <= '9') return 2;
+		else return 0;
 	case 26:
 		return 0;
 	case 27:
-		if ('0' <= c && c <= '9') return 2;
-		else return 0;
+		return 0;
 	case 28:
-		return 0;
+		if (c == (char)10) return 8;
+		else return 0;
 	case 29:
-		return 0;
-	case 30:
-		if (c == (char)10) return 10;
-		else return 0;
-	case 31:
-		if ('0' <= c && c <= '9') return 1;
-		else if ('A' <= c && c <= 'Z') return 1;
-		else if (c == '_') return 1;
-		else if ('a' <= c && c <= 'c') return 1;
-		else if (c == 'd') return 7;
-		else if ('e' <= c && c <= 'z') return 1;
-		else return 0;
-	case 32:
-		if ('0' <= c && c <= '9') return 1;
-		else if ('A' <= c && c <= 'Z') return 1;
-		else if (c == '_') return 1;
-		else if ('a' <= c && c <= 'h') return 1;
-		else if (c == 'i') return 31;
-		else if ('j' <= c && c <= 'z') return 1;
-		else return 0;
-	case 33:
-		if ('0' <= c && c <= '9') return 1;
-		else if ('A' <= c && c <= 'Z') return 1;
-		else if (c == '_') return 1;
-		else if ('a' <= c && c <= 'k') return 1;
-		else if (c == 'l') return 5;
-		else if ('m' <= c && c <= 'z') return 1;
-		else return 0;
-	case 34:
-		if ('0' <= c && c <= '9') return 1;
-		else if ('A' <= c && c <= 'Z') return 1;
-		else if (c == '_') return 1;
-		else if (c == 'a') return 33;
-		else if ('b' <= c && c <= 'z') return 1;
-		else return 0;
-	case 35:
-		if ('0' <= c && c <= '9') return 1;
-		else if ('A' <= c && c <= 'Z') return 1;
-		else if (c == '_') return 1;
-		else if ('a' <= c && c <= 'b') return 1;
-		else if (c == 'c') return 34;
-		else if ('d' <= c && c <= 'z') return 1;
-		else return 0;
-	case 36:
-		if ('0' <= c && c <= '9') return 1;
-		else if ('A' <= c && c <= 'Z') return 1;
-		else if (c == '_') return 1;
-		else if ('a' <= c && c <= 'h') return 1;
-		else if (c == 'i') return 35;
-		else if ('j' <= c && c <= 'z') return 1;
-		else return 0;
-	case 37:
-		if ('0' <= c && c <= '9') return 1;
-		else if ('A' <= c && c <= 'Z') return 1;
-		else if (c == '_') return 1;
-		else if ('a' <= c && c <= 'q') return 1;
-		else if (c == 'r') return 6;
-		else if ('s' <= c && c <= 'z') return 1;
-		else return 0;
-	case 38:
-		if ('0' <= c && c <= '9') return 1;
-		else if ('A' <= c && c <= 'Z') return 1;
-		else if (c == '_') return 1;
-		else if (c == 'a') return 37;
-		else if ('b' <= c && c <= 'z') return 1;
-		else return 0;
-	case 39:
-		if ('0' <= c && c <= '9') return 1;
-		else if ('A' <= c && c <= 'Z') return 1;
-		else if (c == '_') return 1;
-		else if ('a' <= c && c <= 'l') return 1;
-		else if (c == 'm') return 38;
-		else if ('n' <= c && c <= 'z') return 1;
-		else return 0;
-	case 40:
-		if ('0' <= c && c <= '9') return 1;
-		else if ('A' <= c && c <= 'Z') return 1;
-		else if (c == '_') return 1;
-		else if ('a' <= c && c <= 'l') return 1;
-		else if (c == 'm') return 39;
-		else if ('n' <= c && c <= 'z') return 1;
-		else return 0;
-	case 41:
-		if ('0' <= c && c <= '9') return 1;
-		else if ('A' <= c && c <= 'Z') return 1;
-		else if (c == '_') return 1;
-		else if (c == 'a') return 40;
-		else if ('b' <= c && c <= 'z') return 1;
-		else return 0;
-	case 42:
-		if ('0' <= c && c <= '9') return 1;
-		else if ('A' <= c && c <= 'Z') return 1;
-		else if (c == '_') return 1;
-		else if ('a' <= c && c <= 'w') return 1;
-		else if (c == 'x') return 36;
-		else if ('y' <= c && c <= 'z') return 1;
-		else return 0;
-	case 43:
 		if ('0' <= c && c <= '9') return 1;
 		else if ('A' <= c && c <= 'Z') return 1;
 		else if (c == '_') return 1;
 		else if ('a' <= c && c <= 'z') return 1;
 		else return 0;
+	case 30:
+		if ((char)0 <= c && c <= ')') return 30;
+		else if (c == '*') return 34;
+		else if ('+' <= c && c <= (char)127) return 30;
+		else return 0;
+	case 31:
+		if (' ' <= c && c <= '!') return 31;
+		else if (c == '\"') return 5;
+		else if ('#' <= c && c <= '[') return 31;
+		else if (c == '\\') return 37;
+		else if (']' <= c && c <= (char)127) return 31;
+		else return 0;
+	case 32:
+		if (c == (char)0) return 38;
+		else if (c == '\"') return 38;
+		else if (c == '\'') return 38;
+		else if ('0' <= c && c <= '7') return 45;
+		else if (c == '\?') return 38;
+		else if (c == 'X') return 40;
+		else if (c == '\\') return 38;
+		else if ('a' <= c && c <= 'b') return 38;
+		else if (c == 'f') return 38;
+		else if (c == 'n') return 38;
+		else if (c == 'r') return 38;
+		else if (c == 't') return 38;
+		else if (c == 'v') return 38;
+		else if (c == 'x') return 40;
+		else return 0;
+	case 33:
+		if ((char)0 <= c && c <= (char)9) return 33;
+		else if (c == (char)10) return 21;
+		else if ((char)11 <= c && c <= (char)127) return 33;
+		else return 0;
+	case 34:
+		if ((char)0 <= c && c <= ')') return 30;
+		else if (c == '*') return 34;
+		else if ('+' <= c && c <= '.') return 30;
+		else if (c == '/') return 22;
+		else if ('0' <= c && c <= (char)127) return 30;
+		else return 0;
+	case 35:
+		if (c == 'i') return 44;
+		else return 0;
+	case 36:
+		if (' ' <= c && c <= '!') return 38;
+		else if ('#' <= c && c <= '&') return 38;
+		else if ('(' <= c && c <= '[') return 38;
+		else if (c == '\\') return 32;
+		else if (']' <= c && c <= '~') return 38;
+		else return 0;
+	case 37:
+		if (c == (char)0) return 31;
+		else if (c == '\"') return 31;
+		else if (c == '\'') return 31;
+		else if ('0' <= c && c <= '7') return 31;
+		else if (c == '\?') return 31;
+		else if (c == 'X') return 46;
+		else if (c == '\\') return 31;
+		else if ('a' <= c && c <= 'b') return 31;
+		else if (c == 'f') return 31;
+		else if (c == 'n') return 31;
+		else if (c == 'r') return 31;
+		else if (c == 't') return 31;
+		else if (c == 'v') return 31;
+		else if (c == 'x') return 46;
+		else return 0;
+	case 38:
+		if (c == '\'') return 3;
+		else return 0;
+	case 39:
+		if (c == '*') return 30;
+		else if (c == '/') return 33;
+		else return 0;
+	case 40:
+		if ('0' <= c && c <= '9') return 49;
+		else if ('A' <= c && c <= 'F') return 49;
+		else if ('a' <= c && c <= 'f') return 49;
+		else return 0;
+	case 41:
+		if (c == 'c') return 47;
+		else return 0;
+	case 42:
+		if (c == 'd') return 43;
+		else return 0;
+	case 43:
+		if (c == 'e') return 6;
+		else return 0;
 	case 44:
-		if ((char)0 <= c && c <= ')') return 44;
-		else if (c == '*') return 53;
-		else if ('+' <= c && c <= (char)127) return 44;
+		if (c == 'n') return 41;
 		else return 0;
 	case 45:
-		if (' ' <= c && c <= '!') return 55;
-		else if ('#' <= c && c <= '&') return 55;
-		else if ('(' <= c && c <= '[') return 55;
-		else if (c == '\\') return 51;
-		else if (']' <= c && c <= '~') return 55;
+		if (c == '\'') return 3;
+		else if ('0' <= c && c <= '7') return 50;
 		else return 0;
 	case 46:
-		if ('0' <= c && c <= '9') return 1;
-		else if ('A' <= c && c <= 'Z') return 1;
-		else if (c == '_') return 1;
-		else if ('a' <= c && c <= 'k') return 1;
-		else if (c == 'l') return 8;
-		else if ('m' <= c && c <= 'z') return 1;
+		if ('0' <= c && c <= '9') return 31;
+		else if ('A' <= c && c <= 'F') return 31;
+		else if ('a' <= c && c <= 'f') return 31;
 		else return 0;
 	case 47:
-		if ('0' <= c && c <= '9') return 1;
-		else if ('A' <= c && c <= 'Z') return 1;
-		else if (c == '_') return 1;
-		else if ('a' <= c && c <= 'd') return 1;
-		else if (c == 'e') return 42;
-		else if ('f' <= c && c <= 'z') return 1;
+		if (c == 'l') return 48;
 		else return 0;
 	case 48:
-		if ('0' <= c && c <= '9') return 1;
-		else if ('A' <= c && c <= 'Z') return 1;
-		else if (c == '_') return 1;
-		else if ('a' <= c && c <= 'k') return 1;
-		else if (c == 'l') return 46;
-		else if ('m' <= c && c <= 'z') return 1;
+		if (c == 'u') return 42;
 		else return 0;
 	case 49:
-		if ('0' <= c && c <= '9') return 1;
-		else if ('A' <= c && c <= 'Z') return 1;
-		else if (c == '_') return 1;
-		else if ('a' <= c && c <= 'n') return 1;
-		else if (c == 'o') return 32;
-		else if ('p' <= c && c <= 'z') return 1;
+		if (c == '\'') return 3;
+		else if ('0' <= c && c <= '9') return 38;
+		else if ('A' <= c && c <= 'F') return 38;
+		else if ('a' <= c && c <= 'f') return 38;
 		else return 0;
 	case 50:
-		if ('0' <= c && c <= '9') return 1;
-		else if ('A' <= c && c <= 'Z') return 1;
-		else if (c == '_') return 1;
-		else if ('a' <= c && c <= 'q') return 1;
-		else if (c == 'r') return 41;
-		else if ('s' <= c && c <= 'z') return 1;
-		else return 0;
-	case 51:
-		if (c == (char)0) return 55;
-		else if (c == '\"') return 55;
-		else if (c == '\'') return 55;
-		else if ('0' <= c && c <= '7') return 57;
-		else if (c == '\?') return 55;
-		else if (c == 'X') return 56;
-		else if (c == '\\') return 55;
-		else if ('a' <= c && c <= 'b') return 55;
-		else if (c == 'f') return 55;
-		else if (c == 'n') return 55;
-		else if (c == 'r') return 55;
-		else if (c == 't') return 55;
-		else if (c == 'v') return 55;
-		else if (c == 'x') return 56;
-		else return 0;
-	case 52:
-		if ((char)0 <= c && c <= (char)9) return 52;
-		else if (c == (char)10) return 23;
-		else if ((char)11 <= c && c <= (char)127) return 52;
-		else return 0;
-	case 53:
-		if ((char)0 <= c && c <= ')') return 44;
-		else if (c == '*') return 53;
-		else if ('+' <= c && c <= '.') return 44;
-		else if (c == '/') return 24;
-		else if ('0' <= c && c <= (char)127) return 44;
-		else return 0;
-	case 54:
-		if (c == '*') return 44;
-		else if (c == '/') return 52;
-		else return 0;
-	case 55:
 		if (c == '\'') return 3;
-		else return 0;
-	case 56:
-		if ('0' <= c && c <= '9') return 58;
-		else if ('A' <= c && c <= 'F') return 58;
-		else if ('a' <= c && c <= 'f') return 58;
-		else return 0;
-	case 57:
-		if (c == '\'') return 3;
-		else if ('0' <= c && c <= '7') return 59;
-		else return 0;
-	case 58:
-		if (c == '\'') return 3;
-		else if ('0' <= c && c <= '9') return 55;
-		else if ('A' <= c && c <= 'F') return 55;
-		else if ('a' <= c && c <= 'f') return 55;
-		else return 0;
-	case 59:
-		if (c == '\'') return 3;
-		else if ('0' <= c && c <= '7') return 55;
+		else if ('0' <= c && c <= '7') return 38;
 		else return 0;
 	}
 	return 0;
 }
-int Reg::action(int state)
+int PreTreat::action(int state)
 {
 	switch (state)
 	{
 	case 1:
 		return 1;//identifier: identifier
 	case 2:
-		return 2;//const: integar
+		return 2;//const: integer
 	case 3:
 		return 3;//const: CommonChar
 	case 4:
 		return 4;//const: idChar
 	case 5:
-		return 5;//reserved: lexical
+		return 5;//string: string
 	case 6:
-		return 6;//reserved: grammar
+		return 6;//include: include
 	case 7:
-		return 7;//reserved: void
+		return 7;//format: spaces
 	case 8:
-		return 8;//reserved: all
+		return 8;//format: enters
 	case 9:
-		return 9;//format: spaces
+		return 9;//format: tab
 	case 10:
-		return 10;//format: enters
+		return 10;//division: semicolon
 	case 11:
-		return 11;//format: tab
+		return 11;//division: colon
 	case 12:
-		return 12;//division: semicolon
+		return 12;//division: dot
 	case 13:
-		return 13;//division: colon
+		return 13;//braket: braceL
 	case 14:
-		return 14;//division: dot
+		return 14;//braket: braceR
 	case 15:
-		return 15;//braket: braceL
+		return 15;//braket: left
 	case 16:
-		return 16;//braket: braceR
+		return 16;//braket: right
 	case 17:
-		return 17;//braket: left
+		return 17;//braket: squareL
 	case 18:
-		return 18;//braket: right
+		return 18;//braket: squareR
 	case 19:
-		return 19;//braket: squareL
+		return 19;//braket: angleL
 	case 20:
-		return 20;//braket: squareR
+		return 20;//braket: angleR
 	case 21:
-		return 21;//braket: angleL
+		return 21;//anntation: anntationS
 	case 22:
-		return 22;//braket: angleR
+		return 22;//anntation: anntationM
 	case 23:
-		return 23;//annotation: anntationS
+		return 23;//RegSymbol: range
 	case 24:
-		return 24;//annotation: anntationM
+		return 24;//RegSymbol: star
 	case 25:
-		return 25;//RegSymbol: range
+		return 25;//RegSymbol: plus
 	case 26:
-		return 26;//RegSymbol: star
+		return 26;//RegSymbol: question
 	case 27:
-		return 27;//RegSymbol: plus
-	case 28:
-		return 28;//RegSymbol: question
+		return 27;//RegSymbol: or
 	case 29:
-		return 29;//RegSymbol: or
-	case 31:
-		return 1;//identifier: identifier
-	case 32:
-		return 1;//identifier: identifier
-	case 33:
-		return 1;//identifier: identifier
-	case 34:
-		return 1;//identifier: identifier
-	case 35:
-		return 1;//identifier: identifier
-	case 36:
-		return 1;//identifier: identifier
-	case 37:
-		return 1;//identifier: identifier
-	case 38:
-		return 1;//identifier: identifier
-	case 39:
-		return 1;//identifier: identifier
-	case 40:
-		return 1;//identifier: identifier
-	case 41:
-		return 1;//identifier: identifier
-	case 42:
-		return 1;//identifier: identifier
-	case 43:
-		return 4;//const: idChar
-	case 46:
-		return 1;//identifier: identifier
-	case 47:
-		return 4;//const: idChar
-	case 48:
-		return 4;//const: idChar
-	case 49:
-		return 4;//const: idChar
-	case 50:
 		return 4;//const: idChar
 	}
 	return 0;
 }
-int Reg::GroupGet(int accept)
+int PreTreat::GroupGet(int accept)
 {
 	switch (accept)
 	{
 	case 1:
 		return 1;//identifier: identifier
 	case 2:
-		return 2;//const: integar
+		return 2;//const: integer
 	case 3:
 		return 2;//const: CommonChar
 	case 4:
 		return 2;//const: idChar
 	case 5:
-		return 3;//reserved: lexical
+		return 3;//string: string
 	case 6:
-		return 3;//reserved: grammar
+		return 4;//include: include
 	case 7:
-		return 3;//reserved: void
+		return 5;//format: spaces
 	case 8:
-		return 3;//reserved: all
+		return 5;//format: enters
 	case 9:
-		return 4;//format: spaces
+		return 5;//format: tab
 	case 10:
-		return 4;//format: enters
+		return 6;//division: semicolon
 	case 11:
-		return 4;//format: tab
+		return 6;//division: colon
 	case 12:
-		return 5;//division: semicolon
+		return 6;//division: dot
 	case 13:
-		return 5;//division: colon
+		return 7;//braket: braceL
 	case 14:
-		return 5;//division: dot
+		return 7;//braket: braceR
 	case 15:
-		return 6;//braket: braceL
+		return 7;//braket: left
 	case 16:
-		return 6;//braket: braceR
+		return 7;//braket: right
 	case 17:
-		return 6;//braket: left
+		return 7;//braket: squareL
 	case 18:
-		return 6;//braket: right
+		return 7;//braket: squareR
 	case 19:
-		return 6;//braket: squareL
+		return 7;//braket: angleL
 	case 20:
-		return 6;//braket: squareR
+		return 7;//braket: angleR
 	case 21:
-		return 6;//braket: angleL
+		return 8;//anntation: anntationS
 	case 22:
-		return 6;//braket: angleR
+		return 8;//anntation: anntationM
 	case 23:
-		return 7;//annotation: anntationS
+		return 9;//RegSymbol: range
 	case 24:
-		return 7;//annotation: anntationM
+		return 9;//RegSymbol: star
 	case 25:
-		return 8;//RegSymbol: range
+		return 9;//RegSymbol: plus
 	case 26:
-		return 8;//RegSymbol: star
+		return 9;//RegSymbol: question
 	case 27:
-		return 8;//RegSymbol: plus
-	case 28:
-		return 8;//RegSymbol: question
-	case 29:
-		return 8;//RegSymbol: or
+		return 9;//RegSymbol: or
 	}
 	return 0;
 }
 
 
-*/
+//Preparser
+
+const size_t Preparser::StateCount = 42;
+const size_t Preparser::NonTerminalCount = 13;
+const size_t Preparser::TerminalCount = 27;
+const size_t Preparser::RulesCount = 40;
+const int Preparser::GOTO[42][13] = { \
+{1, 6, 10, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1}, \
+{1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1}, \
+{1, 1, 1, 14, 18, 22, 26, 30, 34, 38, 42, 46, 50}, \
+{1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1}, \
+{1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1}, \
+{1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1}, \
+{1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1}, \
+{1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1}, \
+{1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1}, \
+{1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1}, \
+{1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1}, \
+{1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1}, \
+{1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1}, \
+{1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1}, \
+{1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1}, \
+{1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1}, \
+{1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1}, \
+{1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1}, \
+{1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1}, \
+{1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1}, \
+{1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1}, \
+{1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1}, \
+{1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1}, \
+{1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1}, \
+{1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1}, \
+{1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1}, \
+{1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1}, \
+{1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1}, \
+{1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1}, \
+{1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1}, \
+{1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1}, \
+{1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1}, \
+{1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1}, \
+{1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1}, \
+{1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1}, \
+{1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1}, \
+{1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1}, \
+{1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1}, \
+{1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1}, \
+{1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1}, \
+{1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1}, \
+{1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1} };
+//==============================
+const int Preparser::ACTION[42][28] = { \
+{11, 11, 11, 11, 11, 1, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11}, \
+{0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1}, \
+{7, 54, 58, 62, 66, 1, 70, 74, 78, 82, 86, 90, 94, 98, 102, 106, 110, 114, 118, 122, 126, 130, 134, 138, 142, 146, 150, 154}, \
+{15, 15, 15, 15, 15, 1, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15}, \
+{19, 19, 19, 19, 19, 1, 19, 19, 19, 19, 19, 19, 19, 19, 19, 19, 19, 19, 19, 19, 19, 19, 19, 19, 19, 19, 19, 19}, \
+{27, 27, 27, 27, 27, 1, 27, 27, 27, 27, 27, 27, 27, 27, 27, 27, 27, 27, 27, 27, 27, 27, 27, 27, 27, 27, 27, 27}, \
+{23, 23, 23, 23, 23, 1, 23, 23, 23, 23, 23, 23, 23, 23, 23, 23, 23, 23, 23, 23, 23, 23, 23, 23, 23, 23, 23, 23}, \
+{47, 47, 47, 47, 47, 1, 47, 47, 47, 47, 47, 47, 47, 47, 47, 47, 47, 47, 47, 47, 47, 47, 47, 47, 47, 47, 47, 47}, \
+{51, 51, 51, 51, 51, 1, 51, 51, 51, 51, 51, 51, 51, 51, 51, 51, 51, 51, 51, 51, 51, 51, 51, 51, 51, 51, 51, 51}, \
+{55, 55, 55, 55, 55, 1, 55, 55, 55, 55, 55, 55, 55, 55, 55, 55, 55, 55, 55, 55, 55, 55, 55, 55, 55, 55, 55, 55}, \
+{59, 59, 59, 59, 59, 1, 59, 59, 59, 59, 59, 59, 59, 59, 59, 59, 59, 59, 59, 59, 59, 59, 59, 59, 59, 59, 59, 59}, \
+{63, 63, 63, 63, 63, 1, 63, 63, 63, 63, 63, 63, 63, 63, 63, 63, 63, 63, 63, 63, 63, 63, 63, 63, 63, 63, 63, 63}, \
+{67, 67, 67, 67, 67, 1, 67, 67, 67, 67, 67, 67, 67, 67, 67, 67, 67, 67, 67, 67, 67, 67, 67, 67, 67, 67, 67, 67}, \
+{71, 71, 71, 71, 71, 1, 71, 71, 71, 71, 71, 71, 71, 71, 71, 71, 71, 71, 71, 71, 71, 71, 71, 71, 71, 71, 71, 71}, \
+{75, 75, 75, 75, 75, 1, 75, 75, 75, 75, 75, 75, 75, 75, 75, 75, 75, 75, 75, 75, 75, 75, 75, 75, 75, 75, 75, 75}, \
+{79, 79, 79, 79, 79, 1, 79, 79, 79, 79, 79, 79, 79, 79, 79, 79, 79, 79, 79, 79, 79, 79, 79, 79, 79, 79, 79, 79}, \
+{83, 83, 83, 83, 83, 1, 83, 83, 83, 83, 83, 83, 83, 83, 83, 83, 83, 83, 83, 83, 83, 83, 83, 83, 83, 83, 83, 83}, \
+{1, 1, 1, 1, 1, 158, 1, 162, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1}, \
+{151, 151, 151, 151, 151, 1, 151, 151, 151, 151, 151, 151, 151, 151, 151, 151, 151, 151, 151, 151, 151, 151, 151, 151, 151, 151, 151, 151}, \
+{155, 155, 155, 155, 155, 1, 155, 155, 155, 155, 155, 155, 155, 155, 155, 155, 155, 155, 155, 155, 155, 155, 155, 155, 155, 155, 155, 155}, \
+{159, 159, 159, 159, 159, 1, 159, 159, 159, 159, 159, 159, 159, 159, 159, 159, 159, 159, 159, 159, 159, 159, 159, 159, 159, 159, 159, 159}, \
+{139, 139, 139, 139, 139, 1, 139, 139, 139, 139, 139, 139, 139, 139, 139, 139, 139, 139, 139, 139, 139, 139, 139, 139, 139, 139, 139, 139}, \
+{143, 143, 143, 143, 143, 1, 143, 143, 143, 143, 143, 143, 143, 143, 143, 143, 143, 143, 143, 143, 143, 143, 143, 143, 143, 143, 143, 143}, \
+{147, 147, 147, 147, 147, 1, 147, 147, 147, 147, 147, 147, 147, 147, 147, 147, 147, 147, 147, 147, 147, 147, 147, 147, 147, 147, 147, 147}, \
+{107, 107, 107, 107, 107, 1, 107, 107, 107, 107, 107, 107, 107, 107, 107, 107, 107, 107, 107, 107, 107, 107, 107, 107, 107, 107, 107, 107}, \
+{111, 111, 111, 111, 111, 1, 111, 111, 111, 111, 111, 111, 111, 111, 111, 111, 111, 111, 111, 111, 111, 111, 111, 111, 111, 111, 111, 111}, \
+{115, 115, 115, 115, 115, 1, 115, 115, 115, 115, 115, 115, 115, 115, 115, 115, 115, 115, 115, 115, 115, 115, 115, 115, 115, 115, 115, 115}, \
+{119, 119, 119, 119, 119, 1, 119, 119, 119, 119, 119, 119, 119, 119, 119, 119, 119, 119, 119, 119, 119, 119, 119, 119, 119, 119, 119, 119}, \
+{123, 123, 123, 123, 123, 1, 123, 123, 123, 123, 123, 123, 123, 123, 123, 123, 123, 123, 123, 123, 123, 123, 123, 123, 123, 123, 123, 123}, \
+{127, 127, 127, 127, 127, 1, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127}, \
+{131, 131, 131, 131, 131, 1, 131, 131, 131, 131, 131, 131, 131, 131, 131, 131, 131, 131, 131, 131, 131, 131, 131, 131, 131, 131, 131, 131}, \
+{135, 135, 135, 135, 135, 1, 135, 135, 135, 135, 135, 135, 135, 135, 135, 135, 135, 135, 135, 135, 135, 135, 135, 135, 135, 135, 135, 135}, \
+{31, 31, 31, 31, 31, 1, 31, 31, 31, 31, 31, 31, 31, 31, 31, 31, 31, 31, 31, 31, 31, 31, 31, 31, 31, 31, 31, 31}, \
+{35, 35, 35, 35, 35, 1, 35, 35, 35, 35, 35, 35, 35, 35, 35, 35, 35, 35, 35, 35, 35, 35, 35, 35, 35, 35, 35, 35}, \
+{87, 87, 87, 87, 87, 1, 87, 87, 87, 87, 87, 87, 87, 87, 87, 87, 87, 87, 87, 87, 87, 87, 87, 87, 87, 87, 87, 87}, \
+{91, 91, 91, 91, 91, 1, 91, 91, 91, 91, 91, 91, 91, 91, 91, 91, 91, 91, 91, 91, 91, 91, 91, 91, 91, 91, 91, 91}, \
+{95, 95, 95, 95, 95, 1, 95, 95, 95, 95, 95, 95, 95, 95, 95, 95, 95, 95, 95, 95, 95, 95, 95, 95, 95, 95, 95, 95}, \
+{99, 99, 99, 99, 99, 1, 99, 99, 99, 99, 99, 99, 99, 99, 99, 99, 99, 99, 99, 99, 99, 99, 99, 99, 99, 99, 99, 99}, \
+{103, 103, 103, 103, 103, 1, 103, 103, 103, 103, 103, 103, 103, 103, 103, 103, 103, 103, 103, 103, 103, 103, 103, 103, 103, 103, 103, 103}, \
+{43, 43, 43, 43, 43, 1, 43, 43, 43, 43, 43, 43, 43, 43, 43, 43, 43, 43, 43, 43, 43, 43, 43, 43, 43, 43, 43, 43}, \
+{21, 21, 21, 21, 21, 166, 21, 21, 21, 21, 21, 21, 21, 21, 21, 21, 21, 21, 21, 21, 21, 21, 21, 21, 21, 21, 21, 21}, \
+{39, 39, 39, 39, 39, 1, 39, 39, 39, 39, 39, 39, 39, 39, 39, 39, 39, 39, 39, 39, 39, 39, 39, 39, 39, 39, 39, 39} };
+//==============================
+const int Preparser::RulesToSymbol[40] = { \
+0,\
+1,\
+2,\
+2,\
+3,\
+3,\
+3,\
+4,\
+4,\
+5,\
+5,\
+6,\
+6,\
+6,\
+6,\
+6,\
+6,\
+7,\
+8,\
+8,\
+8,\
+9,\
+9,\
+9,\
+9,\
+9,\
+10,\
+10,\
+10,\
+10,\
+10,\
+10,\
+10,\
+10,\
+11,\
+11,\
+11,\
+12,\
+12,\
+12 };
+//==============================
+const int Preparser::RulesLength[40] = { \
+1,\
+1,\
+0,\
+2,\
+1,\
+1,\
+1,\
+1,\
+1,\
+3,\
+2,\
+1,\
+1,\
+1,\
+1,\
+1,\
+1,\
+1,\
+1,\
+1,\
+1,\
+1,\
+1,\
+1,\
+1,\
+1,\
+1,\
+1,\
+1,\
+1,\
+1,\
+1,\
+1,\
+1,\
+1,\
+1,\
+1,\
+1,\
+1,\
+1 };
+//==============================
+const char* const Preparser::RulesName[40] = { \
+"all->TEXT ",\
+"TEXT-><DEF*> ",\
+"<DEF*>->epsilon ",\
+"<DEF*>-><DEF*> DEF ",\
+"DEF->[anntation] ",\
+"DEF->ANY ",\
+"DEF->INCLUDE ",\
+"[anntation]->anntationS ",\
+"[anntation]->anntationM ",\
+"INCLUDE->include spaces string ",\
+"INCLUDE->include string ",\
+"ANY->[identifier] ",\
+"ANY->[const] ",\
+"ANY->[RegSymbol] ",\
+"ANY->[braket] ",\
+"ANY->[division] ",\
+"ANY->[format] ",\
+"[identifier]->identifier ",\
+"[const]->integer ",\
+"[const]->CommonChar ",\
+"[const]->idChar ",\
+"[RegSymbol]->range ",\
+"[RegSymbol]->star ",\
+"[RegSymbol]->plus ",\
+"[RegSymbol]->question ",\
+"[RegSymbol]->or ",\
+"[braket]->braceL ",\
+"[braket]->braceR ",\
+"[braket]->left ",\
+"[braket]->right ",\
+"[braket]->squareL ",\
+"[braket]->squareR ",\
+"[braket]->angleL ",\
+"[braket]->angleR ",\
+"[division]->semicolon ",\
+"[division]->colon ",\
+"[division]->dot ",\
+"[format]->spaces ",\
+"[format]->enters ",\
+"[format]->tab " };
+//==============================
+const int Preparser::Implicit[40] = { \
+0, \
+0, \
+1, \
+1, \
+0, \
+0, \
+0, \
+1, \
+1, \
+0, \
+0, \
+0, \
+0, \
+0, \
+0, \
+0, \
+0, \
+1, \
+1, \
+1, \
+1, \
+1, \
+1, \
+1, \
+1, \
+1, \
+1, \
+1, \
+1, \
+1, \
+1, \
+1, \
+1, \
+1, \
+1, \
+1, \
+1, \
+1, \
+1, \
+1 };
+
+
+
 
 
 

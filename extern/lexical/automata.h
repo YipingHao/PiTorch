@@ -1,4 +1,4 @@
-#ifndef __automata_adfhaiofh_fh823hasguj45482934__
+﻿#ifndef __automata_adfhaiofh_fh823hasguj45482934__
 #define __automata_adfhaiofh_fh823hasguj45482934__
 #include<stdio.h>
 #include<iostream>
@@ -366,6 +366,29 @@ namespace hyperlex
 	class Morpheme;
 	class GrammarTree;
 	
+	class FilePath
+	{
+	public:
+		FilePath();
+		~FilePath();
+		void build(const char* path);
+		void operator+=(const FilePath& path);
+		//the input path can't be 'this'。 A += A is wrong;
+		bool operator==(const FilePath& rhs) const;
+		char* print(char divide = '/')const;
+		void demo(FILE* fp = stdout)const;
+		void copy(const FilePath& source);
+		//the input path can't be 'this'。 A += A is wrong;
+		void RearCut(void);
+		void RearCutAppend(const FilePath& rhs);
+		void clear(void);
+		void clean(void);
+	private:
+		bool absolute;
+		vector<char*> PathUnit;
+		
+		void append_copy(const char* str);
+	};
 	class GrammarTree
 	{
 	public:
@@ -385,6 +408,14 @@ namespace hyperlex
 			// rules: true, this may be not a leaf node, 
 			// site is the corresponding production rules
 		};
+		enum GrammarError 
+		{
+			NoError = 0,
+			Undone,
+			ActionError,
+			GotoError,
+			UnExpectEnd
+		};
 		//template<typename T> int build(const char* reg);
 		void Demo(FILE* fp, const Morpheme& input, const char* const* RulesName) const;
 		void clear(void);
@@ -394,7 +425,7 @@ namespace hyperlex
 		//error_record00 =  ture error infor from ACTION, otherwise from the sheet GOTO
 		//error_record01 = lexical unit number;
 		//error_record02 = (size_t)top content of stack;
-		bool error_record00;
+		GrammarError error_record00;
 		size_t error_record01;
 		size_t error_record02;
 	protected:
@@ -418,11 +449,13 @@ namespace hyperlex
 			size_t begin;
 			bool valid;
 			size_t line;
+			size_t file;
 		};
 		Morpheme();
 		~Morpheme();
 		char* Copy(size_t site) const;
 		void append(const BufferChar& input, int accept, int category);
+		void append(const char* fileName);
 		void AppendEnd(int TerminalCount);
 		void UnitMove(size_t from, size_t to);
 		void CountReset(size_t count);
@@ -443,21 +476,58 @@ namespace hyperlex
 		char* GetString(size_t site) const;
 		bool& valid(size_t site);
 
+		void insert(size_t from, size_t deleted, const Morpheme& src);
+		void SetFile(size_t value);
+		const char* GetFile(size_t value) const;
+		size_t FileCount(void) const;
+		void shrink(void);
+		void sort(void);
+		bool withTernimal(void)const;
 		template<typename T> int Build(const char* reg);
 		template<typename T> int Build(FILE* fp);
-
+		template<typename T> int Build(const Morpheme& src);
 		//size_t index;
 		void clear(void);
+		void ruin(void);
 		void copy(const Morpheme& source);
 
 		size_t initial(void) const;
 		size_t next(size_t index) const;
 		bool still(size_t index) const;
 		int accept(size_t index) const;
+		struct indexT
+		{
+			size_t UnitOffest;
+			size_t CharOffset;
+			inline indexT()
+			{
+				UnitOffest = 0;
+				CharOffset = 0;
+			}
+		};
+		
+		void print(BufferChar & output) const;
+		bool dequeue(char &out, indexT& index) const;
+		void backspace(indexT& index, size_t count) const;
+		bool operator==(const Morpheme& source) const;
 	protected:
 		size_t count;
+		/*为了文法分析的便利性，
+		最后一个符号必须是文件终止符号。在任意的词法单元编码规则下，
+		文件终止符号和文件终止符号的种类对应的整数0。
+		有点类似于C语言的字符串编码方式*/
+
+		/*
+		For the convenience of grammatical analysis, 
+		the last symbol must be a ​​file terminator​​. 
+		Under any lexical unit encoding rules, 
+		the integer corresponding to the ​​file terminator​​ and its category is 
+		​​0​​, similar to the string encoding method in the C language.
+		*/
+
 		//list<size_t> begin;
 		//list<size_t> length;
+		vector<const char*> SrcFile;
 		vector<result> lex;
 		vector<char> storage;
 
@@ -465,6 +535,7 @@ namespace hyperlex
 		size_t CountEnter(const char* unit);
 
 		template<typename T> bool RunBuild(int& accept, BufferChar& result, BufferChar& input, BufferChar& intermediate);
+		template<typename T> bool RunBuild(int& accept, BufferChar& result, const Morpheme& src, BufferChar& intermediate, indexT & index);
 	};
 	class RegularExp
 	{
@@ -520,6 +591,8 @@ namespace hyperlex
 		typedef const vector<const char*> cvccp;
 		InputPanel();
 		~InputPanel();
+		
+		int build_v02(const char* file);
 		int build(FILE* fp);
 		int build(const char* input);
 		void demo(FILE* fp) const;
@@ -585,6 +658,10 @@ namespace hyperlex
 			WorngRuleBody,
 			missingIdinRegdef,
 			ErrorinputLEXICAL,
+			PretreatLEXICAL,
+			PretreatGRAMMAR,
+			PretreatRepeat,
+			PretreatOpenfail,
 			ErrorinputGrammar,
 			regGroupMissing,
 			buildUndone,
@@ -613,6 +690,7 @@ namespace hyperlex
 
 		Morpheme LexicalSource;
 
+		int pretreatment(const char* input, Morpheme& output);
 
 		void initial(void);
 		void clear(void);
@@ -827,6 +905,8 @@ namespace hyperlex
 		int error = 0;
 		char now;
 		input << fp;
+		ruin();
+
 		while (RunBuild<T>(accept, result, input, intermediate))
 		{
 			if (accept != 0) append(result, accept, T::GroupGet(accept));
@@ -850,6 +930,7 @@ namespace hyperlex
 		int accept;
 		int error = 0;
 		char now;
+		ruin();
 		input = reg;
 		while (RunBuild<T>(accept, result, input, intermediate))
 		{
@@ -864,6 +945,44 @@ namespace hyperlex
 		}
 		AppendEnd(0);
 		SetLine();
+		
+		return error;
+	}
+	template<typename T> int Morpheme::Build(const Morpheme& src)
+	{
+		//BufferChar input;
+		BufferChar result;
+		BufferChar intermediate;
+		int accept = 0;
+		int error = 0;
+		char now;
+		indexT index;
+		ruin();
+		for (size_t i = 0; i < src.SrcFile.count(); i++)
+		{
+			append(src.SrcFile[i]);
+		}
+		size_t record = index.UnitOffest;
+		while (RunBuild<T>(accept, result, src, intermediate, index))
+		{
+			//std::cout << "count: " << count << std::endl;
+			//std::cout << "record: " << record << std::endl;
+			//std::cout << "accept: " << accept << std::endl;
+			//std::cout << "index.UnitOffest: " << index.UnitOffest << std::endl;
+			//std::cout << "index.CharOffset: " << index.CharOffset << std::endl;
+			if (accept != 0) append(result, accept, T::GroupGet(accept));
+			else
+			{
+				src.backspace(index, 1);
+				result.append(now);
+				append(result, -1, -1);
+				error = -1;
+			}
+			lex[count - 1].line = src.lex[record].line;
+			lex[count - 1].file = src.lex[record].file;
+			record = index.UnitOffest;
+		}
+		AppendEnd(0);
 		return error;
 	}
 	template<typename T> bool Morpheme::RunBuild(int& accept, BufferChar& result, BufferChar& input, BufferChar& intermediate)
@@ -948,6 +1067,96 @@ namespace hyperlex
 			input.backspace(intermediate);
 		return action != 0;
 	}
+	template<typename T> bool Morpheme::RunBuild(int& accept, BufferChar& result, const Morpheme& src, BufferChar& intermediate, indexT& index)
+	{
+		/*
+	example:
+	1 aa
+	2 aaBB
+	3 Bcc
+	input: aaBcc
+	*/
+		char now;
+		//char cc;
+		int state, acc;
+		int action;
+		indexT RecoverRecord;
+		intermediate.clear();
+		state = 0;
+		acc = 0;
+		action = 0;
+		accept = 0;
+		result.clear();
+		RecoverRecord = index;
+		while (src.dequeue(now, index))
+		{
+			/*state switch*/
+			/*change here to get a different automata*/
+			state = T::next(state, now);
+			acc = T::action(state);
+			/*change here to get a different automata*/
+			accept = acc != 0 ? acc : accept;
+			switch (action)
+			{
+			case 0://initial
+				if (state != 0 && acc == 0)
+				{
+					intermediate.append(now);
+					action = 1;
+				}
+				else if (state != 0 && acc != 0)
+				{
+					result.append(now);
+					action = 2;
+				}
+				else
+				{
+					index = RecoverRecord;
+					//input.backspace(now);
+					return true;
+				}
+				break;
+			case 1://run and waiting for accept
+				if (state == 0)
+				{
+					index = RecoverRecord;
+					//input.backspace(now);
+					//input.backspace(intermediate);
+					return true;
+				}
+				else if (acc != 0)
+				{
+					result.append(intermediate);
+					result.append(now);
+					intermediate.clear();
+					action = 2;
+				}
+				else intermediate.append(now);//continue 
+				break;
+			case 2://accept
+				if (state == 0)//accept
+				{
+					src.backspace(index, 1);
+					//input.backspace(now);
+					//accept = last;
+					return true;
+				}
+				else if (acc == 0)
+				{
+					intermediate.append(now);
+					action = 1;
+				}
+				else result.append(now);
+				break;
+			}
+		}
+		if (action == 1)
+			src.backspace(index, intermediate.count());
+			//input.backspace(intermediate);
+		return action != 0;
+	}
+	
+	
 	template<typename T> int GrammarTree::build(const Morpheme& input)
 	{
 		vector<int> stack;
@@ -967,6 +1176,9 @@ namespace hyperlex
 			if (!input.still(head))
 			{
 				error = -1;
+				error_record00 = GrammarTree::UnExpectEnd;
+				error_record01 = head - 1;
+				error_record02 = (size_t)top;
 				break;
 			}
 			top = stack.top();
@@ -993,9 +1205,11 @@ namespace hyperlex
 				//TempTree.pop(GT);
 				break;
 			case T::error:
-				error_record00 = true;
+				error_record00 = GrammarTree::ActionError;
 				error_record01 = head;
 				error_record02 = (size_t)top;
+				//printf("error_record01: %zu\n", error_record01);
+				//printf("error_record02: %zu\n", error_record02);
 				error = temp;
 				DoNext = false;
 				break;
@@ -1045,7 +1259,7 @@ namespace hyperlex
 				}
 				else
 				{
-					error_record00 = false;
+					error_record00 = GrammarTree::GotoError;
 					error_record01 = head;
 					error_record02 = (size_t)top;
 					error = GoFull;

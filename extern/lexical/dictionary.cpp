@@ -5,6 +5,7 @@ using namespace hyperlex;
 #define CharSize ((size_t)(1 << (sizeof(char) * 8 - 1)))
 
 static bool compare(const char* str1, const char* str2);
+static void write_escaped_string(const char* str, FILE* file);
 static const char* Copy(const char* input);
 
 dictionary::dictionary()
@@ -156,13 +157,13 @@ struct complex
     static int GroupGet(int state);
 };
 
-dictionary::element dictionary::search(dictionary::Ktype& T, const char* key)
+dictionary::element dictionary::search(dictionary::Ktype& T, const char* key) const
 {
     size_t i, j;
     element E;
     hyperlex::Morpheme eme;
     vector<const char*> storage;
-    dictionary* target;
+    const dictionary* target;
 
     eme.Build<complex>(key);
     target = this;
@@ -200,13 +201,13 @@ dictionary::element dictionary::search(dictionary::Ktype& T, const char* key)
     }
     return E;
 }
-dictionary::element* dictionary::search(size_t& count, dictionary::Ktype& T, const char* key)
+dictionary::element* dictionary::search(size_t& count, dictionary::Ktype& T, const char* key) const
 {
     size_t i, j;
     element*E;
     hyperlex::Morpheme eme;
     vector<const char*> storage;
-    dictionary* target;
+    const dictionary* target;
 
     target = this;
     count = 0;
@@ -247,7 +248,7 @@ dictionary::element* dictionary::search(size_t& count, dictionary::Ktype& T, con
     }
     return E;
 }
-const char* dictionary::search(const char* Default_, const char* key)
+const char* dictionary::search(const char* Default_, const char* key) const
 {
     element E;
     Ktype T;
@@ -255,15 +256,15 @@ const char* dictionary::search(const char* Default_, const char* key)
     if (T == string_) return E.ss;
     else return Default_;
 }
-bool dictionary::search(bool Default_, const char* key)
+bool dictionary::search(bool Default_, const char* key) const
 {
     element E;
     Ktype T;
     E = search(T, key);
     if (T == bool_) return E.bb;
     else return Default_;
-}
-long int dictionary::search(long int Default_, const char* key)
+} 
+long int dictionary::search(long int Default_, const char* key) const
 {
     element E;
     Ktype T;
@@ -271,7 +272,7 @@ long int dictionary::search(long int Default_, const char* key)
     if (T == int_) return E.ii;
     else return Default_;
 }
-double dictionary::search(double Default_, const char* key)
+double dictionary::search(double Default_, const char* key) const
 {
     element E;
     Ktype T;
@@ -476,7 +477,7 @@ void dictionary::print(FILE* fp, size_t indent) const
                 fprintf(fp, "%g", kv.Content[0].ff);
                 break;
             case string_:
-                fprintf(fp, "\"%s\"", kv.Content[0].ss ? kv.Content[0].ss : "");
+                write_escaped_string(kv.Content[0].ss ? kv.Content[0].ss : "", fp);
                 break;
             case bool_:
                 fprintf(fp, "%s", kv.Content[0].bb ? "true" : "false");
@@ -609,6 +610,28 @@ struct DictPraser
         push = 2,
         reduce = 3
     };
+    enum rules
+    {
+        all_all_ = 0,
+        DICTIONARY_DICTIONARY_ = 1,
+        KVS_single_ = 2,
+        KVS_multi_ = 3,
+        KV_value_ = 4,
+        KV_colon_ = 5,
+        VALUE_nul_ = 6,
+        VALUE_single_ = 7,
+        VALUE_multi_ = 8,
+        UNITS_single_ = 9,
+        UNITS_multi_ = 10,
+        UNIT_dictionary_ = 11,
+        UNIT_false_ = 12,
+        UNIT_true_ = 13,
+        UNIT_null_ = 14,
+        UNIT_NULL_ = 15,
+        UNIT_real_ = 16,
+        UNIT_integer_ = 17,
+        UNIT_string_ = 18
+    };
     enum nonterminal
     {
         _all_ = 0,
@@ -618,28 +641,6 @@ struct DictPraser
         _VALUE_ = 4,
         _UNITS_ = 5,
         _UNIT_ = 6
-    };
-    enum rules
-    {
-        _all_all_ = 0,
-        _DICTIONARY_DICTIONARY_ = 1,
-        _KVS_multi_ = 2,
-        _KVS_single_ = 3,
-        _KV_colon_ = 4,
-        _KV_value_ = 5,
-        _VALUE_multi_ = 6,
-        _VALUE_single_ = 7,
-        _VALUE_nul_ = 8,
-        _UNITS_multi_ = 9,
-        _UNITS_single_ = 10,
-        _UNIT_string_ = 11,
-        _UNIT_integer_ = 12,
-        _UNIT_real_ = 13,
-        _UNIT_NULL_ = 14,
-        _UNIT_null_ = 15,
-        _UNIT_true_ = 16,
-        _UNIT_false_ = 17,
-        _UNIT_dictionary_ = 18
     };
     static const size_t StateCount;
     static const size_t NonTerminalCount;
@@ -791,7 +792,7 @@ int dictionary::buildAll(const Morpheme& eme, GrammarTree& Tree)
             RR = (DictPraser::rules)GT->root().site;
             switch (RR)
             {
-            case DictPraser::_all_all_:
+            case DictPraser::all_all_:
                 Dtemp = (dictionary*)GT->child(0)->root().infor;
                 //printf("%zu:%zu\n", Content.count(), Dtemp->Content.count());
                 move(Dtemp);
@@ -799,13 +800,13 @@ int dictionary::buildAll(const Morpheme& eme, GrammarTree& Tree)
                 delete Dtemp;
                 GT->child(0)->root().infor = NULL;
                 break;
-            case DictPraser::_DICTIONARY_DICTIONARY_:
+            case DictPraser::DICTIONARY_DICTIONARY_:
                 GT->root().infor = GT->child(1)->root().infor;
                 GT->child(1)->root().infor = NULL;
                 Dtemp = (dictionary*)GT->root().infor;
                 //printf("%zu\n", Dtemp->Content.count());
                 break;
-            case DictPraser::_KVS_multi_:
+            case DictPraser::KVS_multi_:
                 Dtemp = (dictionary*)(GT->child(0)->root().infor);
                 KVtemp = (KV*)(GT->child(1)->root().infor);
                 //printf("???\n");
@@ -816,7 +817,7 @@ int dictionary::buildAll(const Morpheme& eme, GrammarTree& Tree)
                 GT->root().infor = (void*)Dtemp;
                 //printf("%zu\n", Dtemp->Content.count());
                 break;
-            case DictPraser::_KVS_single_:
+            case DictPraser::KVS_single_:
                 Dtemp = new dictionary;
                 KVtemp = (KV*)(GT->child(0)->root().infor);
 
@@ -826,8 +827,8 @@ int dictionary::buildAll(const Morpheme& eme, GrammarTree& Tree)
                 GT->root().infor = (void*)Dtemp;
                 //printf("%zu\n", Dtemp->Content.count());
                 break;
-            case DictPraser::_KV_colon_:
-            case DictPraser::_KV_value_:
+            case DictPraser::KV_colon_:
+            case DictPraser::KV_value_:
                 KVtemp = (KV*)(GT->child(2)->root().infor);
                 //printf("label:%zu, child(2)%zu", GT->child(2)->root().label, (size_t)GT->child(2));
                 //printf("KVtemp:%zu, %zu, ", (size_t)KVtemp, KVtemp->Count);
@@ -838,11 +839,11 @@ int dictionary::buildAll(const Morpheme& eme, GrammarTree& Tree)
                 GT->child(2)->root().infor = NULL;
                 //printf("KVtemp%zu, <%s> \n", KVtemp->Count, Ctemp);
                 break;
-            case DictPraser::_VALUE_multi_:
+            case DictPraser::VALUE_multi_:
                 GT->root().infor = GT->child(1)->root().infor;
                 GT->child(1)->root().infor = NULL;
                 break;
-            case DictPraser::_VALUE_single_:
+            case DictPraser::VALUE_single_:
                 KVtemp = new KV();
                 tempI = (tempInfor*)(GT->child(0)->root().infor);
                 KVtemp->setType(tempI->T);
@@ -853,12 +854,12 @@ int dictionary::buildAll(const Morpheme& eme, GrammarTree& Tree)
                 GT->root().infor = (void*)KVtemp;
                 //printf("KVtemp(single):%zu, %zu\n", KVtemp->Count, (size_t)GT->root().infor);
                 break;
-            case DictPraser::_VALUE_nul_:
+            case DictPraser::VALUE_nul_:
                 KVtemp = new KV();
                 KVtemp->setType(null_);
                 GT->root().infor = (void*)KVtemp;
                 break;
-            case DictPraser::_UNITS_multi_:
+            case DictPraser::UNITS_multi_:
                 KVtemp = (KV*)(GT->child(0)->root().infor);
                 GT->child(0)->root().infor = NULL;
                 tempI = (tempInfor*)(GT->child(2)->root().infor);
@@ -867,7 +868,7 @@ int dictionary::buildAll(const Morpheme& eme, GrammarTree& Tree)
                 free(tempI);
                 GT->root().infor = (void*)KVtemp;
                 break;
-            case DictPraser::_UNITS_single_:
+            case DictPraser::UNITS_single_:
                 KVtemp = new KV();
                 tempI = (tempInfor*)(GT->child(0)->root().infor);
                 KVtemp->setType(tempI->T);
@@ -875,14 +876,14 @@ int dictionary::buildAll(const Morpheme& eme, GrammarTree& Tree)
                 free(tempI);
                 GT->root().infor = (void*)KVtemp;
                 break;
-            case DictPraser::_UNIT_string_:
-            case DictPraser::_UNIT_integer_:
-            case DictPraser::_UNIT_real_:
-            case DictPraser::_UNIT_NULL_:
-            case DictPraser::_UNIT_null_:
-            case DictPraser::_UNIT_true_:
-            case DictPraser::_UNIT_false_:
-            case DictPraser::_UNIT_dictionary_:
+            case DictPraser::UNIT_string_:
+            case DictPraser::UNIT_integer_:
+            case DictPraser::UNIT_real_:
+            case DictPraser::UNIT_NULL_:
+            case DictPraser::UNIT_null_:
+            case DictPraser::UNIT_true_:
+            case DictPraser::UNIT_false_:
+            case DictPraser::UNIT_dictionary_:
                 tempI = (tempInfor*)malloc(sizeof(tempInfor));
                 tempI->E = buildUnit(T, eme, GT);
                 tempI->T = T;
@@ -908,34 +909,34 @@ dictionary::element dictionary::buildUnit(dictionary::Ktype& T, const Morpheme& 
     RR = (DictPraser::rules)GT->root().site;
     switch (RR)
     {
-    case DictPraser::_UNIT_string_:
+    case DictPraser::UNIT_string_:
         T = string_;
         BC = eme.GetWord(GT->child(0)->root().site);
         E.ss = BC.DequeueString();
         break;
-    case DictPraser::_UNIT_integer_:
+    case DictPraser::UNIT_integer_:
         T = int_;
         BC = eme.GetWord(GT->child(0)->root().site);
         E.ii = BC.DequeueInt();
         break;
-    case DictPraser::_UNIT_real_:
+    case DictPraser::UNIT_real_:
         T = float_;
         BC = eme.GetWord(GT->child(0)->root().site);
         E.ff = BC.DequeueReal();
         break;
-    case DictPraser::_UNIT_NULL_:
-    case DictPraser::_UNIT_null_:
+    case DictPraser::UNIT_NULL_:
+    case DictPraser::UNIT_null_:
         T = null_;
         break;
-    case DictPraser::_UNIT_true_:
+    case DictPraser::UNIT_true_:
         T = bool_;
         E.bb = true;
         break;
-    case DictPraser::_UNIT_false_:
+    case DictPraser::UNIT_false_:
         T = bool_;
         E.bb = false;
         break;
-    case DictPraser::_UNIT_dictionary_:
+    case DictPraser::UNIT_dictionary_:
         T = dictionary_;
         E.dd = (dictionary*)(GT->child(0)->root().infor);
         GT->child(0)->root().infor = NULL;
@@ -958,9 +959,9 @@ int DictReg::next(int state, const char c)
         else if (c == '\"') return 39;
         else if (c == '(') return 16;
         else if (c == ')') return 17;
-        else if (c == '+') return 44;
+        else if (c == '+') return 45;
         else if (c == ',') return 12;
-        else if (c == '-') return 44;
+        else if (c == '-') return 45;
         else if (c == '.') return 11;
         else if (c == '/') return 46;
         else if ('0' <= c && c <= '9') return 2;
@@ -1154,12 +1155,15 @@ int DictReg::next(int state, const char c)
         else return 0;
     case 38:
         if ((char)0 <= c && c <= ')') return 38;
-        else if (c == '*') return 43;
+        else if (c == '*') return 44;
         else if ('+' <= c && c <= (char)127) return 38;
         else return 0;
     case 39:
-        if (' ' <= c && c <= '!') return 45;
-        else if ('#' <= c && c <= '~') return 45;
+        if (' ' <= c && c <= '!') return 39;
+        else if (c == '\"') return 4;
+        else if ('#' <= c && c <= '[') return 39;
+        else if (c == '\\') return 42;
+        else if (']' <= c && c <= (char)127) return 39;
         else return 0;
     case 40:
         if ('0' <= c && c <= '9') return 1;
@@ -1178,28 +1182,39 @@ int DictReg::next(int state, const char c)
         else if ('v' <= c && c <= 'z') return 1;
         else return 0;
     case 42:
-        if ((char)0 <= c && c <= (char)9) return 42;
-        else if (c == (char)10) return 20;
-        else if ((char)11 <= c && c <= (char)127) return 42;
+        if (c == (char)0) return 39;
+        else if (c == '\"') return 39;
+        else if (c == '\'') return 39;
+        else if ('0' <= c && c <= '7') return 39;
+        else if (c == '\?') return 39;
+        else if (c == 'X') return 50;
+        else if (c == '\\') return 39;
+        else if ('a' <= c && c <= 'b') return 39;
+        else if (c == 'f') return 39;
+        else if (c == 'n') return 39;
+        else if (c == 'r') return 39;
+        else if (c == 't') return 39;
+        else if (c == 'v') return 39;
+        else if (c == 'x') return 50;
         else return 0;
     case 43:
+        if ((char)0 <= c && c <= (char)9) return 43;
+        else if (c == (char)10) return 20;
+        else if ((char)11 <= c && c <= (char)127) return 43;
+        else return 0;
+    case 44:
         if ((char)0 <= c && c <= ')') return 38;
-        else if (c == '*') return 43;
+        else if (c == '*') return 44;
         else if ('+' <= c && c <= '.') return 38;
         else if (c == '/') return 21;
         else if ('0' <= c && c <= (char)127) return 38;
         else return 0;
-    case 44:
-        if ('0' <= c && c <= '9') return 2;
-        else return 0;
     case 45:
-        if (' ' <= c && c <= '!') return 45;
-        else if (c == '\"') return 4;
-        else if ('#' <= c && c <= '~') return 45;
+        if ('0' <= c && c <= '9') return 2;
         else return 0;
     case 46:
         if (c == '*') return 38;
-        else if (c == '/') return 42;
+        else if (c == '/') return 43;
         else return 0;
     case 47:
         if (c == '+') return 49;
@@ -1211,6 +1226,11 @@ int DictReg::next(int state, const char c)
         else return 0;
     case 49:
         if ('0' <= c && c <= '9') return 37;
+        else return 0;
+    case 50:
+        if ('0' <= c && c <= '9') return 39;
+        else if ('A' <= c && c <= 'F') return 39;
+        else if ('a' <= c && c <= 'f') return 39;
         else return 0;
     }
     return 0;
@@ -1357,6 +1377,7 @@ int DictReg::GroupGet(int accept)
 
 
 
+
 const size_t DictPraser::StateCount = 30;
 const size_t DictPraser::NonTerminalCount = 7;
 const size_t DictPraser::TerminalCount = 24;
@@ -1394,35 +1415,35 @@ const int DictPraser::GOTO[30][7] = { \
 {1, 1, 1, 1, 1, 1, 1} };
 //==============================
 const int DictPraser::ACTION[30][25] = { \
-{1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 10, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1}, \
+{57, 57, 57, 57, 57, 57, 57, 57, 57, 57, 57, 57, 57, 57, 10, 57, 57, 57, 57, 57, 57, 57, 57, 57, 57}, \
 {0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1}, \
-{1, 22, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1}, \
+{5, 22, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5}, \
 {1, 22, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 118, 1, 1, 1, 1, 1, 1, 1, 1, 1}, \
-{1, 15, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 15, 1, 1, 1, 1, 1, 1, 1, 1, 1}, \
+{1, 11, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 11, 1, 1, 1, 1, 1, 1, 1, 1, 1}, \
 {1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 26, 1, 1, 30, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1}, \
 {1, 1, 46, 50, 54, 58, 62, 66, 70, 1, 1, 1, 1, 1, 10, 1, 1, 1, 74, 1, 1, 1, 1, 1, 1}, \
 {1, 1, 46, 50, 54, 58, 62, 66, 70, 1, 1, 1, 1, 1, 10, 1, 1, 1, 74, 1, 1, 1, 1, 1, 1}, \
-{1, 1, 1, 1, 1, 1, 1, 1, 1, 75, 1, 1, 75, 1, 1, 1, 1, 1, 1, 75, 1, 1, 1, 1, 1}, \
-{1, 1, 1, 1, 1, 1, 1, 1, 1, 102, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1}, \
-{1, 1, 1, 1, 1, 1, 1, 1, 1, 31, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1}, \
-{1, 1, 1, 1, 1, 1, 1, 1, 1, 51, 1, 1, 51, 1, 1, 1, 1, 1, 1, 51, 1, 1, 1, 1, 1}, \
-{1, 1, 1, 1, 1, 1, 1, 1, 1, 55, 1, 1, 55, 1, 1, 1, 1, 1, 1, 55, 1, 1, 1, 1, 1}, \
 {1, 1, 1, 1, 1, 1, 1, 1, 1, 47, 1, 1, 47, 1, 1, 1, 1, 1, 1, 47, 1, 1, 1, 1, 1}, \
+{37, 37, 37, 37, 37, 37, 37, 37, 37, 102, 37, 37, 37, 37, 37, 37, 37, 37, 37, 37, 37, 37, 37, 37, 37}, \
+{37, 37, 37, 37, 37, 37, 37, 37, 37, 31, 37, 37, 37, 37, 37, 37, 37, 37, 37, 37, 37, 37, 37, 37, 37}, \
 {1, 1, 1, 1, 1, 1, 1, 1, 1, 71, 1, 1, 71, 1, 1, 1, 1, 1, 1, 71, 1, 1, 1, 1, 1}, \
 {1, 1, 1, 1, 1, 1, 1, 1, 1, 67, 1, 1, 67, 1, 1, 1, 1, 1, 1, 67, 1, 1, 1, 1, 1}, \
-{1, 1, 1, 1, 1, 1, 1, 1, 1, 63, 1, 1, 63, 1, 1, 1, 1, 1, 1, 63, 1, 1, 1, 1, 1}, \
+{1, 1, 1, 1, 1, 1, 1, 1, 1, 75, 1, 1, 75, 1, 1, 1, 1, 1, 1, 75, 1, 1, 1, 1, 1}, \
+{1, 1, 1, 1, 1, 1, 1, 1, 1, 51, 1, 1, 51, 1, 1, 1, 1, 1, 1, 51, 1, 1, 1, 1, 1}, \
+{1, 1, 1, 1, 1, 1, 1, 1, 1, 55, 1, 1, 55, 1, 1, 1, 1, 1, 1, 55, 1, 1, 1, 1, 1}, \
 {1, 1, 1, 1, 1, 1, 1, 1, 1, 59, 1, 1, 59, 1, 1, 1, 1, 1, 1, 59, 1, 1, 1, 1, 1}, \
+{1, 1, 1, 1, 1, 1, 1, 1, 1, 63, 1, 1, 63, 1, 1, 1, 1, 1, 1, 63, 1, 1, 1, 1, 1}, \
 {1, 1, 46, 50, 54, 58, 62, 66, 70, 1, 1, 1, 1, 1, 10, 1, 1, 1, 1, 86, 1, 1, 1, 1, 1}, \
 {1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 90, 1, 1, 1, 1, 1, 1, 94, 1, 1, 1, 1, 1}, \
-{1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 43, 1, 1, 1, 1, 1, 1, 43, 1, 1, 1, 1, 1}, \
-{1, 1, 1, 1, 1, 1, 1, 1, 1, 35, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1}, \
-{1, 1, 46, 50, 54, 58, 62, 66, 70, 1, 1, 1, 1, 1, 10, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1}, \
-{1, 1, 1, 1, 1, 1, 1, 1, 1, 27, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1}, \
 {1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 39, 1, 1, 1, 1, 1, 1, 39, 1, 1, 1, 1, 1}, \
-{1, 23, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 23, 1, 1, 1, 1, 1, 1, 1, 1, 1}, \
-{1, 1, 1, 1, 1, 1, 1, 1, 1, 110, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1}, \
+{37, 37, 37, 37, 37, 37, 37, 37, 37, 27, 37, 37, 37, 37, 37, 37, 37, 37, 37, 37, 37, 37, 37, 37, 37}, \
+{1, 1, 46, 50, 54, 58, 62, 66, 70, 1, 1, 1, 1, 1, 10, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1}, \
+{37, 37, 37, 37, 37, 37, 37, 37, 37, 35, 37, 37, 37, 37, 37, 37, 37, 37, 37, 37, 37, 37, 37, 37, 37}, \
+{1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 43, 1, 1, 1, 1, 1, 1, 43, 1, 1, 1, 1, 1}, \
 {1, 19, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 19, 1, 1, 1, 1, 1, 1, 1, 1, 1}, \
-{1, 11, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 11, 1, 1, 1, 1, 1, 1, 1, 1, 1}, \
+{37, 37, 37, 37, 37, 37, 37, 37, 37, 110, 37, 37, 37, 37, 37, 37, 37, 37, 37, 37, 37, 37, 37, 37, 37}, \
+{1, 23, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 23, 1, 1, 1, 1, 1, 1, 1, 1, 1}, \
+{1, 15, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 15, 1, 1, 1, 1, 1, 1, 1, 1, 1}, \
 {7, 1, 1, 1, 1, 1, 1, 1, 1, 7, 1, 1, 7, 1, 1, 1, 1, 1, 1, 7, 1, 1, 1, 1, 1} };
 //==============================
 const int DictPraser::RulesToSymbol[19] = { \
@@ -1449,15 +1470,15 @@ const int DictPraser::RulesToSymbol[19] = { \
 const int DictPraser::RulesLength[19] = { \
 1,\
 3,\
-2,\
-1,\
-4,\
-4,\
-3,\
 1,\
 2,\
+4,\
+4,\
+2,\
+1,\
 3,\
 1,\
+3,\
 1,\
 1,\
 1,\
@@ -1470,23 +1491,23 @@ const int DictPraser::RulesLength[19] = { \
 const char* const DictPraser::RulesName[19] = { \
 "all->DICTIONARY ",\
 "DICTIONARY->braceL KVS braceR ",\
-"KVS->KVS KV ",\
 "KVS->KV ",\
-"KV->id colon VALUE semicolon ",\
+"KVS->KVS KV ",\
 "KV->id value VALUE semicolon ",\
-"VALUE->squareL UNITS squareR ",\
-"VALUE->UNIT ",\
+"KV->id colon VALUE semicolon ",\
 "VALUE->squareL squareR ",\
-"UNITS->UNITS comma UNIT ",\
+"VALUE->UNIT ",\
+"VALUE->squareL UNITS squareR ",\
 "UNITS->UNIT ",\
-"UNIT->string ",\
-"UNIT->integer ",\
-"UNIT->real ",\
-"UNIT->NULL ",\
-"UNIT->null ",\
-"UNIT->true ",\
+"UNITS->UNITS comma UNIT ",\
+"UNIT->DICTIONARY ",\
 "UNIT->false ",\
-"UNIT->DICTIONARY " };
+"UNIT->true ",\
+"UNIT->null ",\
+"UNIT->NULL ",\
+"UNIT->real ",\
+"UNIT->integer ",\
+"UNIT->string " };
 //==============================
 const int DictPraser::Implicit[19] = { \
 0, \
@@ -1608,4 +1629,32 @@ static const char* Copy(const char* input)
     for (i = 0; i < length; i++) nnnn[i] = input[i];
     return nnnn;
 }
+static void write_escaped_string(const char* str, FILE* file)
+{
+    if (!str || !file) return;
 
+    fputc('\"', file);  // 字符常量起始引号
+
+    for (int i = 0; str[i] != '\0'; i++) {
+        switch (str[i]) {
+            // 处理必须转义的特殊字符
+        case '\"': fputs("\\\"", file); break;   // 双引号[6,8](@ref)
+        case '\\': fputs("\\\\", file); break;   // 反斜杠[6,7](@ref)
+        case '\n': fputs("\\n", file); break;    // 换行符[1,6](@ref)
+        case '\t': fputs("\\t", file); break;    // 制表符[1,8](@ref)
+        case '\r': fputs("\\r", file); break;    // 回车符[6,8](@ref)
+        case '\b': fputs("\\b", file); break;    // 退格符[7,8](@ref)
+        case '\f': fputs("\\f", file); break;    // 换页符[8](@ref)
+        case '\a': fputs("\\a", file); break;    // 响铃符[8](@ref)
+            // 其他不可打印字符用十六进制转义
+        default:
+            if (str[i] < 32 || str[i] > 126) {  // 非ASCII可打印字符
+                fprintf(file, "\\x%02X", (unsigned char)str[i]);  // 十六进制转义[6](@ref)
+            }
+            else {
+                fputc(str[i], file);  // 直接写入可打印字符
+            }
+        }
+    }
+    fputc('\"', file);  // 字符常量结束引号
+}
