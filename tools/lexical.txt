@@ -1,0 +1,100 @@
+lexical:{
+	void:
+	{
+		num: [0-9];
+		letter: [a-z]|[A-Z];
+		sign: ('-'|'+')?;
+	};
+	void:
+	{
+		hexa: [0-9]|[a-f]|[A-F];
+		octa: [0-7];
+		char_instring:['\40'-'\41'] | ['\43'-'\133'] | ['\135'-'\177'];
+		AC:(['\0'-'\51']|['\53'-'\56']|['\60'-'\177']);
+		anyC:  ['\0'-'\177'];
+		ESC: '\\'(     (<octa><octa>?<octa>?) | (x|X)<hexa><hexa>?
+				|     (v|t|r|n|f|b|a|'\\'|'?'|'\''|'\"'|['\0'])   
+				);
+	}
+	id: id(+1): (<letter> | _)(<letter> | _ | <num>)*;
+	number: 
+	{
+		integer(+3): <sign><num>+;
+		realC(+1):  <integer>'.'<num>+((e|E)<integer>)?;
+	}
+	string: string: '\"' ( <char_instring> | <ESC> ) *'\"';
+	macro: { include: '#' i n c l u d e;  }
+	reserved(+5):
+	{
+		func;
+		net;
+
+		def;
+		input;
+		output;
+		para;
+
+		real;
+		complex;
+		sint;
+		uint;
+
+		return;
+		for;
+		if;
+		else;					
+	};
+	function1(+5):
+	{
+		sin;
+		cos;
+		exp;
+		ln;
+		log;
+		sqrt;
+	}
+	function2(+5):
+	{
+		pow;
+	}
+	format:
+	{
+		spaces: ' '+;
+		enters: '\n'+;
+		tab: '\t';
+	}
+	division:
+	{
+		semicolon:';';
+		colon:':';
+		dot: '.';
+		comma: ',';
+	}
+	braket:
+	{
+		braceL:'{';
+		braceR:'}';
+		left:'(';
+		right: ')';
+		squareL: '[';
+		squareR: ']';		
+		angleL: '<';
+		angleR: '>';
+	}
+	anntation:
+	{
+		anntationS: '/''/'(['\0'-'\11']|['\13'-'\177'])*'\n';
+		anntationM: '/''*'(['\0'-'\177'])*'*'+'/';
+	}
+	operatmd:
+	{     
+		multi: '*';       
+		div: '/';   
+	}
+	operatas:
+	{
+		sub: '-';
+		add: '+';
+	}
+	value: value: '=';		
+};

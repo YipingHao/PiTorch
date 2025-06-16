@@ -1,0 +1,27 @@
+#include "lexical.txt"
+
+grammar: pretreat:
+{
+	pretreat:
+	{
+		meow: DEF*; 
+	};
+	DEF:{
+		anntation: [anntation];
+		anything: ANY;
+		include: INCLUDE;
+	}
+	INCLUDE:
+	{	
+		include: include spaces string;
+		include2: include string;
+	}
+	ANY:{
+		identifier: [identifier];
+		const:[const];
+		RegSymbol: [RegSymbol];
+		braket: [braket];
+		division: [division];
+		format: [format];
+	};
+}

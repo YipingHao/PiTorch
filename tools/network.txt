@@ -1,0 +1,11 @@
+	NETWORK: network id left NETPARA right braceL NETBODY braceR;
+	NETPARA: 
+	{
+		
+	}
+	NETBODY:
+	{
+		
+	}
+
+

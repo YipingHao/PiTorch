@@ -1,0 +1,16 @@
+#include "lexical.txt"
+
+grammar: context:
+{
+	context:
+	{
+		defs: DEF*;
+	}
+	DEF:
+	{
+		symbolic: SYMBOLIC;
+		network: NETWORK;
+	}
+#include "symbolic.txt"
+#include "network.txt"
+}
