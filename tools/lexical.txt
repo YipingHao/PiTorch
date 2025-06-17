@@ -32,7 +32,7 @@ lexical:{
 	{ 
 		include: '#' i n c l u d e;
 	}
-	instruct
+	instruct:
 	{
 		sum: '\\' s u m '_';
 	}
