@@ -52,5 +52,5 @@
 	//<FUNCTWORD>:
 	//{
 	//	function: function;
-	//	func: func;
-	//};
+	//	func: func; 
+	//}; 
