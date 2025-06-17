@@ -15,6 +15,7 @@ lexical:{
 		ESC: '\\'(     (<octa><octa>?<octa>?) | (x|X)<hexa><hexa>?
 				|     (v|t|r|n|f|b|a|'\\'|'?'|'\''|'\"'|['\0'])   
 				);
+		
 	}
 	id: id(+1): (<letter> | _)(<letter> | _ | <num>)*;
 	number: 
@@ -22,28 +23,43 @@ lexical:{
 		integer(+3): <sign><num>+;
 		realC(+1):  <integer>'.'<num>+((e|E)<integer>)?;
 	}
-	string: string: '\"' ( <char_instring> | <ESC> ) *'\"';
-	macro: { include: '#' i n c l u d e;  }
+	string: 
+	{
+		string: '\"' ( <char_instring> | <ESC> ) * '\"';
+		header: '<' ' '+ ( <char_instring> | <ESC> ) * ' '+ '>';
+	}
+	macro: 
+	{ 
+		include: '#' i n c l u d e;
+	}
+	instruct
+	{
+		sum: '\\' s u m '_';
+	}
 	reserved(+5):
 	{
 		func;
 		net;
+		tensor;		
 
 		def;
 		input;
 		output;
 		para;
 
-		real;
-		complex;
-		sint;
-		uint;
-
 		return;
 		for;
 		if;
 		else;					
 	};
+	type(+5);
+	{
+		real;
+		complex;
+		sint;
+		uint;
+		bool;
+	}
 	function1(+5):
 	{
 		sin;
@@ -96,5 +112,15 @@ lexical:{
 		sub: '-';
 		add: '+';
 	}
-	value: value: '=';		
+	//compare1:
+	//{
+	//	ge: '>' '=';
+	///	le: '<' '=';
+	//}
+	//compare2:
+	//{
+	//	eq: '=' '=';
+	//	neq: '!' '=';
+	//}
+	assignments: assign: '=';		
 };

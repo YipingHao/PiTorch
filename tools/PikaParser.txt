@@ -10,7 +10,17 @@ grammar: context:
 	{
 		symbolic: SYMBOLIC;
 		network: NETWORK;
+		def: VAR;
 	}
+	OPERATOR:
+	{
+		operatmd: operatmd;
+		operatas: operatas;
+	}
+
+#include "expression.txt"
 #include "symbolic.txt"
 #include "network.txt"
+
+
 }

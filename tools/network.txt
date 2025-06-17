@@ -1,11 +1,47 @@
-	NETWORK: network id left NETPARA right braceL NETBODY braceR;
-	NETPARA: 
-	{
-		
-	}
+	NETWORK: network id left SYMBOLICPARA right braceL NETBODY braceR;
 	NETBODY:
 	{
-		
+		net: NET_STATEMENT*;
 	}
+	NET_STATEMENT:
+	{
+		const: CONSTVAR;
+		exp: EXPRESSION;
+		def: def ID semicolon;
+		def2: def ID assign TENSORVALUE semicolon;
+		tensorDef1: TENSOR ID semicolon;
+		tensorDef2: TENSOR TENSORID assign TENSORVALUE semicolon;
+	}
+	CONSTVAR:
+	{
+		def1: [type] ID semicolon;
+		def2: [type] ID assign VALUE semicolon;
+	}
+	TENSORID: ID INDEXLIST;
+	TENSOR: tensor squareL VALUELIST squareR;
+	INDEXLIST: angleL INDEXUNITS angleR;
+	INDEXUNITS: 
+	{
+		single: ID2;
+		multi: INDEXUNITS comma ID2;
+	}
+	ID2:
+	{
+		yes: id;
+		no: void;
+	}
+	TENSORVALUE:
+	{
+		single: SUMSYMBOL TENSORID;
+		multi: SUMSYMBOL TENSORID OPERATOR TENSORID;
+		singleF: id INDEXLIST squareL INDEXUNITS squareR left TENSORID right;
+		multiF: id INDEXLIST squareL INDEXUNITS squareR left TENSORID comma TENSORID right;
+	}
+	SUMSYMBOL:
+	{
+		single: sum id;
+		multi: sum braceL INDEXUNITS braceR;
+	}
+	
 
 

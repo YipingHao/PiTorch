@@ -1,4 +1,4 @@
-	SYMBOLIC: KEYWORD id left PARA right braceL SYMBOLICBODY braceR;
+	SYMBOLIC: func  id left PARA right braceL SYMBOLICBODY braceR;
 	PARA: <SYMBOLICPARAS>;
 	<SYMBOLICPARAS>:
 	{
@@ -12,56 +12,45 @@
 		output: output ID;
 	}
 	
-	SYMBOLICBODY : DELARATIONS EXPRESSIONS;
-	DELARATIONS: DELARATION*;
-	DELARATION: def ID semicolon;
-	EXPRESSIONS: EXPRESSION*;
-	EXPRESSION: ID value EXP_RIGHT semicolon;
-	EXP_RIGHT:
+	SYMBOLICBODY : STATEMENT*;
+	STATEMENT:
 	{
-		<implicit>: EXP_MUL;
-		add: EXP_RIGHT [operatas] EXP_MUL;
+		def: VAR;
+		exp: EXPRESSION;
 	}
-	EXP_MUL:
-	{
-		<implicit>: EXP_MINUS;
-		multi: EXP_MUL [operatmd] EXP_MINUS;
-	}
-	EXP_MINUS:
-	{
-		<implicit>: UNIT;
-		plus: [operatas] UNIT;
-	}
-	UNIT:
-	{
-		id: ID;
-		call: CALL;
-		const: [number];
-		complex: left EXP_RIGHT right;
-	}
-	ID:
-	{
-		array: id squareL integer squareR;
-		single: id;
-	}
-	CALL:
-	{
-		call_1: [function1] left EXP_RIGHT right; 
-		call_2: [function2] left EXP_RIGHT comma EXP_RIGHT right; 
-	};
+	EXPRESSION: ID assign EXP_RIGHT semicolon;
 
-	KEYWORD:
+	VAR:
 	{
-		manif: <MANIFWORD>;
-		func: <FUNCTWORD>;
-	};
-	<MANIFWORD>: 
+		def1: DEF_VAR ID semicolon;
+		def2: DEF_VAR ID assign VALUE semicolon;
+	}
+	DEF_VAR
 	{
-		manifold: manifold;
-		manif: manif;
-	};
-	<FUNCTWORD>:
+		const: [type];
+		var: def;
+	}
+	VALUE: 
 	{
-		function: function;
-		func: func;
-	};
+		single: EXP_RIGHT;
+		multi: squareL VALUELIST squareR;
+	}
+	VALUELIST: EXP_RIGHT VALUES ;
+	VALUES: NEXTVALUE*;
+	NEXTVALUE: comma EXP_RIGHT;
+
+
+	//KEYWORD:
+	//{
+	//	func: func;
+	//};
+	//<MANIFWORD>: 
+	//{
+	//	manifold: manifold;
+	//	manif: manif;
+	//};
+	//<FUNCTWORD>:
+	//{
+	//	function: function;
+	//	func: func;
+	//};
