@@ -25,7 +25,7 @@
 		def1: DEF_VAR ID semicolon;
 		def2: DEF_VAR ID assign VALUE semicolon;
 	}
-	DEF_VAR
+	DEF_VAR:
 	{
 		const: [type];
 		var: def;
