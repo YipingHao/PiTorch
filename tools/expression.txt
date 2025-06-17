@@ -1,0 +1,32 @@
+	EXP_RIGHT:
+	{
+		<implicit>: EXP_MUL;
+		add: EXP_RIGHT [operatas] EXP_MUL;
+	}
+	EXP_MUL:
+	{
+		<implicit>: EXP_MINUS;
+		multi: EXP_MUL [operatmd] EXP_MINUS;
+	}
+	EXP_MINUS:
+	{
+		<implicit>: UNIT;
+		plus: [operatas] UNIT;
+	}
+	UNIT:
+	{
+		id: ID;
+		call: CALL;
+		const: [number];
+		complex: left EXP_RIGHT right;
+	}
+	ID:
+	{
+		array: id squareL integer squareR;
+		single: id;
+	}
+	CALL:
+	{
+		call_1: [function1] left EXP_RIGHT right; 
+		call_2: [function2] left EXP_RIGHT comma EXP_RIGHT right; 
+	};
