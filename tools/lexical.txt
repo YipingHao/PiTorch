@@ -52,7 +52,7 @@ lexical:{
 		if;
 		else;					
 	};
-	type(+5);
+	type(+5):
 	{
 		real;
 		complex;
