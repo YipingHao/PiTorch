@@ -42,7 +42,7 @@
 		single: sum id;
 		multi: sum braceL INDEXUNITS braceR;
 	}
-	SQ_INDEXUNITS
+	SQ_INDEXUNITS:
 	{
 		single: squareL INDEXUNITS squareR;
 	}
