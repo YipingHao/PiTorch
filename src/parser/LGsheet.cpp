@@ -1,5 +1,5 @@
 #include<stdlib.h>
-#include "sheet.h"
+#include "../header/sheet.h"
 
 using namespace Pikachu;
 
@@ -3105,127 +3105,7 @@ int NetPreL::GroupGet(int accept)
 	}
 	return 0;
 }
-struct NetPreG
-{
-	enum type
-	{
-		accept = 0,
-		error = 1,
-		push = 2,
-		reduce = 3
-	};
-	enum rules
-	{
-		all_all_ = 0,
-		pretreat_meow_ = 1,
-		//<DEF*>_first_ = 2,
-		//<DEF*>_multi_ = 3,
-		DEF_anntation_ = 4,
-		DEF_anything_ = 5,
-		DEF_include_ = 6,
-		//[anntation]_anntationS_ = 7,
-		//[anntation]_anntationM_ = 8,
-		INCLUDE_include_ = 9,
-		INCLUDE_include2_ = 10,
-		MACRO_single_ = 11,
-		MACRO_multi_ = 12,
-		ANY_identifier_ = 13,
-		ANY_number_ = 14,
-		ANY_string_ = 15,
-		ANY_instruct_ = 16,
-		ANY_reserved_ = 17,
-		ANY_type_ = 18,
-		ANY_function1_ = 19,
-		ANY_function2_ = 20,
-		ANY_format_ = 21,
-		ANY_division_ = 22,
-		ANY_braket_ = 23,
-		ANY_operatmd_ = 24,
-		ANY_operatas_ = 25,
-		ANY_assignments_ = 26,
-		//[id]_id_ = 27,
-		//[number]_integer_ = 28,
-		//[number]_realC_ = 29,
-		//[instruct]_sum_ = 30,
-		//[reserved]_func_ = 31,
-		//[reserved]_net_ = 32,
-		//[reserved]_tensor_ = 33,
-		//[reserved]_def_ = 34,
-		//[reserved]_input_ = 35,
-		//[reserved]_output_ = 36,
-		//[reserved]_para_ = 37,
-		//[reserved]_return_ = 38,
-		//[reserved]_for_ = 39,
-		//[reserved]_if_ = 40,
-		//[reserved]_else_ = 41,
-		//[type]_real_ = 42,
-		//[type]_complex_ = 43,
-		//[type]_sint_ = 44,
-		//[type]_uint_ = 45,
-		//[type]_bool_ = 46,
-		//[function1]_sin_ = 47,
-		//[function1]_cos_ = 48,
-		//[function1]_exp_ = 49,
-		//[function1]_ln_ = 50,
-		//[function1]_log_ = 51,
-		//[function1]_sqrt_ = 52,
-		//[function2]_pow_ = 53,
-		//[format]_spaces_ = 54,
-		//[format]_enters_ = 55,
-		//[format]_tab_ = 56,
-		//[division]_semicolon_ = 57,
-		//[division]_colon_ = 58,
-		//[division]_dot_ = 59,
-		//[division]_comma_ = 60,
-		//[braket]_braceL_ = 61,
-		//[braket]_braceR_ = 62,
-		//[braket]_left_ = 63,
-		//[braket]_right_ = 64,
-		//[braket]_squareL_ = 65,
-		//[braket]_squareR_ = 66,
-		//[braket]_angleL_ = 67,
-		//[braket]_angleR_ = 68,
-		//[operatmd]_multi_ = 69,
-		//[operatmd]_div_ = 70,
-		//[operatas]_sub_ = 71,
-		//[operatas]_add_ = 72,
-		//[assignments]_assign_ = 73
-	};
-	enum nonterminal
-	{
-		_all_ = 0,
-		_pretreat_ = 1,
-		//_<DEF*>_ = 2,
-		_DEF_ = 3,
-		//_[anntation]_ = 4,
-		_INCLUDE_ = 5,
-		_MACRO_ = 6,
-		_ANY_ = 7,
-		//_[id]_ = 8,
-		//_[number]_ = 9,
-		//_[instruct]_ = 10,
-		//_[reserved]_ = 11,
-		//_[type]_ = 12,
-		//_[function1]_ = 13,
-		//_[function2]_ = 14,
-		//_[format]_ = 15,
-		//_[division]_ = 16,
-		//_[braket]_ = 17,
-		//_[operatmd]_ = 18,
-		//_[operatas]_ = 19,
-		//_[assignments]_ = 20
-	};
-	static const size_t StateCount;
-	static const size_t NonTerminalCount;
-	static const size_t TerminalCount;
-	static const size_t RulesCount;
-	static const int GOTO[75][21];
-	static const int ACTION[75][53];
-	static const int RulesToSymbol[74];
-	static const int RulesLength[74];
-	static const char* const RulesName[74];
-	static const int Implicit[74];
-};
+
 const size_t NetPreG::StateCount = 75;
 const size_t NetPreG::NonTerminalCount = 21;
 const size_t NetPreG::TerminalCount = 52;
