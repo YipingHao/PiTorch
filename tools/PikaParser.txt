@@ -15,7 +15,7 @@ grammar: context:
 	OPERATOR:
 	{
 		operatmd: [operatmd];
-		operatmd: [operatas];
+		operatas: [operatas];
 	}
 
 #include "expression.txt"
