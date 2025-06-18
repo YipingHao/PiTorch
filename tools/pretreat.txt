@@ -34,7 +34,7 @@ grammar: pretreat:
 		format: [format];
 		division: [division];
 		braket: [braket];
-		anntation: [anntation];
+		//anntation: [anntation];
 		operatmd: [operatmd];
 		operatas: [operatas];
 		assignments: [assignments];
