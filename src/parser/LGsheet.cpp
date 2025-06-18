@@ -1,3 +1,4 @@
+#include<stdlib.h>
 struct NetL
 {
 	enum regular
