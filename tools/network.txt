@@ -34,14 +34,17 @@
 	{
 		single: SUMSYMBOL TENSORID;
 		multi: SUMSYMBOL TENSORID OPERATOR TENSORID;
-		singleF: id INDEXLIST squareL INDEXUNITS squareR left TENSORID right;
-		multiF: id INDEXLIST squareL INDEXUNITS squareR left TENSORID comma TENSORID right;
+		singleF: id INDEXLIST SQ_INDEXUNITS left TENSORID right;
+		multiF: id INDEXLIST SQ_INDEXUNITS left TENSORID comma TENSORID right;
 	}
 	SUMSYMBOL:
 	{
 		single: sum id;
 		multi: sum braceL INDEXUNITS braceR;
 	}
-	
+	SQ_INDEXUNITS
+	{
+		single: squareL INDEXUNITS squareR;
+	}
 
 

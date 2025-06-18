@@ -22,8 +22,12 @@
 	}
 	ID:
 	{
-		array: id squareL integer squareR;
+		array: id INDEX_COMPUTE;
 		single: id;
+	}
+	INDEX_COMPUTE:
+	{
+		single: squareL EXP_RIGHT squareR;
 	}
 	CALL:
 	{

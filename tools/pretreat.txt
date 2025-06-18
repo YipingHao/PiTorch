@@ -13,15 +13,30 @@ grammar: pretreat:
 	}
 	INCLUDE:
 	{	
-		include: include spaces string;
-		include2: include string;
+		include: MACRO string;
+		include2: MACRO header;
+	}
+	MACRO:
+	{
+		single: include;
+		multi: include spaces;
 	}
 	ANY:{
-		identifier: [identifier];
-		const:[const];
-		RegSymbol: [RegSymbol];
-		braket: [braket];
-		division: [division];
+		identifier: [id];
+		number:[number];
+		string: string;
+		//macro: [macro];
+		instruct: [instruct];
+		reserved: [reserved];
+		type: [type];
+		function1: [function1];
+		function2: [function2];
 		format: [format];
+		division: [division];
+		braket: [braket];
+		anntation: [anntation];
+		operatmd: [operatmd];
+		operatas: [operatas];
+		assignments: [assignments];
 	};
 }
