@@ -6,7 +6,10 @@ namespace Pikachu
 	int vectorGet(FILE* fp, vector<double>& output);
 }
 
+namespace Pikachu
+{
 
+}
 
 
 #endif // !parser_H_hiadfghuiadfhioasdfhiasdfikhasdfhiasdfhklsdhnfakl
