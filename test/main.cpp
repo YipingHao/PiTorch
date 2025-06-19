@@ -11,6 +11,8 @@ int test(hyperlex::dictionary& para);
 int main(int argc, char* argv[])
 {
     int error;
+    error = entrance(argc, argv);
+    return error;
     try
     {
         error = test_entrance_old("./");
@@ -85,7 +87,15 @@ int static entrance(int argc, char* argv[])
     std::cout << "item: " << item << std::endl;
     if (compare(item, "test old"))
     {
-        info = test_entrance_old(outputDir.c_str());
+        try
+        {
+            info = test_entrance_old(outputDir.c_str());
+        }
+        catch (Pikachu::PikaError& E)
+        {
+            std::cout << "int main(): " << std::endl;
+            E.show(stderr);
+        }
     }
     //else if (compare(item, "simple LR"))
     //{
@@ -101,7 +111,7 @@ int static entrance(int argc, char* argv[])
     }
     else
     {
-        info = test_entrance_old(outputDir.c_str());
+        info = test(para);
     }
     return info;
 }
