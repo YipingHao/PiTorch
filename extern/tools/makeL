@@ -11,8 +11,8 @@ COFILE = $(ODIR)automata.o  $(ODIR)dictionary.o
 HOFILE = $(CODE)automata.h  $(CODE)dictionary.h
 TestOFile = $(TEST)main.o
 
-OPTION = -O0 
-#OPTION = -O3
+#OPTION = -O0 
+OPTION ?= -O2
 #EXTRA =-Wall -Wextra -fno-strict-aliasing -fwrapv -fno-aggressive-loop-optimizations -Wconversion -ftrapv
 #CC = icc
 CC = g++
@@ -38,7 +38,6 @@ $(TEST)main.o: $(HOFILE) $(TEST)main.cpp
 .PHONY: clean
 clean:
 	rm $(ODIR)*.o
-	rm $(TEST)*.o
 
 
 

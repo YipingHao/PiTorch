@@ -12,6 +12,8 @@ COFILE = $(ODIR)linear_algebra.o $(ODIR)mutex_bar.o $(ODIR)vecmat.o $(ODIR)rando
 COOFILE = $(ODIR)HyperAlgebraCore.o $(ODIR)AlgebraMKL.o $(ODIR)HyperAlgebraRandom.o
 TestOFile = $(TEST)main.o
 
+OPTION ?= -O3
+
 EXTERNLIB = -lHyperAcc
 EXTERN = ../extern/lib
 
@@ -26,33 +28,33 @@ libHyperAlgebraOld.a: $(COFILE) $(COOFILE)
 
 
 $(ODIR)linear_algebra.o:$(CODE)linear_algebra.cpp $(HFILE)
-	g++ -o $(ODIR)linear_algebra.o -c -O3  $(CODE)linear_algebra.cpp
+	g++ -o $(ODIR)linear_algebra.o -c $(OPTION)  $(CODE)linear_algebra.cpp
 
 $(ODIR)HyperAlgebraCore.o:$(CODE)HyperAlgebraCore.cpp $(HFILE)
-	g++ -o $(ODIR)HyperAlgebraCore.o  -c -O3 $(CODE)HyperAlgebraCore.cpp
+	g++ -o $(ODIR)HyperAlgebraCore.o  -c $(OPTION) $(CODE)HyperAlgebraCore.cpp
 
 $(ODIR)AlgebraMKL.o:$(CODE)AlgebraMKL.cpp $(HFILE)
-	g++ -o $(ODIR)AlgebraMKL.o  -c -O3 $(CODE)AlgebraMKL.cpp
+	g++ -o $(ODIR)AlgebraMKL.o  -c $(OPTION) $(CODE)AlgebraMKL.cpp
 
 $(ODIR)HyperAlgebraRandom.o:$(CODE)HyperAlgebraRandom.cpp $(HFILE)
-	g++ -o $(ODIR)HyperAlgebraRandom.o  -c -O3 $(CODE)HyperAlgebraRandom.cpp
+	g++ -o $(ODIR)HyperAlgebraRandom.o  -c $(OPTION) $(CODE)HyperAlgebraRandom.cpp
 
 
 
 $(ODIR)mutex_bar.o:$(CODE)mutex_bar.cpp $(HFILE)
-	g++ -o $(ODIR)mutex_bar.o  -c -O3 $(CODE)mutex_bar.cpp
+	g++ -o $(ODIR)mutex_bar.o  -c $(OPTION) $(CODE)mutex_bar.cpp
 
 $(ODIR)random.o:$(CODE)random.cpp $(HFILE)
-	g++ -o $(ODIR)random.o -c -O3 $(CODE)random.cpp
+	g++ -o $(ODIR)random.o -c $(OPTION) $(CODE)random.cpp
 
 $(ODIR)vecmat.o:$(CODE)vecmat.cpp $(HFILE)
-	g++ -o $(ODIR)vecmat.o  -c -O3 $(CODE)vecmat.cpp
+	g++ -o $(ODIR)vecmat.o  -c $(OPTION) $(CODE)vecmat.cpp
 
 test.exe:$(COFILE) $(COOFILE) $(TestOFile)  
 	g++ -o $(TEST)test.exe $(COFILE) $(COOFILE) $(TestOFile) -lm -lpthread -L $(MKL) -lmkl_rt -L$(EXTERN) $(EXTERNLIB)
 
 $(TEST)main.o: $(HFILE) $(TEST)main.cpp
-	g++ -o $(TEST)main.o -c -O3 $(TEST)main.cpp
+	g++ -o $(TEST)main.o -c $(OPTION) $(TEST)main.cpp
 
 
 
@@ -60,7 +62,6 @@ $(TEST)main.o: $(HFILE) $(TEST)main.cpp
 .PHONY: clean
 clean:
 	rm $(ODIR)*.o
-	rm $(TEST)*.o
 
 
 

@@ -21,7 +21,7 @@ TestOFile = $(TEST)main.o $(TEST)test.o
 CC = g++ -std=c++11
 
 #Option = -g 
-Option = -O3
+Option ?= -O3
 
 
 libHyperPes.a:  $(COFILE) $(SOFILE) $(POFILE)
@@ -72,8 +72,8 @@ $(TEST)test.o: $(HFILE) $(TEST)test.cpp $(TEST)extern.h
 clean:
 	rm $(ODIR)*.o
 	rm $(TEST)*.o
-
-
+	rm $(BASE)extern/obj/*.o
+	rm $(BASE)extern/lib/*.a
 
 
 

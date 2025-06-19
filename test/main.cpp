@@ -7,7 +7,7 @@ int static test_entrance(const char* output_path);
 #endif
 
 #include<cmath>
-int main()
+int main(int argc, char* argv[])
 {
     int error;
     try
