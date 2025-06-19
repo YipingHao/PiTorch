@@ -15,7 +15,7 @@ SOFILE = $(ODIR)symbolic.o $(ODIR)SymbolicIR.o $(ODIR)expression.o $(ODIR)manifo
 POFILE = $(ODIR)Pexp.o $(ODIR)LGsheet.o
 HFILE = $(HEAD)PikaType.h $(HEAD)PikaTemplate.h $(HEAD)Pikachu.h $(HEAD)Symbolic.h $(HEAD)parser.h
 Extern = -lHyperlex -lHyperAlgebra
-TestOFile = $(TEST)main.o $(TEST)test.o
+TestOFile = $(TEST)main.o $(TEST)test.o $(TEST)test_old.o
 
 #CC = icc -std=c++11
 CC = g++ -std=c++11
@@ -67,6 +67,8 @@ $(TEST)main.o: $(HFILE) $(TEST)main.cpp $(TEST)extern.h
 $(TEST)test.o: $(HFILE) $(TEST)test.cpp $(TEST)extern.h
 	$(CC) -o $(TEST)test.o -c $(Option) $(TEST)test.cpp
 
+$(TEST)test_old.o: $(HFILE) $(TEST)test_old.cpp $(TEST)extern.h
+	$(CC) -o $(TEST)test_old.o -c $(Option) $(TEST)test_old.cpp
 
 .PHONY: clean
 clean:
