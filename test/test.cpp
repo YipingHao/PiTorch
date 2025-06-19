@@ -73,7 +73,7 @@ int static Test060(const hyperlex::dictionary& para);
 int static Test061(const hyperlex::dictionary& para);
 int static Test062(const hyperlex::dictionary& para);
 int static Test063(const hyperlex::dictionary& para);
-int testNew(hyperlex::dictionary& para)
+int test(hyperlex::dictionary& para)
 {
     int item = para.search(1L, "TestItem::item");
     int error = 0;
