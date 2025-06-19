@@ -7,7 +7,7 @@
 {
 	//server = "CPU";
 	//server = "GPU";
-	item = 13; // FI to .c func,  single configuration.
+	//item = 13; // FI to .c func,  single configuration.
 	//item = 9; // switch bond length (R) to FI formula output
 	thread = 4;
 	option1 = false;//bool
@@ -22,6 +22,12 @@
 	
 	DataFilePath = "/share/fayelulu/FIanalyzer/data/";
 	DataFileName = "fort.100";
+
+	item = "test";
+	TestItem = 
+	{
+		item = 3;
+	};
 }
 /*
 
