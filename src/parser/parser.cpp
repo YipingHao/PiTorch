@@ -111,7 +111,7 @@ public:
     void demo(FILE* fp = stdout) const;
 private:
     vector<var*> global;
-    vector<func*> func;
+    vector<func*> funcs;
     vector<NetInContext*> nets;
     context* parent;
     vector<context*> childs;
