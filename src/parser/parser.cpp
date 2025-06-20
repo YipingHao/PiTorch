@@ -163,7 +163,7 @@ ConstObj::~ConstObj()
 {
 
 }
-void ConstObj::demo(FILE* fp = stdout) const
+void ConstObj::demo(FILE* fp) const
 {
     const char* type_ = "null";
     switch (T)
@@ -251,7 +251,7 @@ void var::ruin(void)
 {
     ruinCO();
 }
-void var::demo(FILE* fp = stdout) const
+void var::demo(FILE* fp) const
 {
     
 }
@@ -302,7 +302,7 @@ void context::ruin(void)
     global.clear();
     childs.clear();
 }
-void context::demo(FILE* fp = stdout) const
+void context::demo(FILE* fp) const
 {
 
 }
