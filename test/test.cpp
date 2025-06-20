@@ -435,10 +435,6 @@ static bool compare(const char* str1, const char* str2)
 
 
 
-
-
-
-
 int static Test001(const hyperlex::dictionary& para)
 {
     int error = 0;
