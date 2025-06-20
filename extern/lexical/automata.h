@@ -703,8 +703,8 @@ namespace hyperlex
 		*/
 		void demoL(FILE* fp) const;
 		void demoG(FILE* fp) const;
-		void printGName(FILE* output, FILE* infor, const char* nameG)const;
-		void printImplicit(FILE* output, FILE* infor, const char* nameG)const;
+		void printGName(FILE* output, FILE* infor, const char* nameG) const;
+		void printImplicit(FILE* output, FILE* infor, const char* nameG) const;
 		/*
 		* input analysis;
 		*/

@@ -108,6 +108,9 @@ namespace hyperlex
         int buildGanalysis(const hyperlex::Morpheme& eme);
         int buildAll(const hyperlex::Morpheme& eme, hyperlex::GrammarTree& Tree);
         element buildUnit(Ktype& T, const hyperlex::Morpheme& eme, GLTree* GT);
+
+
+
     };
 
 }
