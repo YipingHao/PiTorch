@@ -10,6 +10,7 @@ using namespace hyperlex;
 #include<iostream>
 #include <bitset>
 static char* CopyMalloc(const char* s);
+static void CopyNc(const char* src, char* dst, size_t length);
 static bool compare(const char* str1, const char* str2);
 static void write_escaped_string(const char* str, FILE* file);
 static size_t strlength(const char* str);
@@ -485,6 +486,56 @@ char* Morpheme::GetString(size_t site) const
 {
 	BufferChar BC;
 	BC = GetWord(site);
+	return BC.DequeueString();
+}
+//#include <stdlib.h>
+//#include <string.h>
+
+static char* string_from_header(const char* header) 
+{
+	if (header == NULL) return NULL;
+
+	// 处理空字符串的情况
+	if (*header == '\0') return CopyMalloc("\"\"");
+
+	const char* start = header;
+	const char* end = header + strlength(header) - 1;
+
+	// 跳过开头的空格和'<'
+	while (*start != '\0' && (*start == ' ' || *start == '<')) {
+		start++;
+	}
+
+	// 跳过结尾的空格和'>'
+	while (end >= start && (*end == ' ' || *end == '>')) {
+		end--;
+	}
+
+	// 计算有效内容长度
+	size_t len = (end >= start) ? (end - start + 1) : 0;
+
+	// 分配内存：2个双引号 + 内容长度 + 结束符
+	char* result = (char*)malloc((len + 3) * sizeof(char));
+	if (result == NULL) return NULL;
+
+	// 构建结果字符串
+	result[0] = '"';
+	if (len > 0) {
+		CopyNc(start, result + 1, len);
+		//strncpy(result + 1, start, len);
+	}
+	result[len + 1] = '"';
+	result[len + 2] = '\0';
+
+	return result;
+}
+char* Morpheme::GetHeader(size_t site) const
+{
+	const char* temp = GetWord(site);
+	char* header = string_from_header(temp);
+	BufferChar BC;
+	BC = header;
+	free(header);
 	return BC.DequeueString();
 }
 void Morpheme::UnitMove(size_t from, size_t to)
@@ -6976,6 +7027,10 @@ static char* CopyMalloc(const char* s)
 	for (size_t i = 0; i < size; i++) v[i] = s[i];
 	v[size] = '\0';
 	return v;
+}
+static void CopyNc(const char* src, char* dst, size_t length)
+{
+	for (size_t i = 0; i < length; i++) dst[i] = src[i];
 }
 static bool compare(const char* str1, const char* str2)
 {

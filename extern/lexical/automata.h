@@ -477,6 +477,7 @@ namespace hyperlex
 		double GetReal(size_t site) const;
 		long int GetInt(size_t site) const;
 		char* GetString(size_t site) const;
+		char* GetHeader(size_t site) const;
 		bool& valid(size_t site);
 
 		void insert(size_t from, size_t deleted, const Morpheme& src);
@@ -703,8 +704,8 @@ namespace hyperlex
 		*/
 		void demoL(FILE* fp) const;
 		void demoG(FILE* fp) const;
-		void printGName(FILE* output, FILE* infor, const char* nameG) const;
-		void printImplicit(FILE* output, FILE* infor, const char* nameG) const;
+		void printGName(FILE* output, FILE* infor, const char* nameG)const;
+		void printImplicit(FILE* output, FILE* infor, const char* nameG)const;
 		/*
 		* input analysis;
 		*/
