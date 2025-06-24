@@ -15,21 +15,12 @@
 	SYMBOLICBODY : STATEMENT*;
 	STATEMENT:
 	{
-		def: VAR;
-		exp: EXPRESSION;
+		const: CONSTVAR;
+		def1: def ID semicolon;
+		def2: def ID assign EXP_RIGHT semicolon;
+		exp: ID assign EXP_RIGHT semicolon;
 	}
-	EXPRESSION: ID assign EXP_RIGHT semicolon;
 
-	VAR:
-	{
-		def1: DEF_VAR ID semicolon;
-		def2: DEF_VAR ID assign VALUE semicolon;
-	}
-	DEF_VAR:
-	{
-		const: [type];
-		var: def;
-	}
 	VALUE: 
 	{
 		single: EXP_RIGHT;

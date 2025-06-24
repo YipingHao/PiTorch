@@ -1,16 +1,16 @@
 	EXP_RIGHT:
 	{
-		<implicit>: EXP_MUL;
+		default: EXP_MUL;
 		add: EXP_RIGHT [operatas] EXP_MUL;
 	}
 	EXP_MUL:
 	{
-		<implicit>: EXP_MINUS;
+		default: EXP_MINUS;
 		multi: EXP_MUL [operatmd] EXP_MINUS;
 	}
 	EXP_MINUS:
 	{
-		<implicit>: UNIT;
+		default: UNIT;
 		plus: [operatas] UNIT;
 	}
 	UNIT:

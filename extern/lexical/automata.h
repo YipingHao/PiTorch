@@ -235,6 +235,14 @@ namespace hyperlex
 	private:
 		char QueueHead(void);
 	};
+	template <class T> class Tree
+	{
+	public:
+
+	protected:
+		vector<T*> childs;
+		T* parent;
+	};
 }
 namespace hyperlex
 {

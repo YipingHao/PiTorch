@@ -963,6 +963,7 @@ bool network::Simplify02ClusterFusion(void)
 	return changed_;
 }
 
+
 /*
 NeuralNetwork::NeuralNetwork()
 {
