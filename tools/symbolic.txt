@@ -29,19 +29,3 @@
 	VALUELIST: EXP_RIGHT VALUES ;
 	VALUES: NEXTVALUE*;
 	NEXTVALUE: comma EXP_RIGHT;
-
-
-	//KEYWORD:
-	//{
-	//	func: func;
-	//};
-	//<MANIFWORD>: 
-	//{
-	//	manifold: manifold;
-	//	manif: manif;
-	//};
-	//<FUNCTWORD>:
-	//{
-	//	function: function;
-	//	func: func; 
-	//}; 

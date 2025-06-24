@@ -11,6 +11,7 @@ grammar: context:
 		symbolic: SYMBOLIC;
 		network: NETWORK;
 		def: CONSTVAR;
+		exp: ID assign EXP_RIGHT semicolon;
 		diff: DIFF_NET;
 	}
 	OPERATOR:
