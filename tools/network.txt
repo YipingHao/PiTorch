@@ -8,8 +8,8 @@
 		const: CONSTVAR;
 		exp: ID assign VALUE semicolon;
 		def: def ID semicolon;
-		def2: def ID TENSORID;
-		tensorDef1: TENSOR ID semicolon;
+		//def2: def ID TENSOR semicolon;
+		tensorDef1: TENSOR ID semicolon;//input para
 		tensorDef2: TENSOR TENSORID assign TENSORVALUE semicolon;
 	}
 	CONSTVAR:
