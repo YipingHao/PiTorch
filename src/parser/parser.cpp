@@ -56,6 +56,8 @@ public:
 		liberal,
 	};
 	void assign(sint right);
+	void assign(const ConstObj* srcR);
+	//void assign(const ConstObj* srcR);
 	void assign(size_t NO, sint right);
 	void demo(FILE* fp = stdout) const;
 	void copy(const ConstObj* src);
@@ -92,6 +94,7 @@ public:
 	{
 		return T == _sint_ || T == _unit_;
 	}
+	inline bool GetScalar(void)const { return scalar; }
 	inline size_t GetDim(void) const { return S.count(); };
 };
 class var : public CompilerObj
@@ -169,6 +172,9 @@ public:
 		ErrorIndexOutofRange,
 		ErrorNeedAInt,
 		ErrorNameNULL,
+		WrongEntrance,
+
+		ErrorInitialAorS,
 
 		ErrorNotAConst,
 		ErrorUnsupportFunc,
@@ -202,11 +208,13 @@ private:
 
 	int buildConstObj(const lex& eme, GTNode* GTarget);
 	int buildExp(const lex& eme, GTNode* GTarget);
+	int buildSymbolic(const lex& eme, GTNode* GTarget);
 	int buildNet(const lex& eme, GTNode* GTarget);
 	int buildDiff(const lex& eme, GTNode* GTarget);
 
-	int GetConstObj(const lex& eme, GTNode* GTarget);
+	int GetConstObj(const lex& eme, GTNode* GTarget, ConstObj::type Type);
 	int GetAConst(ConstObj*& output, const lex& eme, GTNode* GTarget);
+	size_t getValueDim(GTNode* GTarget);
 };
 
 
@@ -293,22 +301,26 @@ ConstObj::ConstObj(ConstObj* left, const char* op, ConstObj* right)// 二元运算构
 	// 根据操作符执行运算
 	switch (op[0]) {
 	case '+':
-		if (T == _sint_)      V[0].i = left->V[0].i + right->V[0].i;
-		else if (T == _real_) V[0].f = left->V[0].f + right->V[0].f;
+		if (T == _sint_)       V[0].i = left->V[0].i + right->V[0].i;
+		else if (T == _real_)  V[0].f = left->V[0].f + right->V[0].f;
+		else if (T == _unit_)  V[0].u = left->V[0].u + right->V[0].u; // 无符号加法[3,6](@ref)
 		break;
 	case '-':
-		if (T == _sint_)      V[0].i = left->V[0].i - right->V[0].i;
-		else if (T == _real_) V[0].f = left->V[0].f - right->V[0].f;
+		if (T == _sint_)       V[0].i = left->V[0].i - right->V[0].i;
+		else if (T == _real_)  V[0].f = left->V[0].f - right->V[0].f;
+		else if (T == _unit_)  V[0].u = left->V[0].u - right->V[0].u; // 无符号减法[6](@ref)
 		break;
 	case '*':
-		if (T == _sint_)      V[0].i = left->V[0].i * right->V[0].i;
-		else if (T == _real_) V[0].f = left->V[0].f * right->V[0].f;
+		if (T == _sint_)       V[0].i = left->V[0].i * right->V[0].i;
+		else if (T == _real_)  V[0].f = left->V[0].f * right->V[0].f;
+		else if (T == _unit_)  V[0].u = left->V[0].u * right->V[0].u; // 无符号乘法
 		break;
 	case '/':
 		if (T == _sint_ && right->V[0].i != 0)
 			V[0].i = left->V[0].i / right->V[0].i;
 		else if (T == _real_ && right->V[0].f != 0.0)
 			V[0].f = left->V[0].f / right->V[0].f;
+		else if (T == _unit_ && right->V[0].u != 0) V[0].u = left->V[0].u / right->V[0].u;
 		//else
 			//errorCode = ErrorDivideByZero;  // 除零错误
 		break;
@@ -551,7 +563,55 @@ void ConstObj::assign(size_t NO, sint right) {
 	V[NO].i = right;
 	S[NO] = status::valued;
 }
+void ConstObj::assign(const ConstObj* srcR) {
+	if (!srcR) return;  // 空指针检查[1](@ref)
 
+	// 1. 自赋值检查（避免资源释放导致数据丢失）
+	if (this == srcR) return;  // 防止自赋值[7,8](@ref)
+
+	// 2. 释放当前对象资源（尤其动态内存）
+	S.clear();  // 清空状态向量
+	V.clear();  // 清空值向量（若含张量则需额外释放内存）
+
+	// 3. 复制基本属性
+	T = srcR->T;         // 数据类型（_sint_/_unit_等）
+	scalar = srcR->scalar; // 标量/数组标志
+	//SetName(srcR->GetName());  // 深拷贝名称（基类方法）[1](@ref)
+
+	// 4. 深拷贝状态向量S
+	for (size_t i = 0; i < srcR->S.count(); ++i) {
+		S.append(srcR->S[i]);  // 逐元素复制状态值
+	}
+
+	// 5. 深拷贝值向量V（类型敏感处理）
+	for (size_t i = 0; i < srcR->V.count(); ++i) {
+		value newVal;
+		switch (T) {  // 按数据类型选择复制策略
+		case _sint_:
+			newVal.i = srcR->V[i].i;  // 整型直接赋值
+			break;
+		case _unit_:
+			newVal.u = srcR->V[i].u;  // 无符号整型直接赋值
+			break;
+		case _bool_:
+			newVal.b = srcR->V[i].b;  // 布尔型直接赋值
+			break;
+		case _real_:
+			newVal.f = srcR->V[i].f;  // 浮点型直接赋值
+			break;
+		case _complex_:
+			// 张量深拷贝（需实际内存大小计算）
+			if (srcR->V[i].t) {
+				newVal.t = NULL; // 复制数据
+			}
+			else {
+				newVal.t = NULL;
+			}
+			break;
+		}
+		V.append(newVal);  // 添加复制值到向量
+	}
+}
 var::var()
 {
 	SetName("implicit");
@@ -1087,7 +1147,7 @@ int context::buildAll(const lex& eme, AST& Tree)
 				{
 					GTNode* GTarget = GT->child(0);
 					iterator.state() = 1;
-					error = buildExp(eme, GTarget);
+					error = buildSymbolic(eme, GTarget);
 					break;
 				}
 				case Pikachu::NetG::DEF_network_:
@@ -1102,6 +1162,13 @@ int context::buildAll(const lex& eme, AST& Tree)
 					GTNode* GTarget = GT->child(0);
 					iterator.state() = 1;
 					error = buildConstObj(eme, GTarget);
+					break;
+				}
+				case Pikachu::NetG::DEF_exp_:
+				{
+					GTNode* GTarget = GT->child(0);
+					iterator.state() = 1;
+					error = buildExp(eme, GTarget);
 					break;
 				}
 				case Pikachu::NetG::DEF_diff_:
@@ -1144,7 +1211,7 @@ static ConstObj::type getType(const lex& eme, GTNode* GTarget)
 	const char* input = eme.GetWord(GTarget->root().site);
 	return getType(input);
 }
-int context::GetConstObj(const lex& eme, GTNode* GTarget)
+int context::GetConstObj(const lex& eme, GTNode* GTarget, ConstObj::type Type)
 {
 	const char* name = NULL;
 	name = getIDname(eme, GTarget);
@@ -1189,7 +1256,7 @@ int context::GetConstObj(const lex& eme, GTNode* GTarget)
 			return 1234267;
 		}
 	}
-	obj = new ConstObj(dim, Scalar_, ConstObj::type::_sint_, name);
+	obj = new ConstObj(dim, Scalar_, Type, name);
 	Cobj.append(obj);
 }
 int context::GetAConst(ConstObj* & output, const lex& eme, GTNode* GTarget)
@@ -1198,10 +1265,13 @@ int context::GetAConst(ConstObj* & output, const lex& eme, GTNode* GTarget)
 	int error = 0;
 	output = NULL;
 	iterator.initial(GTarget);
-	NetG::rules RRR = (NetG::rules)GTarget->root().site;
-	if (RRR != Pikachu::NetG::EXP_RIGHT_add_)
-	{
 
+	NetG::nonterminal RRR = (NetG::nonterminal)NetG::RulesToSymbol[GTarget->root().site];
+	if (RRR != NetG::nonterminal::_EXP_RIGHT_)
+	{
+		errorInfor1 = GTarget->root().site;
+		errorCode = WrongEntrance;
+		return 12321;
 	}
 	while (iterator.still())
 	{
@@ -1323,6 +1393,9 @@ int context::GetAConst(ConstObj* & output, const lex& eme, GTNode* GTarget)
 				GT->root().infor = (void*)Lvalue;
 				break;
 			}
+			case Pikachu::NetG::rules::EXP_MINUS_default_:
+			case Pikachu::NetG::rules::EXP_MUL_default_:
+			case Pikachu::NetG::rules::EXP_RIGHT_default_:
 			case Pikachu::NetG::UNIT_id_:
 			{
 				GTNode* Right = GT->child(0);
@@ -1386,50 +1459,94 @@ int context::GetAConst(ConstObj* & output, const lex& eme, GTNode* GTarget)
 	}
 	return error;
 }
+size_t context::getValueDim(GTNode* VALUE)
+{
+	if ((Pikachu::NetG::rules)VALUE->root().site == Pikachu::NetG::VALUE_single_)
+		return 1;
+	GTNode* VALUELIST = VALUE->child(1);//multi: squareL VALUELIST squareR;
+	GTNode* VALUES = VALUELIST->child(1);// VALUELIST: EXP_RIGHT VALUES;
+	return VALUES->ChildCount() + 1;
+}
+
+
 int context::buildConstObj(const lex& eme, GTNode* GTarget)
 {
+	int error = 0;
 	GTNode* GT = GTarget;
+	NetG::rules RR = (NetG::rules)GTarget->root().site;
+	ConstObj* obj = NULL;
+	size_t line = GT->child(0)->root().site;
+	if (GT->root().rules)
+	{
+		if (RR == Pikachu::NetG::CONSTVAR_def1_ || RR == Pikachu::NetG::CONSTVAR_def2_)
+		{
+			ConstObj::type TT = getType(eme, GT->child(0));
+			if (TT != ConstObj::type::_sint_ && TT != ConstObj::type::_real_)
+			{
+				errorCode = ErrorUnsupportType;
+				errorInfor1 = line;
+				return 423434;
+			}
+			error = GetConstObj(eme, GT->child(1), TT);
+			if (error != 0) return error;
+			obj = Cobj[Cobj.count() - 1];
+		}
+		else
+		{
+			errorInfor1 = GTarget->root().site;
+			errorCode = WrongEntrance;
+			return 123897821;
+		}
+	}
+	else
+	{
+		errorInfor1 = GTarget->root().site;
+		errorCode = WrongEntrance;
+		return 123897822;
+	}
+	if (RR == Pikachu::NetG::CONSTVAR_def1_) return error;
+
+	GTNode* VALUE = GTarget->child(3);
+	bool valueScalar = ((Pikachu::NetG::rules)VALUE->root().site == Pikachu::NetG::VALUE_single_);
+	size_t dim = getValueDim(VALUE);
+	if (valueScalar != obj->GetScalar() || dim != obj->GetDim())
+	{
+		errorCode = ErrorInitialAorS;
+		errorInfor1 = line;
+		errorInfor2 = dim;
+		errorInfor4 = obj->GetScalar();
+		return 48975644;
+	}
+	if (valueScalar)
+	{
+		GTNode* EXP_RIGHT = VALUE->child(0);//single: EXP_RIGHT;
+		ConstObj* srcR = NULL;
+		int error = GetAConst(srcR, eme, EXP_RIGHT);
+		if (error != 0) return error;
+		obj->assign(srcR);
+		delete srcR;
+	}
+	else
+	{
+		GTNode* VALUELIST = VALUE->child(1);//multi: squareL VALUELIST squareR;
+		GTNode* VALUES = VALUELIST->child(1);// VALUELIST: EXP_RIGHT VALUES;
+	}
+	return error;
+}
+int context::buildExp(const lex& eme, GTNode* GTarget)
+{
+	GTNode* GT = NULL;
 	GTiterator iterator;
 	int error = 0;
 	iterator.initial(GTarget);
 	while (iterator.still())
 	{
 		GT = iterator.target();
-		if (iterator.state() == 0)
-		{
-			NetG::rules RR = (NetG::rules)GT->root().site;
-			if (GT->root().rules)
-			{
-				if (RR == Pikachu::NetG::CONSTVAR_def1_ || RR == Pikachu::NetG::CONSTVAR_def2_)
-				{
-					ConstObj::type TT = getType(eme, GT->child(0));
-					if (TT != ConstObj::type::_sint_)
-					{
-						errorCode = ErrorUnsupportType;
-						errorInfor1 = GT->child(0)->root().site;
-						return 423434;
-					}
-					error = GetConstObj(eme, GT->child(1));
-					if (error != 0) return error;
-					
-				}
-				switch (RR)
-				{
-				case Pikachu::NetG::CONSTVAR_def1_:
-					break;
-				case Pikachu::NetG::CONSTVAR_def2_:
-					break;
-				
-				default:
-					break;
-				}
-			}
-		}
 		iterator.next();
 	}
 	return error;
 }
-int context::buildExp(const lex& eme, GTNode* GTarget)
+int context::buildSymbolic(const lex& eme, GTNode* GTarget)
 {
 	GTNode* GT = NULL;
 	GTiterator iterator;

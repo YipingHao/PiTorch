@@ -21,6 +21,12 @@
 		exp: ID assign EXP_RIGHT semicolon;
 	}
 
+
+	CONSTVAR:
+	{
+		def1: [type] ID semicolon;
+		def2: [type] ID assign VALUE semicolon;
+	}
 	VALUE: 
 	{
 		single: EXP_RIGHT;

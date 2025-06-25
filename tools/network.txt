@@ -12,11 +12,7 @@
 		tensorDef1: TENSOR ID semicolon;//input para
 		tensorDef2: TENSOR TENSORID assign TENSORVALUE semicolon;
 	}
-	CONSTVAR:
-	{
-		def1: [type] ID semicolon;
-		def2: [type] ID assign VALUE semicolon;
-	}
+	
 	TENSORID: ID INDEXLIST;
 	TENSOR: tensor squareL VALUELIST squareR;
 	INDEXLIST: angleL INDEXUNITS angleR;
