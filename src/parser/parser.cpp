@@ -57,7 +57,7 @@ public:
 	};
 	void assign(sint right);
 	void assign(const ConstObj* srcR);
-	//void assign(const ConstObj* srcR);
+	void assign(const ConstObj* srcR, size_t No);
 	void assign(size_t NO, sint right);
 	void demo(FILE* fp = stdout) const;
 	void copy(const ConstObj* src);
@@ -175,7 +175,7 @@ public:
 		ErrorUnKnowEXP,
 		buildUndone,
 	};
-	int build(const char* FileName, context & dst);
+	int build(const char* FileName, context * dst);
 	void ErrorDemo(FILE* fp) const;
 	void clear(void);
 protected:
@@ -194,17 +194,17 @@ protected:
 
 	int pretreatment(const char* input, lex& output);
 	void NeglectNullToken(lex& eme) const;
-	int buildGanalysis(const lex& eme, context& dst);
-	int buildAll(const lex& eme, AST& Tree, context& dst);
+	int buildGanalysis(const lex& eme, context* dst);
+	int buildAll(const lex& eme, AST& Tree, context* dst);
 
-	int buildConstObj(const lex& eme, GTNode* GTarget, context& dst);
-	int buildExp(const lex& eme, GTNode* GTarget, context& dst);
-	int buildSymbolic(const lex& eme, GTNode* GTarget, context& dst);
-	int buildNet(const lex& eme, GTNode* GTarget, context& dst);
-	int buildDiff(const lex& eme, GTNode* GTarget, context& dst);
+	int buildConstObj(const lex& eme, GTNode* GTarget, context* dst);
+	int buildExp(const lex& eme, GTNode* GTarget, context* dst);
+	int buildSymbolic(const lex& eme, GTNode* GTarget, context* dst);
+	int buildNet(const lex& eme, GTNode* GTarget, context* dst);
+	int buildDiff(const lex& eme, GTNode* GTarget, context* dst);
 
-	int SetAConstObj(const lex& eme, GTNode* GTarget, ConstObj::type Type, context& dst);
-	int GetAConst(ConstObj*& output, const lex& eme, GTNode* GTarget, context& dst);
+	int SetAConstObj(const lex& eme, GTNode* GTarget, ConstObj::type Type, context* dst);
+	int GetAConst(ConstObj*& output, const lex& eme, GTNode* GTarget, context* dst);
 	size_t getValueDim(GTNode* GTarget);
 };
 
@@ -372,12 +372,12 @@ int BuildInfor::pretreatment(const char* input, lex& output)
 
 	return error;
 }
-int BuildInfor::build(const char* FileName, context& dst)
+int BuildInfor::build(const char* FileName, context* dst)
 {
 	int error;
 
-	dst.clear();
-	dst.initial();
+	dst->clear();
+	dst->initial();
 
 	clear();
 	initial();
@@ -439,7 +439,7 @@ void BuildInfor::NeglectNullToken(lex& eme) const
 	}
 	return;
 }
-int BuildInfor::buildGanalysis(const lex& eme, context& dst)
+int BuildInfor::buildGanalysis(const lex& eme, context* dst)
 {
 	int error;
 	ASTree = new AST;
@@ -462,7 +462,7 @@ int BuildInfor::buildGanalysis(const lex& eme, context& dst)
 	return error;
 }
 
-int BuildInfor::buildAll(const lex& eme, AST& Tree, context& dst)
+int BuildInfor::buildAll(const lex& eme, AST& Tree, context* dst)
 {
 	GTNode* GT = NULL;
 	GTiterator iterator;
@@ -546,7 +546,7 @@ static ConstObj::type getType(const lex& eme, GTNode* GTarget)
 	const char* input = eme.GetWord(GTarget->root().site);
 	return getType(input);
 }
-int BuildInfor::SetAConstObj(const lex& eme, GTNode* GTarget, ConstObj::type Type, context& dst)
+int BuildInfor::SetAConstObj(const lex& eme, GTNode* GTarget, ConstObj::type Type, context* dst)
 {
 	const char* name = NULL;
 	name = getIDname(eme, GTarget);
@@ -557,7 +557,7 @@ int BuildInfor::SetAConstObj(const lex& eme, GTNode* GTarget, ConstObj::type Typ
 		errorInfor1 = line;
 		return 123234;
 	}
-	ConstObj* obj = dst.searchConst(name);
+	ConstObj* obj = dst->searchConst(name);
 	if (obj != NULL)
 	{
 		errorCode = ErrorRepeatVarDef;
@@ -592,9 +592,9 @@ int BuildInfor::SetAConstObj(const lex& eme, GTNode* GTarget, ConstObj::type Typ
 		}
 	}
 	obj = new ConstObj(dim, Scalar_, Type, name);
-	dst.Cobj.append(obj);
+	dst->Cobj.append(obj);
 }
-int BuildInfor::GetAConst(ConstObj*& output, const lex& eme, GTNode* GTarget, context& dst)
+int BuildInfor::GetAConst(ConstObj*& output, const lex& eme, GTNode* GTarget, context* dst)
 {
 	GTiterator iterator;
 	int error = 0;
@@ -684,7 +684,7 @@ int BuildInfor::GetAConst(ConstObj*& output, const lex& eme, GTNode* GTarget, co
 				GTNode* index = GT->child(1);
 				size_t target = ID->root().site;
 				const char* id = eme.GetWord(target);
-				ConstObj* Rvalue = dst.searchConst(id);
+				ConstObj* Rvalue = dst->searchConst(id);
 				ConstObj* Index = (ConstObj*)(index->root().infor);
 				if (Rvalue == NULL || Index == NULL)
 				{
@@ -716,7 +716,7 @@ int BuildInfor::GetAConst(ConstObj*& output, const lex& eme, GTNode* GTarget, co
 				GTNode* ID = GT->child(0);
 				size_t target = ID->root().site;
 				const char* id = eme.GetWord(target);
-				ConstObj* Rvalue = dst.searchConst(id);
+				ConstObj* Rvalue = dst->searchConst(id);
 				if (Rvalue == NULL)
 				{
 					errorInfor1 = target;
@@ -804,7 +804,7 @@ size_t BuildInfor::getValueDim(GTNode* VALUE)
 }
 
 
-int BuildInfor::buildConstObj(const lex& eme, GTNode* GTarget, context& dst)
+int BuildInfor::buildConstObj(const lex& eme, GTNode* GTarget, context * dst)
 {
 	int error = 0;
 	GTNode* GT = GTarget;
@@ -824,7 +824,7 @@ int BuildInfor::buildConstObj(const lex& eme, GTNode* GTarget, context& dst)
 			}
 			error = SetAConstObj(eme, GT->child(1), TT, dst);
 			if (error != 0) return error;
-			obj = dst.Cobj[dst.Cobj.count() - 1];
+			obj = dst->Cobj[dst->Cobj.count() - 1];
 		}
 		else
 		{
@@ -899,7 +899,7 @@ int BuildInfor::buildConstObj(const lex& eme, GTNode* GTarget, context& dst)
 	}
 	return error;
 }
-int BuildInfor::buildExp(const lex& eme, GTNode* GTarget, context& dst)
+int BuildInfor::buildExp(const lex& eme, GTNode* GTarget, context * dst)
 {
 	int error = 0;
 	
@@ -921,7 +921,7 @@ int BuildInfor::buildExp(const lex& eme, GTNode* GTarget, context& dst)
 		errorInfor1 = line;
 		return 123235;
 	}
-	ConstObj* obj = dst.searchConst(name);
+	ConstObj* obj = dst->searchConst(name);
 	if (obj == NULL)
 	{
 		errorCode = ErrorMissingVarDef;
@@ -974,7 +974,7 @@ int BuildInfor::buildExp(const lex& eme, GTNode* GTarget, context& dst)
 	delete srcR;
 	return error;
 }
-int BuildInfor::buildSymbolic(const lex& eme, GTNode* SYMBOLIC, context& dst)
+int BuildInfor::buildSymbolic(const lex& eme, GTNode* SYMBOLIC, context * dst)
 {
 	GTNode* GT = NULL;
 	GTiterator iterator;
@@ -995,7 +995,7 @@ int BuildInfor::buildSymbolic(const lex& eme, GTNode* SYMBOLIC, context& dst)
 	}
 	return error;
 }
-int BuildInfor::buildNet(const lex& eme, GTNode* GTarget, context& dst)
+int BuildInfor::buildNet(const lex& eme, GTNode* GTarget, context * dst)
 {
 	GTNode* GT = NULL;
 	GTiterator iterator;
@@ -1008,7 +1008,7 @@ int BuildInfor::buildNet(const lex& eme, GTNode* GTarget, context& dst)
 	}
 	return error;
 }
-int BuildInfor::buildDiff(const lex& eme, GTNode* GTarget, context& dst)
+int BuildInfor::buildDiff(const lex& eme, GTNode* GTarget, context * dst)
 {
 	GTNode* GT = NULL;
 	GTiterator iterator;
@@ -1501,6 +1501,49 @@ void ConstObj::assign(const ConstObj* srcR) {
 		}
 		V.append(newVal);  // 添加复制值到向量
 	}
+}
+void ConstObj::assign(const ConstObj* srcR, size_t No)
+{
+	if (!srcR)return;
+	if( No >= srcR->V.count())return;  // 校验源对象及索引有效性[7,8](@ref)
+
+	// 1. 清除当前对象数据（释放旧资源）
+	S.clear();
+	V.clear();
+
+	// 2. 继承源元素类型并设为标量
+	T = srcR->T;
+	scalar = true;
+	//SetName(srcR->GetName());  // 深拷贝名称[6](@ref)
+
+	// 3. 复制指定元素的状态
+	S.append(srcR->S[No]);
+
+	// 4. 按数据类型深拷贝值
+	value newVal;
+	switch (T) {
+	case _sint_:
+		newVal.i = srcR->V[No].i;
+		break;
+	case _unit_:
+		newVal.u = srcR->V[No].u;
+		break;
+	case _bool_:
+		newVal.b = srcR->V[No].b;
+		break;
+	case _real_:
+		newVal.f = srcR->V[No].f;
+		break;
+	case _complex_:
+		if (srcR->V[No].t) {
+			newVal.t = NULL; // 深拷贝张量[8](@ref)
+		}
+		else {
+			newVal.t = NULL;
+		}
+		break;
+	}
+	V.append(newVal);  // 添加新值
 }
 var::var()
 {
