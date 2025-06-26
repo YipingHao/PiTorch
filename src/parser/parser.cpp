@@ -170,14 +170,18 @@ public:
 		//scalar and array
 		ErrorAssignType,
 
+		SymbolicAlreadyDef,
+
+
 		ErrorNotAConst,
 		ErrorUnsupportFunc,
 		ErrorUnKnowEXP,
 		buildUndone,
 	};
 	int build(const char* FileName, context * dst);
-	void ErrorDemo(FILE* fp) const;
+	void ErrorDemo(FILE* fp = stdout) const;
 	void clear(void);
+	friend class context;
 protected:
 	hyperlex::Morpheme MorphemePre;
 	hyperlex::Morpheme LexicalSource;
@@ -205,6 +209,10 @@ protected:
 
 	int SetAConstObj(const lex& eme, GTNode* GTarget, ConstObj::type Type, context* dst);
 	int GetAConst(ConstObj*& output, const lex& eme, GTNode* GTarget, context* dst);
+	
+	int buildSymbolicName(const lex& eme, GTNode* PARA, context* dst, func* Func);
+	int buildSymbolicPara(const lex& eme, GTNode* PARA, context* dst, func* Func);
+	int buildSymbolicBody(const lex& eme, GTNode* PARA, context* dst, func* Func);
 	size_t getValueDim(GTNode* GTarget);
 };
 
@@ -214,6 +222,18 @@ BuildInfor::BuildInfor()
 }
 BuildInfor::~BuildInfor()
 {
+	clear();
+}
+size_t static pretreat_begin(GTNode* GT)
+{
+	return GT->child(0)->root().site;
+}
+size_t static pretreat_count(GTNode* GT)
+{
+	size_t infor = GT->root().site;
+	if (infor == (size_t)NetPreG::MACRO_single_)
+		return 2;
+	return 3;
 }
 int BuildInfor::pretreatment(const char* input, lex& output)
 {
@@ -409,6 +429,9 @@ void BuildInfor::clear(void)
 	errorCode = NoError;
 	errorInfor1 = 0;
 	errorInfor2 = 0;
+
+	free(errorInfor3);
+
 	errorInfor3 = NULL;
 	errorInfor4 = true;
 
@@ -974,9 +997,201 @@ int BuildInfor::buildExp(const lex& eme, GTNode* GTarget, context * dst)
 	delete srcR;
 	return error;
 }
+
+int BuildInfor::buildSymbolicPara(const lex& eme, GTNode* PARA, context* dst, func* Func)
+{
+
+}
+int BuildInfor::buildSymbolicName(const lex& eme, GTNode* Nameid, context* dst, func* Func)
+{
+	int error = 0;
+	size_t site = Nameid->root().site;
+	if (Nameid->root().rules)
+	{
+		errorInfor1 = site;
+		errorCode = WrongEntrance;
+		return 7985875;
+	}
+	int accept = eme[site].accept;
+	if (accept != NetL::regular::_id_)
+	{
+		errorInfor1 = site;
+		errorCode = WrongEntrance;
+		return 7985876;
+	}
+
+	const char* Name = eme.GetWord(site);
+	context* Parent = dst->parent;
+
+	func* old;
+	old = Parent->searchFuncs(Name);
+	if (old != NULL)
+	{
+		errorCode = SymbolicAlreadyDef;
+		errorInfor1 = site;
+		return 7985877;
+	}
+	Func->SetName(Name);
+
+	Parent->funcs.append(Func);
+
+	return error;
+}
+int BuildInfor::buildSymbolicBody(const lex& eme, GTNode* SYMBOLICBODY, context* dst, func* Func)
+{
+	int error = 0;
+	GTiterator iterator;
+	iterator.initial(SYMBOLICBODY);
+	while (iterator.still())
+	{
+		GTNode* GT = iterator.target();
+
+		if (iterator.state() == 0)
+		{
+			NetG::rules rule = (NetG::rules)GT->root().site;
+			if (GT->root().rules)
+			{
+				switch (rule)
+				{
+				case Pikachu::NetG::all_all_:
+					break;
+				case Pikachu::NetG::context_defs_:
+					break;
+				case Pikachu::NetG::DEF_symbolic_:
+					break;
+				case Pikachu::NetG::DEF_network_:
+					break;
+				case Pikachu::NetG::DEF_def_:
+					break;
+				case Pikachu::NetG::DEF_exp_:
+					break;
+				case Pikachu::NetG::DEF_diff_:
+					break;
+				case Pikachu::NetG::OPERATOR_operatmd_:
+					break;
+				case Pikachu::NetG::OPERATOR_operatas_:
+					break;
+				case Pikachu::NetG::DIFF_NET_diff_:
+					break;
+				case Pikachu::NetG::EXP_RIGHT_default_:
+					break;
+				case Pikachu::NetG::EXP_RIGHT_add_:
+					break;
+				case Pikachu::NetG::EXP_MUL_default_:
+					break;
+				case Pikachu::NetG::EXP_MUL_multi_:
+					break;
+				case Pikachu::NetG::EXP_MINUS_default_:
+					break;
+				case Pikachu::NetG::EXP_MINUS_plus_:
+					break;
+				case Pikachu::NetG::UNIT_id_:
+					break;
+				case Pikachu::NetG::UNIT_call_:
+					break;
+				case Pikachu::NetG::UNIT_const_:
+					break;
+				case Pikachu::NetG::UNIT_complex_:
+					break;
+				case Pikachu::NetG::ID_array_:
+					break;
+				case Pikachu::NetG::ID_single_:
+					break;
+				case Pikachu::NetG::INDEX_COMPUTE_single_:
+					break;
+				case Pikachu::NetG::CALL_call_1_:
+					break;
+				case Pikachu::NetG::CALL_call_2_:
+					break;
+				case Pikachu::NetG::SYMBOLIC_SYMBOLIC_:
+					break;
+				case Pikachu::NetG::PARA_PARA_:
+					break;
+				case Pikachu::NetG::SYMBOLICPARA_input_:
+					break;
+				case Pikachu::NetG::SYMBOLICPARA_para_:
+					break;
+				case Pikachu::NetG::SYMBOLICPARA_output_:
+					break;
+				case Pikachu::NetG::SYMBOLICBODY_SYMBOLICBODY_:
+					break;
+				case Pikachu::NetG::STATEMENT_const_:
+					break;
+				case Pikachu::NetG::STATEMENT_def1_:
+					break;
+				case Pikachu::NetG::STATEMENT_def2_:
+					break;
+				case Pikachu::NetG::STATEMENT_exp_:
+					break;
+				case Pikachu::NetG::VALUE_single_:
+					break;
+				case Pikachu::NetG::VALUE_multi_:
+					break;
+				case Pikachu::NetG::VALUELIST_VALUELIST_:
+					break;
+				case Pikachu::NetG::VALUES_VALUES_:
+					break;
+				case Pikachu::NetG::NEXTVALUE_NEXTVALUE_:
+					break;
+				case Pikachu::NetG::NETWORK_NETWORK_:
+					break;
+				case Pikachu::NetG::NETBODY_net_:
+					break;
+				case Pikachu::NetG::NET_STATEMENT_const_:
+					break;
+				case Pikachu::NetG::NET_STATEMENT_exp_:
+					break;
+				case Pikachu::NetG::NET_STATEMENT_def_:
+					break;
+				case Pikachu::NetG::NET_STATEMENT_tensorDef1_:
+					break;
+				case Pikachu::NetG::NET_STATEMENT_tensorDef2_:
+					break;
+				case Pikachu::NetG::CONSTVAR_def1_:
+					break;
+				case Pikachu::NetG::CONSTVAR_def2_:
+					break;
+				case Pikachu::NetG::TENSORID_TENSORID_:
+					break;
+				case Pikachu::NetG::TENSOR_TENSOR_:
+					break;
+				case Pikachu::NetG::INDEXLIST_INDEXLIST_:
+					break;
+				case Pikachu::NetG::INDEXUNITS_single_:
+					break;
+				case Pikachu::NetG::INDEXUNITS_multi_:
+					break;
+				case Pikachu::NetG::ID2_yes_:
+					break;
+				case Pikachu::NetG::ID2_no_:
+					break;
+				case Pikachu::NetG::TENSORVALUE_single_:
+					break;
+				case Pikachu::NetG::TENSORVALUE_multi_:
+					break;
+				case Pikachu::NetG::TENSORVALUE_singleF_:
+					break;
+				case Pikachu::NetG::TENSORVALUE_multiF_:
+					break;
+				case Pikachu::NetG::SUMSYMBOL_single_:
+					break;
+				case Pikachu::NetG::SUMSYMBOL_multi_:
+					break;
+				case Pikachu::NetG::SQ_INDEXUNITS_single_:
+					break;
+				default:
+					break;
+				}
+			}
+		}
+
+		iterator.next();
+	}
+
+	return error;
+}
 int BuildInfor::buildSymbolic(const lex& eme, GTNode* SYMBOLIC, context * dst)
 {
-	GTNode* GT = NULL;
 	GTiterator iterator;
 	int error = 0;
 	size_t line = SYMBOLIC->child(0)->root().site;
@@ -987,12 +1202,21 @@ int BuildInfor::buildSymbolic(const lex& eme, GTNode* SYMBOLIC, context * dst)
 		errorCode = WrongEntrance;
 		return 7985872;
 	}
-	iterator.initial(SYMBOLIC);
-	while (iterator.still())
-	{
-		GT = iterator.target();
-		iterator.next();
-	}
+	context* subcontext = new context();
+	dst->append(subcontext);
+	
+	func* Func = new func();
+	error = buildSymbolicName(eme, SYMBOLIC->child(1), subcontext, Func);
+	if (error != 0) return error;
+
+	GTNode* PARA = SYMBOLIC->child(3);
+	error = buildSymbolicPara(eme, PARA, subcontext, Func);
+	if (error != 0) return error;
+
+	GTNode* SYMBOLICBODY = SYMBOLIC->child(6);
+	error = buildSymbolicBody(eme, PARA, subcontext, Func);
+
+	
 	return error;
 }
 int BuildInfor::buildNet(const lex& eme, GTNode* GTarget, context * dst)
@@ -1034,38 +1258,14 @@ public:
 	var* SearchLocal(const char* name)const;
 	ConstObj* searchConst(const char* name)const;
 	ConstObj* SearchConstLocal(const char* name)const;
+	func* searchFuncs(const char* name) const;
+	func* searchFuncsLocal(const char* name) const;
 	void demo(FILE* fp = stdout) const;
-	
+	void append(context* child);
 
 	int build(const char* FileName);
 	void clear(void);
-	enum errorType
-	{
-		NoError = 0,
-		PretreatLEXICAL,
-		PretreatGRAMMAR,
-		PretreatRepeat,
-		PretreatOpenfail,
-		PretreatNone,
-		ErrorinputLEXICAL,
-		ErrorinputGrammar,
-
-		ErrorUnsupportType,
-		ErrorRepeatVarDef,
-		ErrorMissingVarDef,
-		ErrorIndexOutofRange,
-		ErrorNeedAInt,
-		ErrorNameNULL,
-		WrongEntrance,
-
-		ErrorInitialAorS,
-		//array dim not equal, assignment between 
-		//scalar and array
-		ErrorNotAConst,
-		ErrorUnsupportFunc,
-		ErrorUnKnowEXP,
-		buildUndone,
-	};
+	
 	enum state
 	{
 		NoError,
@@ -1074,14 +1274,7 @@ public:
 	};
 private:
 
-	hyperlex::Morpheme MorphemePre;
-	hyperlex::Morpheme LexicalSource;
-
-	errorType errorCode;
-	size_t errorInfor1;
-	size_t errorInfor2;
-	char* errorInfor3;
-	bool errorInfor4;
+	state S;
 
 
 	vector<ConstObj*> Cobj;
@@ -1091,20 +1284,7 @@ private:
 	context* parent;
 	vector<context*> childs;
 	void initial(void);
-	int pretreatment(const char* input, hyperlex::Morpheme& output);
-	void NeglectNullToken(lex& eme) const;
-	int buildGanalysis(const lex& eme);
-	int buildAll(const lex& eme, AST& Tree);
-
-	int buildConstObj(const lex& eme, GTNode* GTarget);
-	int buildExp(const lex& eme, GTNode* GTarget);
-	int buildSymbolic(const lex& eme, GTNode* GTarget);
-	int buildNet(const lex& eme, GTNode* GTarget);
-	int buildDiff(const lex& eme, GTNode* GTarget);
-
-	int SetAConstObj(const lex& eme, GTNode* GTarget, ConstObj::type Type);
-	int GetAConst(ConstObj*& output, const lex& eme, GTNode* GTarget);
-	size_t getValueDim(GTNode* GTarget);
+	
 };
 
 
@@ -1594,10 +1774,10 @@ void BuildInfor::ErrorDemo(FILE* fp) const
 {
 	switch (errorCode)
 	{
-	case context::NoError:
+	case BuildInfor::NoError:
 		fprintf(fp, "No Error!\n");
 		break;
-	case context::ErrorinputLEXICAL:
+	case BuildInfor::ErrorinputLEXICAL:
 	{
 		fprintf(fp, "ErrorinputLEXICAL: \n");
 		size_t record = 0;
@@ -1620,14 +1800,14 @@ void BuildInfor::ErrorDemo(FILE* fp) const
 		}
 		break;
 	}
-	case context::PretreatLEXICAL:
+	case BuildInfor::PretreatLEXICAL:
 	{
 		fprintf(fp, "PretreatLEXICAL: Error happenned during pretreatment.\n");
 		fprintf(fp, "Lexical analysis line: %zu of No.%zu ", errorInfor2, errorInfor1);
 		fprintf(fp, "source file %s made a mistake\n", MorphemePre.GetFile(errorInfor1));
 		break;
 	}
-	case context::PretreatGRAMMAR:
+	case BuildInfor::PretreatGRAMMAR:
 	{
 		fprintf(fp, "PretreatGRAMMAR: Error happenned during pretreatment.\n");
 		fprintf(fp, "Grammar analysis of No.%zu ", errorInfor1);
@@ -1653,7 +1833,7 @@ void BuildInfor::ErrorDemo(FILE* fp) const
 		}
 		break;
 	}
-	case context::PretreatRepeat:
+	case BuildInfor::PretreatRepeat:
 	{
 		fprintf(fp, "PretreatRepeat: Error happenned during pretreatment.\n");
 		fprintf(fp, "No.%zu ", errorInfor1);
@@ -1661,14 +1841,14 @@ void BuildInfor::ErrorDemo(FILE* fp) const
 		fprintf(fp, "%zu file %s\n", errorInfor2, MorphemePre.GetFile(errorInfor2));
 		break;
 	}
-	case context::PretreatOpenfail:
+	case BuildInfor::PretreatOpenfail:
 	{
 		fprintf(fp, "PretreatOpenfail: Error happenned during pretreatment.\n");
 		fprintf(fp, "Open of No.%zu ", errorInfor1);
 		fprintf(fp, "source file %s made a mistake\n", MorphemePre.GetFile(errorInfor1));
 		break;
 	}
-	case context::PretreatNone:
+	case BuildInfor::PretreatNone:
 	{
 		fprintf(fp, "PretreatNone: Error happenned during pretreatment.\n");
 		fprintf(fp, "%s is not a standard lib\n", errorInfor3);
@@ -1693,7 +1873,7 @@ void BuildInfor::ErrorDemo(FILE* fp) const
 		break;
 		break;
 	}
-	case context::ErrorinputGrammar:
+	case BuildInfor::ErrorinputGrammar:
 	{
 		fprintf(fp, "ErrorinputGrammar: Something was wrong when parsing of line:");
 		size_t RLine = LexicalSource[errorInfor1].line;
@@ -1714,7 +1894,7 @@ void BuildInfor::ErrorDemo(FILE* fp) const
 		}
 		break;
 	}
-	case context::buildUndone:
+	case BuildInfor::buildUndone:
 	{
 		fprintf(fp, "buildUndone: has not been built.\n");
 		fprintf(fp, "\n");
@@ -1732,7 +1912,8 @@ void BuildInfor::ErrorDemo(FILE* fp) const
 
 context::context()
 {
-	errorInfor3 = NULL;
+	//errorInfor3 = NULL;
+	initial();
 }
 context::~context()
 {
@@ -1747,14 +1928,18 @@ void context::ruin(void)
 	global.clear();
 	childs.clear();
 
-	free(errorInfor3);
-	errorInfor3 = NULL;
+	//free(errorInfor3);
+	//errorInfor3 = NULL;
 }
 void context::demo(FILE* fp) const
 {
 
 }
-
+void context::append(context* child)
+{
+	childs.append(child);
+	child->parent = this;
+}
 
 
 var* context::search(const char* name)const
@@ -1801,18 +1986,175 @@ ConstObj* context::SearchConstLocal(const char* name)const
 	return NULL;
 }
 
-size_t static pretreat_begin(GTNode* GT)
+func* context::searchFuncs(const char* name) const
 {
-	return GT->child(0)->root().site;
+	func* value = searchFuncsLocal(name);
+	if (value != NULL) return value;
+	context* now = parent;
+	while (now != NULL)
+	{
+		func* temp = now->searchFuncsLocal(name);
+		if (temp != NULL) return temp;
+		now = parent->parent;
+	}
+	return NULL;
 }
-size_t static pretreat_count(GTNode* GT)
+func* context::searchFuncsLocal(const char* name) const
 {
-	size_t infor = GT->root().site;
-	if (infor == (size_t)NetPreG::MACRO_single_)
-		return 2;
-	return 3;
+	for (size_t i = 0; i < funcs.count(); i++)
+	{
+		if (funcs[i]->eqaul(name)) return funcs[i];
+	}
+	return NULL;
 }
 
+int context::build(const char* FileName)
+{
+	BuildInfor builder;
+	clear();
+	initial();
+	builder.build(FileName, this);
+	if (builder.errorCode != BuildInfor::NoError)
+	{
+		builder.ErrorDemo();
+		clear();
+		initial();
+	}
+	S = NoError;
+}
+
+
+
+void context::clear(void)
+{
+	for (size_t i = 0; i < global.count(); i++)
+	{
+		delete global[i];
+	}
+	global.clear();
+	childs.clear();
+	S = Undone;
+}
+void context::initial(void)
+{
+	S = Undone;
+	parent = NULL;
+}
+
+
+
+
+
+
+
+
+static bool compare(const char* str1, const char* str2)
+{
+	size_t i;
+	for (i = 0; (str1[i] != '\0') && (str1[i] == str2[i]); i++);
+	return str1[i] == str2[i];
+}
+
+
+/*
+	MorphemePre.clear();
+	LexicalSource.clear();
+
+	errorCode = NoError;
+	errorInfor1 = 0;
+	errorInfor2 = 0;
+	errorInfor3 = NULL;
+	errorInfor4 = true;
+
+
+
+	errorCode = buildUndone;
+	errorInfor1 = 0;
+	errorInfor2 = 0;
+	errorInfor3 = NULL;
+	errorInfor4 = true;
+*/
+/*
+enum errorType
+	{
+		NoError = 0,
+		PretreatLEXICAL,
+		PretreatGRAMMAR,
+		PretreatRepeat,
+		PretreatOpenfail,
+		PretreatNone,
+		ErrorinputLEXICAL,
+		ErrorinputGrammar,
+
+		ErrorUnsupportType,
+		ErrorRepeatVarDef,
+		ErrorMissingVarDef,
+		ErrorIndexOutofRange,
+		ErrorNeedAInt,
+		ErrorNameNULL,
+		WrongEntrance,
+
+		ErrorInitialAorS,
+		//array dim not equal, assignment between
+		//scalar and array
+		ErrorNotAConst,
+		ErrorUnsupportFunc,
+		ErrorUnKnowEXP,
+		buildUndone,
+	};
+
+	hyperlex::Morpheme MorphemePre;
+	hyperlex::Morpheme LexicalSource;
+
+	errorType errorCode;
+	size_t errorInfor1;
+	size_t errorInfor2;
+	char* errorInfor3;
+	bool errorInfor4;
+
+
+	int pretreatment(const char* input, hyperlex::Morpheme& output);
+	void NeglectNullToken(lex& eme) const;
+	int buildGanalysis(const lex& eme);
+	int buildAll(const lex& eme, AST& Tree);
+
+	int buildConstObj(const lex& eme, GTNode* GTarget);
+	int buildExp(const lex& eme, GTNode* GTarget);
+	int buildSymbolic(const lex& eme, GTNode* GTarget);
+	int buildNet(const lex& eme, GTNode* GTarget);
+	int buildDiff(const lex& eme, GTNode* GTarget);
+
+	int SetAConstObj(const lex& eme, GTNode* GTarget, ConstObj::type Type);
+	int GetAConst(ConstObj*& output, const lex& eme, GTNode* GTarget);
+	size_t getValueDim(GTNode* GTarget);
+*/
+/*
+int context::build(const char* FileName)
+{
+	int error;
+
+	clear();
+	initial();
+	error = pretreatment(FileName, MorphemePre);
+	if (error != 0) return error;
+
+	error = LexicalSource.Build<NetL>(MorphemePre);
+	if (error != 0)
+	{
+		errorCode = ErrorinputLEXICAL;
+		return error;
+	}
+	NeglectNullToken(LexicalSource);
+	//eme.Demo(stdout);
+	error = buildGanalysis(LexicalSource);
+	if (error != 0)
+	{
+		errorCode = ErrorinputGrammar;
+		return error;
+	}
+	errorCode = NoError;
+	return error;
+}
 int context::pretreatment(const char* input, hyperlex::Morpheme& output)
 {
 	FILE* fp = fopen(input, "r");
@@ -1962,7 +2304,7 @@ int context::pretreatment(const char* input, hyperlex::Morpheme& output)
 				name = NULL;
 				return 2345345;
 			}
-			
+
 		}
 		free(name);
 		name = NULL;
@@ -1970,52 +2312,6 @@ int context::pretreatment(const char* input, hyperlex::Morpheme& output)
 
 	return error;
 }
-int context::build(const char* FileName)
-{
-	int error;
-
-	clear();
-	initial();
-	error = pretreatment(FileName, MorphemePre);
-	if (error != 0) return error;
-
-	error = LexicalSource.Build<NetL>(MorphemePre);
-	if (error != 0)
-	{
-		errorCode = ErrorinputLEXICAL;
-		return error;
-	}
-	NeglectNullToken(LexicalSource);
-	//eme.Demo(stdout);
-	error = buildGanalysis(LexicalSource);
-	if (error != 0)
-	{
-		errorCode = ErrorinputGrammar;
-		return error;
-	}
-	errorCode = NoError;
-	return error;
-}
-void context::clear(void)
-{
-	MorphemePre.clear();
-	LexicalSource.clear();
-
-	errorCode = NoError;
-	errorInfor1 = 0;
-	errorInfor2 = 0;
-	errorInfor3 = NULL;
-	errorInfor4 = true;
-}
-void context::initial(void)
-{
-	errorCode = buildUndone;
-	errorInfor1 = 0;
-	errorInfor2 = 0;
-	errorInfor3 = NULL;
-	errorInfor4 = true;
-}
-
 void context::NeglectNullToken(lex& eme) const
 {
 	NetL::regular T;
@@ -2121,8 +2417,7 @@ int context::buildAll(const lex& eme, AST& Tree)
 	}
 	return error;
 }
-
-static const char * getIDname(const lex& eme, GTNode* GTarget)
+ static const char * getIDname(const lex& eme, GTNode* GTarget)
 {
 	GTNode* Def = GTarget->child(0);
 	if (Def->root().rules) return NULL;
@@ -2401,8 +2696,6 @@ size_t context::getValueDim(GTNode* VALUE)
 	GTNode* VALUES = VALUELIST->child(1);// VALUELIST: EXP_RIGHT VALUES;
 	return VALUES->ChildCount() + 1;
 }
-
-
 int context::buildConstObj(const lex& eme, GTNode* GTarget)
 {
 	int error = 0;
@@ -2520,16 +2813,5 @@ int context::buildDiff(const lex& eme, GTNode* GTarget)
 	return error;
 }
 
-
-static bool compare(const char* str1, const char* str2)
-{
-	size_t i;
-	for (i = 0; (str1[i] != '\0') && (str1[i] == str2[i]); i++);
-	return str1[i] == str2[i];
-}
-
-
-
-
-
+*/
 
