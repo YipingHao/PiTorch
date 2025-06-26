@@ -594,7 +594,7 @@ int BuildInfor::SetAConstObj(const lex& eme, GTNode* GTarget, ConstObj::type Typ
 	obj = new ConstObj(dim, Scalar_, Type, name);
 	dst->Cobj.append(obj);
 }
-int BuildInfor::GetAConst(ConstObj*& output, const lex& eme, GTNode* GTarget, context* dst)
+int BuildInfor::GetAConst(ConstObj*& output, const lex& eme, GTNode* GTarget, context* dst) 
 {
 	GTiterator iterator;
 	int error = 0;
