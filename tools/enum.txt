@@ -1,0 +1,65 @@
+lexical:{
+	void:
+	{
+		num: [0-9];
+		letter: [a-z]|[A-Z];
+		sign: ('-'|'+')?;
+	};
+	id: id(+1): (<letter> | _)(<letter> | _ | <num>)*;
+	number: 
+	{
+		integer(+3): <sign><num>+;
+	}
+	reserved(+5):
+	{
+		enum;					
+	};
+	format:
+	{
+		spaces: ' '+;
+		enters: '\n'+;
+		tab: '\t';
+	}
+	division:
+	{
+		semicolon:';';
+		comma: ',';
+	}
+	braket:
+	{
+		braceL:'{';
+		braceR:'}';
+	}
+	anntation:
+	{
+		anntationS: '/''/'(['\0'-'\11']|['\13'-'\177'])* ;
+		anntationM: '/''*'(['\0'-'\177'])*'*'+'/';
+	}
+	assignments: assign: '=';		
+};
+
+
+grammar: numerate:
+{
+	numerate: 
+	{
+		all: enum id braceL BODY END;
+	}
+	END:
+	{
+		single: braceR;
+		di: braceR semicolon;
+		single: comma braceR;
+		di: comma braceR semicolon;
+	}
+	BODY: 
+	{
+		single: FORMULA;
+		multi: BODY comma FORMULA;
+	}
+	FORMULA: 
+	{
+		name: id;
+		value: id assign integer;
+	}
+}
