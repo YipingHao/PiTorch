@@ -9,6 +9,13 @@ namespace Pikachu
 namespace Pikachu
 {
 	class BuildInfor;
+
+	typedef hyperlex::Morpheme lex;
+	typedef hyperlex::GrammarTree AST;
+	typedef hyperlex::tree<hyperlex::GrammarTree::TreeInfor> GTNode;
+	typedef hyperlex::tree<hyperlex::GrammarTree::TreeInfor>::PostIterator GTiterator;
+
+
 	class CompilerObj
 	{
 	public:
@@ -215,6 +222,8 @@ namespace Pikachu
 			VarAlreadDef,
 			TooMuchPara,
 			TooMuchInput,
+			NoneOutput,
+			UndefineOutput,
 
 			ErrorNotAConst,
 			ErrorUnsupportFunc,
@@ -234,8 +243,11 @@ namespace Pikachu
 		errorType errorCode;
 		size_t errorInfor1;
 		size_t errorInfor2;
+
 		char* errorInfor3;
 		bool errorInfor4;
+
+		GTNode* ErrorNode;
 
 		void initial(void);
 
