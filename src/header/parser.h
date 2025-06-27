@@ -266,6 +266,7 @@ namespace Pikachu
 		int GetIDdim(size_t& dim, const lex& eme, GTNode* GTarget, context* dst);
 		int SetAConstObj(const lex& eme, GTNode* GTarget, ConstObj::type Type, context* dst);
 		int GetAConst(ConstObj*& output, const lex& eme, GTNode* GTarget, context* dst);
+		int GetAVar(var*& output, const lex& eme, GTNode* EXP_RIGHT, context* dst);
 
 		int addVar(const lex& eme, GTNode* PARA, context* dst, func* Func, const char* attri);
 		int buildSymbolicName(const lex& eme, GTNode* PARA, context* dst, func* Func);

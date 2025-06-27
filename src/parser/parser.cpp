@@ -378,7 +378,7 @@ int BuildInfor::GetIDdim(size_t& dim, const lex& eme, GTNode* ID, context* dst)
 	dim = 0;
 	if (!Scalar_)
 	{
-		ConstObj* Const_;
+		ConstObj* Const_ = NULL;
 		int error = GetAConst(Const_, eme, ID->child(1)->child(1), dst);
 		if (error != 0) return error;
 		if (!Const_->SorUint())
@@ -395,6 +395,7 @@ int BuildInfor::GetIDdim(size_t& dim, const lex& eme, GTNode* ID, context* dst)
 			errorCode = ErrorIndexOutofRange;
 			return 1234267;
 		}
+		delete Const_;
 	}
 	else dim = 1;
 }
@@ -640,7 +641,137 @@ size_t BuildInfor::getValueDim(GTNode* VALUE)
 	return VALUES->ChildCount() + 1;
 }
 
+int BuildInfor::GetAVar(var*& output, const lex& eme, GTNode* EXP_RIGHT, context* dst)
+{
+	int error = 0;
+	output = NULL;
+	NetG::nonterminal RRR = (NetG::nonterminal)NetG::RulesToSymbol[EXP_RIGHT->root().site];
+	if (RRR != NetG::nonterminal::_EXP_RIGHT_)
+	{
+		errorCode = WrongEntrance;
+		errorInfor1 = EXP_RIGHT->root().site;
+		return 12321;
+	}
 
+	GTiterator iterator;
+	iterator.initial(EXP_RIGHT);
+
+	while (iterator.still()) 
+	{
+		GTNode* GT = iterator.target();
+		if (iterator.state() == 1) 
+		{
+			NetG::rules RR = (NetG::rules)GT->root().site;
+			switch (RR) {
+			case Pikachu::NetG::ID_single_:
+			{
+				GTNode* ID = GT->child(0);
+				size_t target = ID->root().site;
+				const char* id = eme.GetWord(target);
+				var* v = dst->search(id);
+				if (v == NULL) {
+					errorCode = ErrorMissingVarDef;
+					errorInfor1 = target;
+					error = 5667556;
+				}
+				output = v;
+				break;
+			}
+			case Pikachu::NetG::ID_array_:
+			{
+				GTNode* ID = GT->child(0);
+				size_t target = ID->root().site;
+				const char* id = eme.GetWord(target);
+				var* v = dst->search(id);
+				if (v == NULL) {
+					errorCode = ErrorMissingVarDef;
+					errorInfor1 = target;
+					error = 5667557;
+				}
+				output = v;
+				break;
+			}
+			case Pikachu::NetG::rules::EXP_RIGHT_default_:
+			case Pikachu::NetG::rules::EXP_MUL_default_:
+			case Pikachu::NetG::rules::EXP_MINUS_default_:
+			case Pikachu::NetG::rules::UNIT_id_:
+			{
+				GTNode* ID = GT->child(0);
+				
+				size_t dim = 0;
+				error = GetIDdim(dim, eme, ID, dst);
+				if (error != 0) return error;
+				const char* id = getIDname(eme, ID);
+				bool scalar = getIDscalar(eme, ID);
+				var* v = dst->search(id);
+				ConstObj* obj = dst->searchConst(id);
+				if (v == NULL && obj == NULL) {
+					errorCode = ErrorMissingVarDef;
+					ErrorNode = ID;
+					errorInfor1 = ID->root().site;
+					error = 5667558;
+				}
+				else if (v != NULL)
+				{
+					if (obj != NULL)
+					{
+						errorCode = ErrorRepeatVarDef;
+						ErrorNode = ID;
+						errorInfor1 = ID->root().site;
+						error = 5667559;
+					}
+					if(scalar != v->scalar())
+					{
+						errorCode = ErrorInitialAorS;
+						ErrorNode = ID;
+						errorInfor1 = ID->root().site;
+						errorInfor2 = dim;
+						return 123456789;
+					}
+					if(!scalar && v->count() <= dim)
+					{
+						errorCode = ErrorIndexOutofRange;
+						ErrorNode = ID;
+						errorInfor1 = ID->root().site;
+						errorInfor2 = dim;
+						errorInfor4 = v->count();
+						return 123456789;
+					}
+				}
+				//error = GetAVar(v, eme, Right, dst);
+				output = v;
+				break;
+			}
+			case Pikachu::NetG::EXP_RIGHT_add_:
+			case Pikachu::NetG::EXP_MUL_multi_:
+			{
+
+				break;
+			}
+			case Pikachu::NetG::EXP_MINUS_plus_:
+			case Pikachu::NetG::UNIT_const_:
+			case Pikachu::NetG::CALL_call_1_:
+			case Pikachu::NetG::CALL_call_2_:
+			case Pikachu::NetG::UNIT_call_:
+			case Pikachu::NetG::UNIT_complex_:
+			{
+				GTNode* Right = GT->child(1);
+				var* right = (var*)(Right->root().infor);
+				Right->root().infor = NULL;
+				GT->root().infor = (void*)right;
+				break;
+			}
+			default:
+				// 不是变量表达式，返回空
+				output = NULL;
+				break;
+			}
+		}
+		if (error != 0) break;
+		iterator.next();
+	}
+	return error;
+}
 int BuildInfor::buildConstObj(const lex& eme, GTNode* GTarget, context * dst)
 {
 	int error = 0;
@@ -960,6 +1091,7 @@ int BuildInfor::buildSymbolicBody(const lex& eme, GTNode* SYMBOLICBODY, context*
 		{
 			GTNode* ID = STATEMENT->child(1);
 			error = addVar(eme, ID, dst, Func, "var");
+			GTNode* EXP_RIGHT = STATEMENT->child(3);
 			if (error != 0) return error;
 			break;
 		}
@@ -983,7 +1115,7 @@ int BuildInfor::buildSymbolicBody(const lex& eme, GTNode* SYMBOLICBODY, context*
 			{
 				if (error != 0) return error;
 			}
-			
+
 			break;
 		}
 		default:
@@ -993,7 +1125,7 @@ int BuildInfor::buildSymbolicBody(const lex& eme, GTNode* SYMBOLICBODY, context*
 			return 79858735;
 			break;
 		}
-
+		}
 	}
 	return error;
 }
@@ -1168,7 +1300,7 @@ ConstObj::ConstObj(size_t dim, bool Scalar, ConstObj::type TTT, const char* Name
 		case _sint_: initVal.i = 0; break;
 		case _unit_: initVal.u = 0; break;
 		case _bool_: initVal.b = false; break;
-		case _complex_: initVal.t = nullptr; break; // 张量需额外初始化
+		case _complex_: initVal.t = NULL; break; // 张量需额外初始化
 		case _real_: initVal.f = 0.0; break;
 		}
 		V[i] = initVal;
