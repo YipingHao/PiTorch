@@ -156,6 +156,7 @@ namespace Pikachu
 		{
 			return infors.count() != 0 ? infors.count() : 1;
 		}
+		//inline size_t dim(void)
 		inline size_t SetCount(size_t dim) 
 		{
 			infors.recount(dim);
@@ -266,6 +267,7 @@ namespace Pikachu
 		int SetAConstObj(const lex& eme, GTNode* GTarget, ConstObj::type Type, context* dst);
 		int GetAConst(ConstObj*& output, const lex& eme, GTNode* GTarget, context* dst);
 
+		int addVar(const lex& eme, GTNode* PARA, context* dst, func* Func, const char* attri);
 		int buildSymbolicName(const lex& eme, GTNode* PARA, context* dst, func* Func);
 		int buildSymbolicPara(const lex& eme, GTNode* PARA, context* dst, func* Func);
 		int buildSymbolicBody(const lex& eme, GTNode* PARA, context* dst, func* Func);
