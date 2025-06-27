@@ -49,8 +49,8 @@ grammar: numerate:
 	{
 		single: braceR;
 		di: braceR semicolon;
-		single: comma braceR;
-		di: comma braceR semicolon;
+		single2: comma braceR;
+		di2: comma braceR semicolon;
 	}
 	BODY: 
 	{
