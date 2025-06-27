@@ -422,9 +422,6 @@ int static Test000(const hyperlex::dictionary& para)
     return error;
 }
 
-
-
-
 static bool compare(const char* str1, const char* str2)
 {
     size_t i;
@@ -434,10 +431,88 @@ static bool compare(const char* str1, const char* str2)
 
 
 
+struct enumL
+{
+    enum regular
+    {
+        _id_ = 1,
+        _integer_ = 2,
+        _enum_ = 3,
+        _spaces_ = 4,
+        _enters_ = 5,
+        _tab_ = 6,
+        _semicolon_ = 7,
+        _comma_ = 8,
+        _braceL_ = 9,
+        _braceR_ = 10,
+        _anntationS_ = 11,
+        _anntationM_ = 12,
+        _assign_ = 13
+    };
+    enum group
+    {
+        _id___ = 1,
+        _number___ = 2,
+        _reserved___ = 3,
+        _format___ = 4,
+        _division___ = 5,
+        _braket___ = 6,
+        _anntation___ = 7,
+        _assignments___ = 8
+    };
+    static int next(int state, const char c);
+    static int action(int state);
+    static int GroupGet(int state);
+};
+struct enumG
+{
+    enum type
+    {
+        accept = 0,
+        error = 1,
+        push = 2,
+        reduce = 3
+    };
+    enum rules
+    {
+        all_all_ = 0,
+        numerate_id_ = 1,
+        END_single_ = 2,
+        END_di_ = 3,
+        END_single2_ = 4,
+        END_di2_ = 5,
+        BODY_single_ = 6,
+        BODY_multi_ = 7,
+        FORMULA_name_ = 8,
+        FORMULA_value_ = 9
+    };
+    enum nonterminal
+    {
+        _all_ = 0,
+        _numerate_ = 1,
+        _END_ = 2,
+        _BODY_ = 3,
+        _FORMULA_ = 4
+    };
+    static const size_t StateCount;
+    static const size_t NonTerminalCount;
+    static const size_t TerminalCount;
+    static const size_t RulesCount;
+    static const int GOTO[17][5];
+    static const int ACTION[17][14];
+    static const int RulesToSymbol[10];
+    static const int RulesLength[10];
+    static const char* const RulesName[10];
+    static const int Implicit[10];
+};
 
 int static Test001(const hyperlex::dictionary& para)
 {
     int error = 0;
+
+
+
+
     return error;
 }
 
@@ -797,7 +872,280 @@ int static Test063(const hyperlex::dictionary& para)
 
 
 
+int enumL::next(int state, const char c)
+{
+    switch (state)
+    {
+    case 0:
+        if (c == (char)9) return 6;
+        else if (c == (char)10) return 5;
+        else if (c == ' ') return 4;
+        else if (c == '+') return 14;
+        else if (c == ',') return 8;
+        else if (c == '-') return 14;
+        else if (c == '/') return 19;
+        else if ('0' <= c && c <= '9') return 2;
+        else if (c == ';') return 7;
+        else if (c == '=') return 13;
+        else if ('A' <= c && c <= 'Z') return 1;
+        else if (c == '_') return 1;
+        else if ('a' <= c && c <= 'd') return 1;
+        else if (c == 'e') return 17;
+        else if ('f' <= c && c <= 'z') return 1;
+        else if (c == '{') return 9;
+        else if (c == '}') return 10;
+        else return 0;
+    case 1:
+        if ('0' <= c && c <= '9') return 1;
+        else if ('A' <= c && c <= 'Z') return 1;
+        else if (c == '_') return 1;
+        else if ('a' <= c && c <= 'z') return 1;
+        else return 0;
+    case 2:
+        if ('0' <= c && c <= '9') return 2;
+        else return 0;
+    case 3:
+        if ('0' <= c && c <= '9') return 1;
+        else if ('A' <= c && c <= 'Z') return 1;
+        else if (c == '_') return 1;
+        else if ('a' <= c && c <= 'z') return 1;
+        else return 0;
+    case 4:
+        if (c == ' ') return 4;
+        else return 0;
+    case 5:
+        if (c == (char)10) return 5;
+        else return 0;
+    case 6:
+        return 0;
+    case 7:
+        return 0;
+    case 8:
+        return 0;
+    case 9:
+        return 0;
+    case 10:
+        return 0;
+    case 11:
+        if ((char)0 <= c && c <= (char)9) return 11;
+        else if ((char)11 <= c && c <= (char)127) return 11;
+        else return 0;
+    case 12:
+        if ((char)0 <= c && c <= ')') return 18;
+        else if (c == '*') return 20;
+        else if ('+' <= c && c <= (char)127) return 18;
+        else return 0;
+    case 13:
+        return 0;
+    case 14:
+        if ('0' <= c && c <= '9') return 2;
+        else return 0;
+    case 15:
+        if ('0' <= c && c <= '9') return 1;
+        else if ('A' <= c && c <= 'Z') return 1;
+        else if (c == '_') return 1;
+        else if ('a' <= c && c <= 'l') return 1;
+        else if (c == 'm') return 3;
+        else if ('n' <= c && c <= 'z') return 1;
+        else return 0;
+    case 16:
+        if ('0' <= c && c <= '9') return 1;
+        else if ('A' <= c && c <= 'Z') return 1;
+        else if (c == '_') return 1;
+        else if ('a' <= c && c <= 't') return 1;
+        else if (c == 'u') return 15;
+        else if ('v' <= c && c <= 'z') return 1;
+        else return 0;
+    case 17:
+        if ('0' <= c && c <= '9') return 1;
+        else if ('A' <= c && c <= 'Z') return 1;
+        else if (c == '_') return 1;
+        else if ('a' <= c && c <= 'm') return 1;
+        else if (c == 'n') return 16;
+        else if ('o' <= c && c <= 'z') return 1;
+        else return 0;
+    case 18:
+        if ((char)0 <= c && c <= ')') return 18;
+        else if (c == '*') return 20;
+        else if ('+' <= c && c <= (char)127) return 18;
+        else return 0;
+    case 19:
+        if (c == '*') return 18;
+        else if (c == '/') return 11;
+        else return 0;
+    case 20:
+        if ((char)0 <= c && c <= ')') return 18;
+        else if (c == '*') return 20;
+        else if ('+' <= c && c <= '.') return 18;
+        else if (c == '/') return 12;
+        else if ('0' <= c && c <= (char)127) return 18;
+        else return 0;
+    }
+    return 0;
+}
+int enumL::action(int state)
+{
+    switch (state)
+    {
+    case 1:
+        return 1;//id: id
+    case 2:
+        return 2;//number: integer
+    case 3:
+        return 3;//reserved: enum
+    case 4:
+        return 4;//format: spaces
+    case 5:
+        return 5;//format: enters
+    case 6:
+        return 6;//format: tab
+    case 7:
+        return 7;//division: semicolon
+    case 8:
+        return 8;//division: comma
+    case 9:
+        return 9;//braket: braceL
+    case 10:
+        return 10;//braket: braceR
+    case 11:
+        return 11;//anntation: anntationS
+    case 12:
+        return 12;//anntation: anntationM
+    case 13:
+        return 13;//assignments: assign
+    case 15:
+        return 1;//id: id
+    case 16:
+        return 1;//id: id
+    case 17:
+        return 1;//id: id
+    }
+    return 0;
+}
+int enumL::GroupGet(int accept)
+{
+    switch (accept)
+    {
+    case 1:
+        return 1;//id: id
+    case 2:
+        return 2;//number: integer
+    case 3:
+        return 3;//reserved: enum
+    case 4:
+        return 4;//format: spaces
+    case 5:
+        return 4;//format: enters
+    case 6:
+        return 4;//format: tab
+    case 7:
+        return 5;//division: semicolon
+    case 8:
+        return 5;//division: comma
+    case 9:
+        return 6;//braket: braceL
+    case 10:
+        return 6;//braket: braceR
+    case 11:
+        return 7;//anntation: anntationS
+    case 12:
+        return 7;//anntation: anntationM
+    case 13:
+        return 8;//assignments: assign
+    }
+    return 0;
+}
 
+
+    const size_t enumG::StateCount = 17;
+    const size_t enumG::NonTerminalCount = 5;
+    const size_t enumG::TerminalCount = 13;
+    const size_t enumG::RulesCount = 10;
+    const int enumG::GOTO[17][5] = { \
+    {1, 6, 1, 1, 1}, \
+    {1, 1, 1, 1, 1}, \
+    {1, 1, 1, 1, 1}, \
+    {1, 1, 1, 1, 1}, \
+    {1, 1, 1, 22, 26}, \
+    {1, 1, 42, 1, 1}, \
+    {1, 1, 1, 1, 1}, \
+    {1, 1, 1, 1, 1}, \
+    {1, 1, 1, 1, 1}, \
+    {1, 1, 1, 1, 1}, \
+    {1, 1, 1, 1, 1}, \
+    {1, 1, 1, 1, 58}, \
+    {1, 1, 1, 1, 1}, \
+    {1, 1, 1, 1, 1}, \
+    {1, 1, 1, 1, 1}, \
+    {1, 1, 1, 1, 1}, \
+    {1, 1, 1, 1, 1} };
+    //==============================
+    const int enumG::ACTION[17][14] = { \
+    {13, 13, 13, 10, 13, 13, 13, 13, 13, 13, 13, 13, 13, 13}, \
+    {0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1}, \
+    {5, 14, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5}, \
+    {37, 37, 37, 37, 37, 37, 37, 37, 37, 18, 37, 37, 37, 37}, \
+    {5, 30, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5}, \
+    {1, 1, 1, 1, 1, 1, 1, 1, 46, 1, 50, 1, 1, 1}, \
+    {1, 1, 1, 1, 1, 1, 1, 1, 27, 1, 27, 1, 1, 1}, \
+    {1, 1, 1, 1, 1, 1, 1, 1, 35, 1, 35, 1, 1, 34}, \
+    {9, 9, 38, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9}, \
+    {1, 1, 1, 1, 1, 1, 1, 1, 39, 1, 39, 1, 1, 1}, \
+    {7, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1}, \
+    {1, 30, 1, 1, 1, 1, 1, 1, 1, 1, 62, 1, 1, 1}, \
+    {11, 1, 1, 1, 1, 1, 1, 54, 1, 1, 1, 1, 1, 1}, \
+    {15, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1}, \
+    {1, 1, 1, 1, 1, 1, 1, 1, 31, 1, 31, 1, 1, 1}, \
+    {19, 1, 1, 1, 1, 1, 1, 66, 1, 1, 1, 1, 1, 1}, \
+    {23, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1} };
+    //==============================
+    const int enumG::RulesToSymbol[10] = { \
+    0,\
+    1,\
+    2,\
+    2,\
+    2,\
+    2,\
+    3,\
+    3,\
+    4,\
+    4 };
+    //==============================
+    const int enumG::RulesLength[10] = { \
+    1,\
+    5,\
+    1,\
+    2,\
+    2,\
+    3,\
+    1,\
+    3,\
+    1,\
+    3 };
+    //==============================
+    const char* const enumG::RulesName[10] = { \
+    "all->numerate ",\
+    "numerate->enum id braceL BODY END ",\
+    "END->braceR ",\
+    "END->braceR semicolon ",\
+    "END->comma braceR ",\
+    "END->comma braceR semicolon ",\
+    "BODY->FORMULA ",\
+    "BODY->BODY comma FORMULA ",\
+    "FORMULA->id ",\
+    "FORMULA->id assign integer " };
+    //==============================
+    const int enumG::Implicit[10] = { \
+    0, \
+    0, \
+    0, \
+    0, \
+    0, \
+    0, \
+    0, \
+    0, \
+    0, \
+    0 };
 
 
 

@@ -8,213 +8,10 @@ typedef hyperlex::GrammarTree AST;
 typedef hyperlex::tree<hyperlex::GrammarTree::TreeInfor> GTNode;
 typedef hyperlex::tree<hyperlex::GrammarTree::TreeInfor>::PostIterator GTiterator;
 
-
-class CompilerObj
+inline bool var::compareAttri(const char* srcR)const
 {
-public:
-	typedef long long int sint;
-	CompilerObj();
-	~CompilerObj();
-	bool eqaul(const char* opR) const;
-	void SetName(const char* NewName);
-	inline const char* GetName(void) const { return name; }
-protected:
-	char* name;
-	void ruinCO(void);
-};
-class ConstObj : public CompilerObj
-{
-public:
-	enum type
-	{
-		_sint_,
-		_unit_,
-		_bool_,
-		_complex_,
-		_real_,
-	};
-	ConstObj();
-	ConstObj(size_t dim, bool Scalar, enum type TTT, const char* Name);
-	ConstObj(sint Rvalue, type T);
-	ConstObj(double Rvalue);
-	ConstObj(ConstObj* left, const char* op, ConstObj*right);
-	ConstObj(const char* op, ConstObj* right);
-	
-	~ConstObj();
-	
-	union value
-	{
-		sint i;
-		size_t u;
-		void* t;//tensor
-		bool b;
-		double f;
-	};
-	enum status
-	{
-		valued,
-		liberal,
-	};
-	void assign(sint right);
-	void assign(const ConstObj* srcR);
-	void assign(const ConstObj* srcR, size_t No);
-	void assign(size_t NO, sint right);
-	void demo(FILE* fp = stdout) const;
-	void copy(const ConstObj* src);
-	void copy(const ConstObj* src, size_t No);
-	
-protected:
-	type T;
-	bool scalar;
-	vector<status> S;
-	vector<value> V;
-	void demo(FILE* fp, type TT, status SS, const value & VV) const;
-public:
-	inline bool ValuedScalarSint(void) const
-	{
-		return T == _sint_ && scalar && S[0] == valued;
-	}
-	inline sint GetSint(void) const
-	{
-		return V[0].i;
-	}
-	inline status GetState(size_t No = 0)const
-	{
-		return S[No];
-	}
-	inline sint GetInt(size_t No = 0) const
-	{
-		return V[No].i;
-	}
-	inline type GetType(void) const
-	{
-		return T;
-	}
-	inline bool SorUint(void) const
-	{
-		return T == _sint_ || T == _unit_;
-	}
-	inline bool GetScalar(void)const { return scalar; }
-	inline size_t GetDim(void) const { return S.count(); };
-};
-class var : public CompilerObj
-{
-public:
-	
-	var();
-	~var();
-	
-	enum authority
-	{
-		literal,
-		read,
-		write,
-		owned,
-	};
-	
-	
-	void ruin(void);
-
-	void demo(FILE* fp = stdout) const;
-private:
-
-	
-};
-class func : public CompilerObj
-{
-public:
-	func();
-	~func();
-
-private:
-	Expres* Exp;
-	void ruin(void);
-};
-class NetInContext : public CompilerObj
-{
-public:
-	NetInContext();
-	~NetInContext();
-
-private:
-	NetWork* net;
-	void ruin(void);
-};
-class context;
-class BuildInfor
-{
-public:
-	BuildInfor();
-	~BuildInfor();
-	enum errorType
-	{
-		NoError = 0,
-		PretreatLEXICAL,
-		PretreatGRAMMAR,
-		PretreatRepeat,
-		PretreatOpenfail,
-		PretreatNone,
-		ErrorinputLEXICAL,
-		ErrorinputGrammar,
-
-		ErrorUnsupportType,
-		ErrorRepeatVarDef,
-		ErrorMissingVarDef,
-		ErrorIndexOutofRange,
-		ErrorNeedAInt,
-		ErrorNameNULL,
-		WrongEntrance,
-
-		ErrorInitialAorS,
-		//array dim not equal, assignment between 
-		//scalar and array
-		ErrorAssignType,
-
-		SymbolicAlreadyDef,
-
-
-		ErrorNotAConst,
-		ErrorUnsupportFunc,
-		ErrorUnKnowEXP,
-		buildUndone,
-	};
-	int build(const char* FileName, context * dst);
-	void ErrorDemo(FILE* fp = stdout) const;
-	void clear(void);
-	friend class context;
-protected:
-	hyperlex::Morpheme MorphemePre;
-	hyperlex::Morpheme LexicalSource;
-
-	AST *ASTree;
-
-	errorType errorCode;
-	size_t errorInfor1;
-	size_t errorInfor2;
-	char* errorInfor3;
-	bool errorInfor4;
-
-	void initial(void);
-
-	int pretreatment(const char* input, lex& output);
-	void NeglectNullToken(lex& eme) const;
-	int buildGanalysis(const lex& eme, context* dst);
-	int buildAll(const lex& eme, AST& Tree, context* dst);
-
-	int buildConstObj(const lex& eme, GTNode* GTarget, context* dst);
-	int buildExp(const lex& eme, GTNode* GTarget, context* dst);
-	int buildSymbolic(const lex& eme, GTNode* GTarget, context* dst);
-	int buildNet(const lex& eme, GTNode* GTarget, context* dst);
-	int buildDiff(const lex& eme, GTNode* GTarget, context* dst);
-
-	int SetAConstObj(const lex& eme, GTNode* GTarget, ConstObj::type Type, context* dst);
-	int GetAConst(ConstObj*& output, const lex& eme, GTNode* GTarget, context* dst);
-	
-	int buildSymbolicName(const lex& eme, GTNode* PARA, context* dst, func* Func);
-	int buildSymbolicPara(const lex& eme, GTNode* PARA, context* dst, func* Func);
-	int buildSymbolicBody(const lex& eme, GTNode* PARA, context* dst, func* Func);
-	size_t getValueDim(GTNode* GTarget);
-};
+	return compare(srcR, attribute);
+}
 
 BuildInfor::BuildInfor()
 {
@@ -553,6 +350,12 @@ static const char* getIDname(const lex& eme, GTNode* ID)
 	if (Def->root().rules) return NULL;
 	else return eme.GetWord(Def->root().site);
 }
+static bool getIDscalar(const lex& eme, GTNode* ID)
+{
+	NetG::rules RR = (NetG::rules)ID->root().site;
+	return (RR == NetG::rules::ID_single_);
+}
+
 static ConstObj::type getType(const char* input)
 {
 
@@ -569,8 +372,37 @@ static ConstObj::type getType(const lex& eme, GTNode* GTarget)
 	const char* input = eme.GetWord(GTarget->root().site);
 	return getType(input);
 }
+int BuildInfor::GetIDdim(size_t& dim, const lex& eme, GTNode* ID, context* dst)
+{
+	size_t line = ID->child(0)->root().site;
+	bool Scalar_ = getIDscalar(eme, ID);
+	dim = 0;
+	if (!Scalar_)
+	{
+		ConstObj* Const_;
+		int error = GetAConst(Const_, eme, ID->child(1)->child(1), dst);
+		if (error != 0) return error;
+		if (!Const_->SorUint())
+		{
+			errorInfor1 = line;
+			errorCode = ErrorNeedAInt;
+			return 1234234;
+		}
+		dim = Const_->GetSint();
+		if (dim < 0)
+		{
+			errorInfor1 = line;
+			errorInfor2 = dim;
+			errorCode = ErrorIndexOutofRange;
+			return 1234267;
+		}
+	}
+	else dim = 1;
+}
+
 int BuildInfor::SetAConstObj(const lex& eme, GTNode* GTarget, ConstObj::type Type, context* dst)
 {
+	int error = 0;
 	const char* name = NULL;
 	name = getIDname(eme, GTarget);
 	size_t line = GTarget->child(0)->root().site;
@@ -593,29 +425,12 @@ int BuildInfor::SetAConstObj(const lex& eme, GTNode* GTarget, ConstObj::type Typ
 	bool Scalar_ = false;
 	if (RR == Pikachu::NetG::ID_single_) Scalar_ = true;
 	else Scalar_ = false;
-	sint dim = 0;
-	if (!Scalar_)
-	{
-		ConstObj* Const_;
-		int error = GetAConst(Const_, eme, GTarget->child(1)->child(1), dst);
-		if (error != 0) return error;
-		if (!Const_->SorUint())
-		{
-			errorInfor1 = line;
-			errorCode = ErrorNeedAInt;
-			return 1234234;
-		}
-		dim = Const_->GetSint();
-		if (dim < 0)
-		{
-			errorInfor1 = line;
-			errorInfor2 = dim;
-			errorCode = ErrorIndexOutofRange;
-			return 1234267;
-		}
-	}
+	size_t dim = 0;
+	error = GetIDdim(dim, eme, GTarget, dst);
+	if (error != 0) return error;
 	obj = new ConstObj(dim, Scalar_, Type, name);
 	dst->Cobj.append(obj);
+	return error;
 }
 int BuildInfor::GetAConst(ConstObj*& output, const lex& eme, GTNode* GTarget, context* dst) 
 {
@@ -1000,7 +815,99 @@ int BuildInfor::buildExp(const lex& eme, GTNode* GTarget, context * dst)
 
 int BuildInfor::buildSymbolicPara(const lex& eme, GTNode* PARA, context* dst, func* Func)
 {
+	int error = 0;
+	size_t line = PARA->root().site;
+	NetG::rules RR = (NetG::rules)PARA->root().site;
+	size_t count = PARA->ChildCount();
+	if (RR != NetG::rules::PARA_PARA_ || count % 2 != 1)
+	{
+		errorInfor1 = line;
+		errorCode = WrongEntrance;
+		return 79858734;
+	}
+	Expres* Exp = Func->Exp;
+	for (size_t i = 0; i < count; i += 2)
+	{
+		GTNode* SYMBOLICPARA = PARA->child(i);
+		GTNode* ID = SYMBOLICPARA->child(1);
+		size_t dim = 0;
+		NetG::rules TypePara = (NetG::rules)SYMBOLICPARA->root().site;
+		error = GetIDdim(dim, eme, ID, dst);
+		const char* name = getIDname(eme, ID);
+		bool scalar = getIDscalar(eme, ID);
 
+		var* old = dst->search(name);
+		if (old != NULL)
+		{
+			errorCode = VarAlreadDef;
+			errorInfor1 = line;
+			return 234789405;
+		}
+		var* newVar = new var;
+		newVar->SetName(name);
+		if (!scalar)
+		{
+			if (dim == 0)
+			{
+				//error
+				return 7892424;
+			}
+			newVar->SetCount(dim);
+		}
+		else dim = 1;
+		dst->global.append(newVar);
+
+
+		switch (TypePara)
+		{
+		case Pikachu::NetG::SYMBOLICPARA_input_:
+		{
+			if (Func->InputCount >= 1)
+			{
+				errorCode = TooMuchInput;
+				errorInfor1 = line;
+				return 234789406;
+			}
+			newVar->SetAttri("input");
+			for (size_t j = 0; j < dim; j++)
+			{
+				Expres::node* Node = Exp->NewNode(Pikachu::_LeafX_, 0, j);
+				newVar->SetInfor(Node, j);
+			}
+			Func->InputCount += 1;
+			break;
+		}
+		case Pikachu::NetG::SYMBOLICPARA_para_:
+		{
+			if (Func->OutputCount >= 1)
+			{
+				errorCode = TooMuchPara;
+				errorInfor1 = line;
+				return 234789407;
+			}
+			newVar->SetAttri("para");
+			for (size_t j = 0; j < dim; j++)
+			{
+				Expres::node* Node = Exp->NewNode(Pikachu::_LeafPara_, 0, j);
+				newVar->SetInfor(Node, j);
+			}
+			Func->OutputCount += 1;
+			break;
+		}
+		case Pikachu::NetG::SYMBOLICPARA_output_:
+		{
+			newVar->SetAttri("output");
+			break;
+		}
+		default:
+		{
+			errorInfor1 = line;
+			errorCode = WrongEntrance;
+			return 79858735;
+		}
+		}
+	}
+	return error;
 }
 int BuildInfor::buildSymbolicName(const lex& eme, GTNode* Nameid, context* dst, func* Func)
 {
@@ -1190,6 +1097,14 @@ int BuildInfor::buildSymbolicBody(const lex& eme, GTNode* SYMBOLICBODY, context*
 
 	return error;
 }
+int BuildInfor::buildSymbolicCheck(const lex& eme, GTNode* PARA, context* dst, func* Func)
+{
+	int error = 0;
+	
+
+
+	return error;
+}
 int BuildInfor::buildSymbolic(const lex& eme, GTNode* SYMBOLIC, context * dst)
 {
 	GTiterator iterator;
@@ -1247,45 +1162,7 @@ int BuildInfor::buildDiff(const lex& eme, GTNode* GTarget, context * dst)
 }
 
 
-class context
-{
-public:
-	friend class BuildInfor;
-	context();
-	~context();
-	void ruin(void);
-	var* search(const char* name)const;
-	var* SearchLocal(const char* name)const;
-	ConstObj* searchConst(const char* name)const;
-	ConstObj* SearchConstLocal(const char* name)const;
-	func* searchFuncs(const char* name) const;
-	func* searchFuncsLocal(const char* name) const;
-	void demo(FILE* fp = stdout) const;
-	void append(context* child);
 
-	int build(const char* FileName);
-	void clear(void);
-	
-	enum state
-	{
-		NoError,
-		Undone,
-		Error,
-	};
-private:
-
-	state S;
-
-
-	vector<ConstObj*> Cobj;
-	vector<var*> global;
-	vector<func*> funcs;
-	vector<NetInContext*> nets;
-	context* parent;
-	vector<context*> childs;
-	void initial(void);
-	
-};
 
 
 
@@ -1725,35 +1602,71 @@ void ConstObj::assign(const ConstObj* srcR, size_t No)
 	}
 	V.append(newVal);  // Ìí¼ÓÐÂÖµ
 }
+
+
 var::var()
 {
-	SetName("implicit");
+	initial();
 }
 var::~var()
 {
-	ruin();
+	free(attribute);
+	attribute = NULL;
+	infor = NULL;
 }
 void var::ruin(void)
 {
+	free(attribute);
+	attribute = NULL;
+	infor = NULL;
 	ruinCO();
+}
+void var::initial(void)
+{
+	name = NULL;
+	infor = NULL;
 }
 void var::demo(FILE* fp) const
 {
 	
 }
 
+void var::SetAttri(const char* NewName)
+{
+	size_t i;
+	free(attribute);
+	attribute = NULL;
+	if (!NewName) return;
+
+	size_t len = 0;
+	while (NewName[len] != '\0') ++len;
+
+	attribute = (char*)(malloc((len + 1) * sizeof(char)));
+	for (i = 0; i <= len; ++i)
+	{
+		attribute[i] = NewName[i];
+	}
+}
+
 
 func::func()
 {
 	Exp = NULL;
+
+	InputCount = 0;
+	OutputCount = 0;
+	ParaCount = 0;
 }
 func::~func()
 {
-	ruin();
+	delete Exp;
+	Exp = NULL;
 }
 void func::ruin(void)
 {
 	delete Exp;
+	Exp = NULL;
+	ruinCO();
 }
 
 

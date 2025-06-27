@@ -261,6 +261,8 @@ namespace Pikachu
 		void ClearOutput(void);
 	};
 
+	//class BuildInfor;
+
 	class Expres
 	{
 	public:
@@ -312,7 +314,7 @@ namespace Pikachu
 		inline size_t OutputAmount(void)const { return output.count(); }
 		inline size_t ParameterAmount(void)const { return ParameterCount; }
 		inline size_t InputGroup(void)const { return InputDim.count(); }
-	
+		friend class BuildInfor;
 	protected:
 		graph<node> formula;
 		vector<Ele*> output;

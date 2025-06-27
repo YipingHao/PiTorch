@@ -323,7 +323,6 @@ namespace Pikachu
 		static int action(int state);
 		static int GroupGet(int state);
 	};
-
 	struct NetPreG
 	{
 		enum type
@@ -445,8 +444,12 @@ namespace Pikachu
 		static const char* const RulesName[74];
 		static const int Implicit[74];
 	};
+
+
+
+
 }
 
 
 
-#endif // !sheet_h_fhasdufhqweioq34ryh8iouertgfhouiaerfghiouerwfghuio
+#endif // 
