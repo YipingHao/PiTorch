@@ -43,7 +43,7 @@ grammar: numerate:
 {
 	numerate: 
 	{
-		all: enum id braceL BODY END;
+		id: enum id braceL BODY END;
 	}
 	END:
 	{
