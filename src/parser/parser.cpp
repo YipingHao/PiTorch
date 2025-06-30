@@ -852,7 +852,6 @@ int BuildInfor::GetAVar(var*& output, const lex& eme, GTNode* EXP_RIGHT, context
 				GT->root().infor = (void*)Lvalue;
 				break;
 			}
-			
 			case Pikachu::NetG::UNIT_complex_:
 			{
 				GTNode* Right = GT->child(1);

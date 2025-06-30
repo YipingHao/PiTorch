@@ -107,7 +107,7 @@ namespace Pikachu
 	class var : public CompilerObj
 	{
 	public:
-
+		var(Expres::node* srcR);
 		var();
 		~var();
 
