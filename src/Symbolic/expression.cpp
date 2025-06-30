@@ -2382,7 +2382,33 @@ bool expression::Simplify10(void)
     return changed_;
 }
 
-
+#include "string.h"
+operation Pikachu::parseOp(const char* opStr)
+{
+    if (strcmp(opStr, "+") == 0) return _add_;
+    if (strcmp(opStr, "-") == 0) return _sub_;
+    if (strcmp(opStr, "*") == 0) return _mul_;
+    if (strcmp(opStr, "/") == 0) return _div_;
+    return _add_; 
+}
+function Pikachu::parseFunction(const char* funcStr) 
+{
+    if (strcmp(funcStr, "sin") == 0) return _sin_;
+    if (strcmp(funcStr, "cos") == 0) return _cos_;
+    if (strcmp(funcStr, "exp") == 0) return _exp_;
+    if (strcmp(funcStr, "ln") == 0) return _ln_;
+    if (strcmp(funcStr, "sqrt") == 0) return _sqrt_;
+    if (strcmp(funcStr, "minus") == 0) return _minus_;
+    if (strcmp(funcStr, "-") == 0) return _minus_;
+    // 处理无效函数名（可选）
+    return _sin_; // 默认值或抛出异常
+}
+function2 Pikachu::parseFunction2(const char* funcStr)
+{
+    if (strcmp(funcStr, "pow") == 0) return _pow_;
+    // 处理无效函数名
+    return _pow_; // 默认值
+}
 
 Expres::Expres()
 {
@@ -3191,6 +3217,16 @@ Expres::Ele* Expres::NewNode(Expres::Ele* L, Expres::Ele* R, operation Op)
     //printf("\t\t\t????\n");
     return New;
 }
+Expres::Ele* Expres::NewNode(Expres::Ele* L, const char* Op, Expres::Ele* R)
+{
+    Expres::Ele* New;
+    operation realOp = parseOp(Op);  // 关键转换
+
+    New = new Expres::Ele(realOp);    // 使用转换后的枚举值
+    formula.append(New);
+    formula.ArcAdd(L, R, New);
+    return New;
+}
 Expres::Ele* Expres::NewNode(function func_)
 {
     Expres::Ele* New;
@@ -3201,6 +3237,15 @@ Expres::Ele* Expres::NewNode(function func_)
 Expres::Ele* Expres::NewNode(Expres::Ele* L, function func_)
 {
     Expres::Ele* New;
+    New = new Expres::Ele(func_);
+    formula.append(New);
+    formula.ArcAdd(L, New);
+    return New;
+}
+Expres::Ele* Expres::NewNode(const char* fun, Expres::Ele* L)
+{
+    Expres::Ele* New;
+    function func_ = parseFunction(fun);
     New = new Expres::Ele(func_);
     formula.append(New);
     formula.ArcAdd(L, New);
@@ -3221,6 +3266,16 @@ Expres::Ele* Expres::NewNode(Expres::Ele* L, Expres::Ele* R, function2 func_)
     formula.ArcAdd(L, R, New);
     return New;
 }
+Expres::Ele* Expres::NewNode(const char* fun2, Expres::Ele* L, Expres::Ele* R)
+{
+    Expres::Ele* New;
+    function2 func2_ = parseFunction2(fun2);
+    New = new Expres::Ele(func2_);
+    formula.append(New);
+    formula.ArcAdd(L, R, New);
+    return New;
+}
+
 Expres::Ele* Expres::OpForwardDiff(vector<Expres::Ele*>& label, Expres::Ele* here)
 {
     Expres::Ele* site;

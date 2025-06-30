@@ -387,19 +387,80 @@ int BuildInfor::GetIDdim(size_t& dim, const lex& eme, GTNode* ID, context* dst)
 			errorCode = ErrorNeedAInt;
 			return 1234234;
 		}
-		dim = Const_->GetSint();
-		if (dim < 0)
+		sint temp = Const_->GetSint();
+		if (temp < 0)
 		{
 			errorInfor1 = line;
-			errorInfor2 = dim;
-			errorCode = ErrorIndexOutofRange;
+			errorInfor2 = temp;
+			errorCode = ErrorMinusIndex;
 			return 1234267;
 		}
 		delete Const_;
+		dim = temp;
 	}
 	else dim = 1;
+	return 0;
 }
+int BuildInfor::GetIDindex(size_t& index, const lex& eme, GTNode* ID, context* dst)
+{
+	size_t line = ID->child(0)->root().site;
+	bool Scalar_ = getIDscalar(eme, ID);
+	index = 0;
+	if (!Scalar_)
+	{
+		ConstObj* Const_ = NULL;
+		int error = GetAConst(Const_, eme, ID->child(1)->child(1), dst);
+		if (error != 0) return error;
+		if (!Const_->SorUint())
+		{
+			errorInfor1 = line;
+			ErrorNode = ID;
+			errorCode = ErrorNeedAInt;
+			return 1234234;
+		}
+		sint temp = Const_->GetSint();
+		if (temp < 0)
+		{
+			errorInfor1 = line;
+			errorInfor2 = temp;
+			ErrorNode = ID;
+			errorCode = ErrorMinusIndex;
+			return 1234267;
+		}
+		delete Const_;
+		index = temp;
 
+	}
+	else index = 0;
+	return 0;
+}
+int BuildInfor::CheckVarIndex(size_t& index, const lex& eme, GTNode* ID, context* dst, var* target)
+{
+	bool Scalar_ = getIDscalar(eme, ID);
+	if (Scalar_ != target->scalar())
+	{
+		ErrorNode = ID;
+		errorCode = ErrorSAmissMatch;
+		return 4897415;
+	}
+	if (Scalar_)
+	{
+		index = 0;
+	}
+	else
+	{
+		int error = GetIDindex(index, eme, ID, dst);
+		if (error != 0) return error;
+		if (index >= target->count())
+		{
+			ErrorNode = ID;
+			errorInfor1 = index;
+			errorCode = ErrorIndexOutofRange;
+			return 4897416;
+		}
+	}
+	return 0;
+}
 int BuildInfor::SetAConstObj(const lex& eme, GTNode* GTarget, ConstObj::type Type, context* dst)
 {
 	int error = 0;
@@ -641,7 +702,7 @@ size_t BuildInfor::getValueDim(GTNode* VALUE)
 	return VALUES->ChildCount() + 1;
 }
 
-int BuildInfor::GetAVar(var*& output, const lex& eme, GTNode* EXP_RIGHT, context* dst)
+int BuildInfor::GetAVar(var*& output, const lex& eme, GTNode* EXP_RIGHT, context* dst, func* Func)
 {
 	int error = 0;
 	output = NULL;
@@ -652,7 +713,7 @@ int BuildInfor::GetAVar(var*& output, const lex& eme, GTNode* EXP_RIGHT, context
 		errorInfor1 = EXP_RIGHT->root().site;
 		return 12321;
 	}
-
+	Expres* Exp = Func->Exp;
 	GTiterator iterator;
 	iterator.initial(EXP_RIGHT);
 
@@ -695,64 +756,103 @@ int BuildInfor::GetAVar(var*& output, const lex& eme, GTNode* EXP_RIGHT, context
 			case Pikachu::NetG::rules::EXP_MUL_default_:
 			case Pikachu::NetG::rules::EXP_MINUS_default_:
 			case Pikachu::NetG::rules::UNIT_id_:
+			case Pikachu::NetG::UNIT_call_:
 			{
-				GTNode* ID = GT->child(0);
-				
-				size_t dim = 0;
-				error = GetIDdim(dim, eme, ID, dst);
-				if (error != 0) return error;
-				const char* id = getIDname(eme, ID);
-				bool scalar = getIDscalar(eme, ID);
-				var* v = dst->search(id);
-				ConstObj* obj = dst->searchConst(id);
-				if (v == NULL && obj == NULL) {
-					errorCode = ErrorMissingVarDef;
-					ErrorNode = ID;
-					errorInfor1 = ID->root().site;
-					error = 5667558;
-				}
-				else if (v != NULL)
-				{
-					if (obj != NULL)
-					{
-						errorCode = ErrorRepeatVarDef;
-						ErrorNode = ID;
-						errorInfor1 = ID->root().site;
-						error = 5667559;
-					}
-					if(scalar != v->scalar())
-					{
-						errorCode = ErrorInitialAorS;
-						ErrorNode = ID;
-						errorInfor1 = ID->root().site;
-						errorInfor2 = dim;
-						return 123456789;
-					}
-					if(!scalar && v->count() <= dim)
-					{
-						errorCode = ErrorIndexOutofRange;
-						ErrorNode = ID;
-						errorInfor1 = ID->root().site;
-						errorInfor2 = dim;
-						errorInfor4 = v->count();
-						return 123456789;
-					}
-				}
-				//error = GetAVar(v, eme, Right, dst);
-				output = v;
+				GTNode* Right = GT->child(0);
+				var* right = (var*)(Right->root().infor);
+				Right->root().infor = NULL;
+				GT->root().infor = (void*)right;
 				break;
 			}
 			case Pikachu::NetG::EXP_RIGHT_add_:
 			case Pikachu::NetG::EXP_MUL_multi_:
 			{
+				GTNode* Left = GT->child(0);
+				GTNode* Right = GT->child(2);
+				var* left = (var*)(Left->root().infor);
+				var* right = (var*)(Right->root().infor);
+				Expres::node* SrcL = left->Getnode();
+				Expres::node* SrcR = right->Getnode();
 
+				GTNode* op = GT->child(1);
+				const char* OP = eme.GetWord(op->root().site);
+				Expres::node* Node = Exp->NewNode(SrcL, OP, SrcR);
+				var* Lvalue = new var(Node);
+				GT->root().infor = (void*)Lvalue;
 				break;
 			}
 			case Pikachu::NetG::EXP_MINUS_plus_:
+			{
+				GTNode* Right = GT->child(1);
+				var* right = (var*)(Right->root().infor);
+				Expres::node* SrcR = right->Getnode();
+
+				GTNode* op = GT->child(0);
+				const char* OP = eme.GetWord(op->root().site);
+				if (compare(OP, "+"))
+				{
+					var* Lvalue = new var(SrcR);
+					GT->root().infor = (void*)Lvalue;
+				}
+				else
+				{
+					Expres::node* Node = Exp->NewNode(OP, SrcR);
+					var* Lvalue = new var(Node);
+					GT->root().infor = (void*)Lvalue;
+				}
+				break;
+			}
 			case Pikachu::NetG::UNIT_const_:
+			{
+				GTNode* Right = GT->child(1);
+				var* right = (var*)(Right->root().infor);
+				Expres::node* SrcR = right->Getnode();
+
+				GTNode* op = GT->child(0);
+				const char* OP = eme.GetWord(op->root().site);
+				if (compare(OP, "+"))
+				{
+					var* Lvalue = new var(SrcR);
+					GT->root().infor = (void*)Lvalue;
+				}
+				else
+				{
+					Expres::node* Node = Exp->NewNode(OP, SrcR);
+					var* Lvalue = new var(Node);
+					GT->root().infor = (void*)Lvalue;
+				}
+				break;
+			}
 			case Pikachu::NetG::CALL_call_1_:
+			{
+				GTNode* Right = GT->child(2);
+				var* right = (var*)(Right->root().infor);
+				Expres::node* SrcR = right->Getnode();
+
+				GTNode* func1 = GT->child(0);
+				const char* Func = eme.GetWord(func1->root().site);
+				Expres::node* Node = Exp->NewNode(Func, SrcR);
+				var* Lvalue = new var(Node);
+				GT->root().infor = (void*)Lvalue;
+				break;
+			}
 			case Pikachu::NetG::CALL_call_2_:
-			case Pikachu::NetG::UNIT_call_:
+			{
+				GTNode* Left = GT->child(2);
+				GTNode* Right = GT->child(4);
+				var* left = (var*)(Left->root().infor);
+				var* right = (var*)(Right->root().infor);
+				Expres::node* SrcL = left->Getnode();
+				Expres::node* SrcR = right->Getnode();
+
+				GTNode* func2 = GT->child(0);
+				const char* Func = eme.GetWord(func2->root().site);
+				Expres::node* Node = Exp->NewNode(Func, SrcL, SrcR);
+				var* Lvalue = new var(Node);
+				GT->root().infor = (void*)Lvalue;
+				break;
+			}
+			
 			case Pikachu::NetG::UNIT_complex_:
 			{
 				GTNode* Right = GT->child(1);
@@ -912,8 +1012,14 @@ int BuildInfor::buildExp(const lex& eme, GTNode* GTarget, context * dst)
 	if (IDR != Pikachu::NetG::ID_single_)
 	{
 		size_t dim;
-		error = GetIDdim(dim, eme, ID, dst);
+		error = GetIDindex(dim, eme, ID, dst);
 		if (error != 0) return error;
+		if (dim >= obj->GetDim())
+		{
+			ErrorNode = ID;
+			errorCode = ErrorIndexOutofRange;
+			return 34884500;
+		}
 		obj->assign(srcR, dim);
 	}
 	else
@@ -928,6 +1034,7 @@ int BuildInfor::addVar(const lex& eme, GTNode* ID, context* dst, func* Func, con
 {
 	size_t dim = 0;
 	int error = GetIDdim(dim, eme, ID, dst);
+	if (error != 0) return error;
 	const char* name = getIDname(eme, ID);
 	bool scalar = getIDscalar(eme, ID);
 
@@ -993,7 +1100,6 @@ int BuildInfor::buildSymbolicPara(const lex& eme, GTNode* PARA, context* dst, fu
 		}
 		case Pikachu::NetG::SYMBOLICPARA_para_:
 		{
-
 			newVar->SetAttri("para");
 			for (size_t j = 0; j < dim; j++)
 			{
@@ -1091,8 +1197,21 @@ int BuildInfor::buildSymbolicBody(const lex& eme, GTNode* SYMBOLICBODY, context*
 		{
 			GTNode* ID = STATEMENT->child(1);
 			error = addVar(eme, ID, dst, Func, "var");
-			GTNode* EXP_RIGHT = STATEMENT->child(3);
 			if (error != 0) return error;
+			var* Lvalue = dst->RearVar();
+			if (Lvalue->scalar() != true)
+			{
+				errorCode = NeedAscalar;
+				ErrorNode = ID;
+				return 45967;
+			}
+			GTNode* EXP_RIGHT = STATEMENT->child(3);
+			var* Rvalue = NULL;
+			error = GetAVar(Rvalue, eme, EXP_RIGHT, dst, Func);
+			if (error != 0) return error;
+			Lvalue->SetInfor(Rvalue->Getnode());
+			delete Rvalue;
+			Rvalue = NULL;
 			break;
 		}
 		case Pikachu::NetG::STATEMENT_exp_:
@@ -1104,18 +1223,34 @@ int BuildInfor::buildSymbolicBody(const lex& eme, GTNode* SYMBOLICBODY, context*
 			ConstObj* global = dst->searchConst(name);
 			if (target != NULL)
 			{
+				size_t index = 0;
+				error = CheckVarIndex(index, eme, ID, dst, target);
 				if (error != 0) return error;
+				var* Rvalue = NULL;
+				GTNode* EXP_RIGHT = STATEMENT->child(2);
+				error = GetAVar(Rvalue, eme, EXP_RIGHT, dst, Func);
+				if (error != 0) return error;
+				target->SetInfor(Rvalue->Getnode());
+				delete Rvalue;
+				Rvalue = NULL;
 			}
 			else if (local != NULL)
 			{
 				error = buildExp(eme, STATEMENT, dst);
 				if (error != 0) return error;
 			}
+			else if (global != NULL)
+			{
+				errorCode = ShouldNotAssignGlobalConst;
+				ErrorNode = ID;
+				return 79858733;
+			}
 			else
 			{
-				if (error != 0) return error;
+				errorCode = ErrorMissingVarDef;
+				ErrorNode = ID;
+				return 798545433;
 			}
-
 			break;
 		}
 		default:
@@ -1679,7 +1814,14 @@ void ConstObj::assign(const ConstObj* srcR, size_t No)
 	V.append(newVal);  // Ìí¼ÓÐÂÖµ
 }
 
-
+var::var(Expres::node* srcR)
+{
+	name = NULL;
+	Scalar = true;
+	//infor = NULL;
+	infors.recount(1);
+	infors[0] = (void*)srcR;
+}
 var::var()
 {
 	initial();
@@ -1688,19 +1830,22 @@ var::~var()
 {
 	free(attribute);
 	attribute = NULL;
-	infor = NULL;
+	//infor = NULL;
 }
 void var::ruin(void)
 {
 	free(attribute);
 	attribute = NULL;
-	infor = NULL;
+	//infor = NULL;
 	ruinCO();
 }
 void var::initial(void)
 {
 	name = NULL;
-	infor = NULL;
+	Scalar = true;
+	//infor = NULL;
+	infors.recount(1);
+	infors[0] = NULL;
 }
 void var::demo(FILE* fp) const
 {

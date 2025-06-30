@@ -122,7 +122,8 @@ namespace Pikachu
 		void demo(FILE* fp = stdout) const;
 	protected:
 		char* attribute;
-		void* infor;
+		bool Scalar;
+		//void* infor;
 		vector<void*> infors;
 		void initial(void);
 	public:
@@ -134,7 +135,8 @@ namespace Pikachu
 		bool compareAttri(const char* srcR) const;
 		inline Expres::node* Getnode(void) const
 		{
-			return (Expres::node*)infor;
+			//return (Expres::node*)infor;
+			return (Expres::node*)infors[0];
 		}
 		inline Expres::node* Getnode(size_t No) const
 		{
@@ -142,7 +144,8 @@ namespace Pikachu
 		}
 		inline void SetInfor(Expres::node* srcR)
 		{
-			infor = (void*)srcR;
+			//infor = (void*)srcR;
+			infors[0] = srcR;
 		}
 		inline void SetInfor(Expres::node* srcR, size_t No)
 		{
@@ -150,7 +153,8 @@ namespace Pikachu
 		}
 		inline bool scalar(void) const
 		{
-			return infors.count() == 0;
+			return Scalar;
+			//return infors.count() == 0;
 		}
 		inline size_t count(void)
 		{
@@ -164,6 +168,7 @@ namespace Pikachu
 			{
 				infors[i] = NULL;
 			}
+			Scalar = false;
 		}
 	};
 	class func : public CompilerObj
@@ -209,7 +214,9 @@ namespace Pikachu
 			ErrorUnsupportType,
 			ErrorRepeatVarDef,
 			ErrorMissingVarDef,
+			ErrorMinusIndex,
 			ErrorIndexOutofRange,
+			ErrorSAmissMatch,
 			ErrorNeedAInt,
 			ErrorNameNULL,
 			WrongEntrance,
@@ -225,6 +232,9 @@ namespace Pikachu
 			TooMuchInput,
 			NoneOutput,
 			UndefineOutput,
+			NeedAscalar,
+			
+			ShouldNotAssignGlobalConst,
 
 			ErrorNotAConst,
 			ErrorUnsupportFunc,
@@ -263,14 +273,18 @@ namespace Pikachu
 		int buildNet(const lex& eme, GTNode* GTarget, context* dst);
 		int buildDiff(const lex& eme, GTNode* GTarget, context* dst);
 		
-		int GetIDdim(size_t& dim, const lex& eme, GTNode* GTarget, context* dst);
+		int GetIDdim(size_t& dim, const lex& eme, GTNode* ID, context* dst);
+		int GetIDindex(size_t& index, const lex& eme, GTNode* ID, context* dst);
+		int CheckVarIndex(size_t& index, const lex& eme, GTNode* ID, context* dst, var* target);
 		int SetAConstObj(const lex& eme, GTNode* GTarget, ConstObj::type Type, context* dst);
 		int GetAConst(ConstObj*& output, const lex& eme, GTNode* GTarget, context* dst);
-		int GetAVar(var*& output, const lex& eme, GTNode* EXP_RIGHT, context* dst);
+		int GetAVar(var*& output, const lex& eme, GTNode* EXP_RIGHT, context* dst, func* Func);
+
 
 		int addVar(const lex& eme, GTNode* PARA, context* dst, func* Func, const char* attri);
 		int buildSymbolicName(const lex& eme, GTNode* PARA, context* dst, func* Func);
 		int buildSymbolicPara(const lex& eme, GTNode* PARA, context* dst, func* Func);
+		
 		int buildSymbolicBody(const lex& eme, GTNode* PARA, context* dst, func* Func);
 		int buildSymbolicCheck(const lex& eme, GTNode* PARA, context* dst, func* Func);
 		size_t getValueDim(GTNode* GTarget);
@@ -282,6 +296,10 @@ namespace Pikachu
 		context();
 		~context();
 		void ruin(void);
+		inline var* RearVar(void)const
+		{
+			return global[global.count() - 1];
+		}
 		var* search(const char* name)const;
 		var* SearchLocal(const char* name)const;
 		ConstObj* searchConst(const char* name)const;

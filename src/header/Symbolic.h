@@ -86,6 +86,10 @@ namespace Pikachu
 	const char* OperationWord(operation Op);
 	const char* FunctionWord(function Fu);
 	const char* Function2Word(function2 Fu2);
+	operation parseOp(const char* opStr);
+	function parseFunction(const char* funcStr);
+	function2 parseFunction2(const char* funcStr);
+
 	bool isLeaf(enum type T);
 	double ComputeOperation(double src1, double src2, operation Op);
 	double ComputeFunction(double src1, function Fu);
@@ -331,10 +335,13 @@ namespace Pikachu
 		Ele* NewNode(const FuncConst& ele);
 		Ele* NewNode(operation Op);
 		Ele* NewNode(Ele* L, Ele* R, operation Op);
+		Ele* NewNode(Ele* L, const char* Op, Ele* R);
 		Ele* NewNode(function func_);
 		Ele* NewNode(Ele* L, function func_);
+		Ele* NewNode(const char* fun, Ele* L);
 		Ele* NewNode(function2 func_);
 		Ele* NewNode(Ele* L, Ele* R, function2 func_);
+		Ele* NewNode(const char* fun2, Ele* L, Ele* R);
 		Ele* OpForwardDiff(vector<Ele*>& label, Ele* here);
 		Ele* FunctForwardDiff(vector<Ele*>& label, Ele* here);
 		Ele* Funct2ForwardDiff(vector<Ele*>& label, Ele* here);
