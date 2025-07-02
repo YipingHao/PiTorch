@@ -15,7 +15,7 @@ namespace Pikachu
 	typedef hyperlex::tree<hyperlex::GrammarTree::TreeInfor> GTNode;
 	typedef hyperlex::tree<hyperlex::GrammarTree::TreeInfor>::PostIterator GTiterator;
 
-
+	
 	class CompilerObj
 	{
 	public:
@@ -29,6 +29,9 @@ namespace Pikachu
 		char* name;
 		void ruinCO(void);
 	};
+	
+
+
 	class ConstObj : public CompilerObj
 	{
 	public:
@@ -41,12 +44,11 @@ namespace Pikachu
 			_real_,
 		};
 		ConstObj();
-		ConstObj(size_t dim, bool Scalar, enum type TTT, const char* Name);
 		ConstObj(sint Rvalue, type T);
 		ConstObj(double Rvalue);
 		ConstObj(ConstObj* left, const char* op, ConstObj* right);
 		ConstObj(const char* op, ConstObj* right);
-
+		ConstObj(size_t dim, bool Scalar, type TTT, const char* Name);
 		~ConstObj();
 
 		union value
@@ -92,6 +94,10 @@ namespace Pikachu
 		inline sint GetInt(size_t No = 0) const
 		{
 			return V[No].i;
+		}
+		inline double GetReal(size_t No = 0) const
+		{
+			return V[No].f;
 		}
 		inline type GetType(void) const
 		{
@@ -151,6 +157,10 @@ namespace Pikachu
 		{
 			infors[No] = srcR;
 		}
+		inline void SetInfor(void* srcR, size_t No)
+		{
+			infors[No] = srcR;
+		}
 		inline bool scalar(void) const
 		{
 			return Scalar;
@@ -158,7 +168,7 @@ namespace Pikachu
 		}
 		inline size_t count(void)
 		{
-			return infors.count() != 0 ? infors.count() : 1;
+			return infors.count();
 		}
 		//inline size_t dim(void)
 		inline size_t SetCount(size_t dim) 
@@ -195,6 +205,7 @@ namespace Pikachu
 		void ruin(void);
 	};
 	class context;
+	class IDinfor;
 	class BuildInfor
 	{
 	public:
@@ -211,8 +222,10 @@ namespace Pikachu
 			ErrorinputLEXICAL,
 			ErrorinputGrammar,
 
+			ErrorUnExpectedType,
 			ErrorUnsupportType,
 			ErrorRepeatVarDef,
+			ErrorMissingConstVarDef,
 			ErrorMissingVarDef,
 			ErrorMinusIndex,
 			ErrorIndexOutofRange,
@@ -234,17 +247,21 @@ namespace Pikachu
 			UndefineOutput,
 			NeedAscalar,
 			
+			AssignAparaOrinput,
 			ShouldNotAssignGlobalConst,
 
 			ErrorNotAConst,
 			ErrorUnsupportFunc,
 			ErrorUnKnowEXP,
+
+			ErrorUndefined,
 			buildUndone,
 		};
 		int build(const char* FileName, context* dst);
 		void ErrorDemo(FILE* fp = stdout) const;
 		void clear(void);
 		friend class context;
+		friend class IDinfor;
 	protected:
 		hyperlex::Morpheme MorphemePre;
 		hyperlex::Morpheme LexicalSource;
@@ -275,13 +292,13 @@ namespace Pikachu
 		
 		int GetIDdim(size_t& dim, const lex& eme, GTNode* ID, context* dst);
 		int GetIDindex(size_t& index, const lex& eme, GTNode* ID, context* dst);
-		int CheckVarIndex(size_t& index, const lex& eme, GTNode* ID, context* dst, var* target);
-		int SetAConstObj(const lex& eme, GTNode* GTarget, ConstObj::type Type, context* dst);
+		
+		
 		int GetAConst(ConstObj*& output, const lex& eme, GTNode* GTarget, context* dst);
-		int GetAVar(var*& output, const lex& eme, GTNode* EXP_RIGHT, context* dst, func* Func);
+		int GetAExpres(Expres::node*& output, const lex& eme, GTNode* EXP_RIGHT, context* dst, func* Func);
 
 
-		int addVar(const lex& eme, GTNode* PARA, context* dst, func* Func, const char* attri);
+		
 		int buildSymbolicName(const lex& eme, GTNode* PARA, context* dst, func* Func);
 		int buildSymbolicPara(const lex& eme, GTNode* PARA, context* dst, func* Func);
 		
@@ -289,10 +306,44 @@ namespace Pikachu
 		int buildSymbolicCheck(const lex& eme, GTNode* PARA, context* dst, func* Func);
 		size_t getValueDim(GTNode* GTarget);
 	};
+	class IDinfor : public CompilerObj
+	{
+	public:
+		IDinfor();
+		~IDinfor();
+		int build(const lex& eme, GTNode* ID_, BuildInfor* infor, context* dst);
+		var* GetLocalVarR(int &error, BuildInfor* infor, context* dst);//local
+		ConstObj* GetAllConstR(int& error, BuildInfor* infor, context* dst);//global and local
+		var* SetVarL(int& error, BuildInfor* infor, context* dst, const char* attri);
+		ConstObj* SetConstL(int& error, BuildInfor* infor, context* dst, ConstObj::type TTT);
+		void AssignLocalVarL(int& error, BuildInfor* infor, context* dst, void* SrcR);
+		var* GetLocalVarL(int& error, BuildInfor* infor, context* dst);
+		ConstObj* GetLocalConstL(int& error, BuildInfor* infor, context* dst);
+	protected:
+		bool scalar;
+		size_t index;
+		GTNode* backup;
+	public:
+		size_t GetDim(void)const
+		{
+			return (scalar ? 1 : index);
+		}
+		size_t GetIndex(void)const
+		{
+			return (scalar ? 0 : index);
+		}
+		bool GetScalar(void)const
+		{
+			return scalar;
+		}
+		bool CheckType(int& error, BuildInfor* infor)const;
+
+	};
 	class context
 	{
 	public:
 		friend class BuildInfor;
+		friend class IDinfor;
 		context();
 		~context();
 		void ruin(void);
