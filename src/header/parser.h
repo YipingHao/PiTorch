@@ -67,6 +67,7 @@ namespace Pikachu
 		void assign(sint right);
 		void assign(const ConstObj* srcR);
 		void assign(const ConstObj* srcR, size_t No);
+		void assign(size_t No, const ConstObj* srcR);
 		void assign(size_t NO, sint right);
 		void demo(FILE* fp = stdout) const;
 		void copy(const ConstObj* src);
@@ -208,7 +209,9 @@ namespace Pikachu
 	};
 	class context;
 	class IDinfor;
-	class IndexList;
+	class TensorID; 
+	class ValueList;
+	
 	class BuildInfor
 	{
 	public:
@@ -241,6 +244,7 @@ namespace Pikachu
 			//array dim not equal, assignment between 
 			//scalar and array
 			ErrorAssignType,
+			ErrorAssignDim,
 
 			SymbolicAlreadyDef,
 			VarAlreadDef,
@@ -250,6 +254,7 @@ namespace Pikachu
 			UndefineOutput,
 			NeedAscalar,
 			
+			ErrorListTypeMismatch,
 			AssignAparaOrinput,
 			ShouldNotAssignGlobalConst,
 
@@ -265,7 +270,8 @@ namespace Pikachu
 		void clear(void);
 		friend class context;
 		friend class IDinfor;
-		friend class IndexList;
+		friend class TensorID;
+		friend class ValueList;
 	protected:
 		hyperlex::Morpheme MorphemePre;
 		hyperlex::Morpheme LexicalSource;
@@ -349,6 +355,60 @@ namespace Pikachu
 		bool CheckType(int& error, BuildInfor* infor)const;
 
 	};
+	class TensorID : public IDinfor
+	{
+	public:
+		TensorID();
+		~TensorID();
+		int build(const lex& eme, GTNode* TENSORID, BuildInfor* infor, context* dst);
+	protected:
+		vector<char*> Tindex;
+		char* copy(const char* src) const;
+		void append(const lex& eme, GTNode* ID2, BuildInfor* infor, context* dst);
+	};
+	class ValueList
+	{
+	public:
+		ValueList();
+		~ValueList();
+		
+		void append(ConstObj* srcR);
+		int checkInt(BuildInfor* infor) const;
+		int checkIndex(BuildInfor* infor) const;
+		int checkDim(BuildInfor* infor) const;
+		int buildSA(const lex& eme, GTNode* VALUELIST, BuildInfor* infor, context* dst);
+		int build(const lex& eme, GTNode* VALUELIST, BuildInfor* infor, context* dst);
+		void demo(FILE* fp = stdout) const;
+		
+	protected:
+		vector<ConstObj*> values;
+		GTNode* backup;
+		bool scalar; // 是否为标量
+	public:
+		inline bool IsScalar(void) const
+		{
+			return scalar;
+		}
+		inline size_t GetCount(void) const
+		{
+			return values.count();
+		}
+		inline ConstObj::type GetType(void) const
+		{
+			if (values.count() == 0) return ConstObj::type::_unit_;
+			return values[0]->GetType();
+		}
+		inline ConstObj* GetValue(size_t No) const
+		{
+			if (No >= values.count()) return NULL;
+			return values[No];
+		}
+
+		void GetDim(vector<size_t>& dst) const;
+	};
+
+	//context is the main class of parser, it contains all the information
+
 	class context
 	{
 	public:

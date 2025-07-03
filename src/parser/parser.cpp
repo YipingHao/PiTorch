@@ -11,7 +11,6 @@ inline bool var::compareAttri(const char* srcR)const
 }
 
 
-
 BuildInfor::BuildInfor()
 {
 	initial();
@@ -356,241 +355,6 @@ static bool getIDscalar(const lex& eme, GTNode* ID)
 	NetG::rules RR = (NetG::rules)ID->root().site;
 	return (RR == NetG::rules::ID_single_);
 }
-IDinfor::IDinfor()
-{
-	scalar = true;
-	index = 0;
-	backup = NULL;
-}
-IDinfor::~IDinfor()
-{
-}
-int IDinfor::build(const lex& eme, GTNode* ID, BuildInfor* infor, context* dst)
-{
-	backup = ID;
-	const char* temp = NULL;
-	GTNode* Def = ID->child(0);
-	if (!Def->root().rules)
-		temp = eme.GetWord(Def->root().site);
-	SetName(temp);
-
-	NetG::rules RR = (NetG::rules)ID->root().site;
-	scalar = (RR == NetG::rules::ID_single_);
-	size_t line = ID->child(0)->root().site;
-
-	
-	index = 0;
-	if (!scalar)
-	{
-		ConstObj* Const_ = NULL;
-		int error = infor->GetAConst(Const_, eme, ID->child(1)->child(1), dst);
-		if (error != 0) return error;
-		if (!Const_->SorUint())
-		{
-			infor->errorInfor1 = line;
-			infor->ErrorNode = ID;
-			infor->errorCode = BuildInfor::ErrorNeedAInt;
-			return 1234234;
-		}
-		sint temp = Const_->GetSint();
-		if (temp < 0)
-		{
-			infor->errorInfor1 = line;
-			infor->errorInfor2 = temp;
-			infor->ErrorNode = ID;
-			infor->errorCode = BuildInfor::ErrorMinusIndex;
-			return 1234267;
-		}
-		delete Const_;
-		index = temp;
-	}
-	else index = 0;
-	return 0;
-}
-var* IDinfor::GetLocalVarR(int& error, BuildInfor* infor, context* dst)
-{
-	var* temp = dst->SearchLocal(GetName());
-	if (temp == NULL) return temp;
-	if (scalar != temp->scalar())
-	{
-		infor->errorCode = BuildInfor::ErrorSAmissMatch;
-		infor->ErrorNode = backup;
-		error = 326785342;
-		return NULL;
-	}
-	size_t Index = GetIndex();
-	if (Index >= temp->count())
-	{
-		infor->errorCode = BuildInfor::ErrorIndexOutofRange;
-		infor->ErrorNode = backup;
-		error = 123134545;
-		return NULL;
-	}
-	if (temp->Getnode(Index) == NULL)
-	{
-		infor->errorCode = BuildInfor::ErrorMissingVarDef;
-		infor->ErrorNode = backup;
-		error = 123134545;
-		return  NULL;
-	}
-	return temp;
-}
-ConstObj* IDinfor::GetAllConstR(int& error, BuildInfor* infor, context* dst)
-{
-	ConstObj* temp = dst->searchConst(GetName());
-	if (temp == NULL) return temp;
-	if (scalar != temp->GetScalar())
-	{
-		infor->errorCode = BuildInfor::ErrorSAmissMatch;
-		infor->ErrorNode = backup;
-		error = 326785342;
-		return NULL;
-	}
-	size_t Index = GetIndex();
-	if (Index >= temp->GetDim())
-	{
-		infor->errorCode = BuildInfor::ErrorIndexOutofRange;
-		infor->ErrorNode = backup;
-		error = 123134545;
-		return NULL;
-	}
-	if (temp->GetState(Index) == ConstObj::liberal)
-	{
-		infor->errorCode = BuildInfor::ErrorMissingConstVarDef;
-		infor->ErrorNode = backup;
-		error = 123134546;
-		return  NULL;
-	}
-	return temp;
-}
-bool IDinfor::CheckType(int& error, BuildInfor* infor)const
-{
-	if (!scalar && index == 0)
-	{
-		infor->errorCode = BuildInfor::VarAlreadDef;
-		infor->ErrorNode = backup;
-		error = 128931231;
-		return true;
-	}
-	return false;
-}
-var* IDinfor::SetVarL(int& error, BuildInfor* infor, context* dst, const char* attri)
-{
-	size_t dim = GetDim();
-	const char* name = GetName();
-	if (CheckType(error, infor)) return NULL;
-	var* old = dst->search(name);
-	ConstObj* oldC = dst->searchConst(name);
-	if (old != NULL || oldC != NULL)
-	{
-		infor->errorCode = BuildInfor::VarAlreadDef;
-		infor->ErrorNode = backup;
-		error = 234789433;
-		return NULL;
-	}
-	var* newVar = new var;
-	newVar->SetName(name);
-	if (attri != NULL)newVar->SetAttri(attri);
-	
-	if (!scalar)
-	{
-		newVar->SetCount(dim);
-	}
-	dst->global.append(newVar);
-	return newVar;
-}
-ConstObj* IDinfor::SetConstL(int& error, BuildInfor* infor, context* dst, ConstObj::type TTT)
-{
-	size_t dim = GetDim();
-	const char* name = GetName();
-	if (CheckType(error, infor)) return NULL;
-	var* old = dst->search(name);
-	ConstObj* oldC = dst->searchConst(name);
-	if (old != NULL || oldC != NULL)
-	{
-		infor->errorCode = BuildInfor::VarAlreadDef;
-		infor->ErrorNode = backup;
-		error = 23494453;
-		return NULL;
-	}
-	
-	ConstObj* newVar = new ConstObj(dim, scalar, TTT, name);
-	dst->Cobj.append(newVar);
-	return newVar;
-}
-void IDinfor::AssignLocalVarL(int& error, BuildInfor* infor, context* dst, void*SrcR)
-{
-	size_t index = GetIndex();
-	const char* name = GetName();
-	var* old = dst->SearchLocal(name);
-	if (old == NULL)
-	{
-		infor->errorCode = BuildInfor::ErrorMissingVarDef;
-		infor->ErrorNode = backup;
-		error = 234789433;
-		return;
-	}
-	if (index >= old->count())
-	{
-		infor->errorCode = BuildInfor::ErrorIndexOutofRange;
-		infor->ErrorNode = backup;
-		error = 123134545;
-		return;
-	}
-	if (SrcR != NULL)
-		old->SetInfor(SrcR, index);
-	return;
-}
-var* IDinfor::GetLocalVarL(int& error, BuildInfor* infor, context* dst)
-{
-	size_t index = GetIndex();
-	const char* name = GetName();
-	var* old = dst->SearchLocal(name);
-	if (old == NULL)
-	{
-		infor->errorCode = BuildInfor::ErrorMissingVarDef;
-		infor->ErrorNode = backup;
-		error = 234789433;
-		return NULL;
-	}
-	if (old->compareAttri("para") || old->compareAttri("input"))
-	{
-		infor->errorCode = BuildInfor::AssignAparaOrinput;
-		infor->ErrorNode = backup;
-		error = 2432235343;
-		return NULL;
-	}
-	if (index >= old->count())
-	{
-		infor->errorCode = BuildInfor::ErrorIndexOutofRange;
-		infor->ErrorNode = backup;
-		error = 123134545;
-		return NULL;
-	}
-	return old;
-}
-ConstObj* IDinfor::GetLocalConstL(int& error, BuildInfor* infor, context* dst)
-{
-	size_t index = GetIndex();
-	const char* name = GetName();
-	ConstObj* old = dst->SearchConstLocal(name);
-	if (old == NULL)
-	{
-		infor->errorCode = BuildInfor::ErrorMissingConstVarDef;
-		infor->ErrorNode = backup;
-		error = 237894345;
-		return NULL;
-	}
-	if (index >= old->GetDim())
-	{
-		infor->errorCode = BuildInfor::ErrorIndexOutofRange;
-		infor->ErrorNode = backup;
-		error = 121343245;
-		return NULL;
-	}
-	return old;
-}
-
 
 static ConstObj::type getType(const char* input)
 {
@@ -671,8 +435,6 @@ int BuildInfor::GetIDindex(size_t& index, const lex& eme, GTNode* ID, context* d
 	else index = 0;
 	return 0;
 }
-
-
 
 
 int BuildInfor::GetAConst(ConstObj*& output, const lex& eme, GTNode* GTarget, context* dst) 
@@ -1096,12 +858,14 @@ int BuildInfor::buildConstObj(const lex& eme, GTNode* CONSTVAR, context * dst)
 	GTNode* GT = CONSTVAR;
 	NetG::rules RR = (NetG::rules)CONSTVAR->root().site;
 	ConstObj* obj = NULL;
+	ConstObj::type TT;
 	size_t line = GT->child(0)->root().site;
+	
 	if (GT->root().rules)
 	{
 		if (RR == Pikachu::NetG::CONSTVAR_def1_ || RR == Pikachu::NetG::CONSTVAR_def2_)
 		{
-			ConstObj::type TT = getType(eme, GT->child(0));
+			TT = getType(eme, GT->child(0));
 			if (TT != ConstObj::type::_sint_ && TT != ConstObj::type::_real_)
 			{
 				errorCode = ErrorUnsupportType;
@@ -1134,61 +898,28 @@ int BuildInfor::buildConstObj(const lex& eme, GTNode* CONSTVAR, context * dst)
 	}
 	if (RR == Pikachu::NetG::CONSTVAR_def1_) return error;
 
+	ValueList valueList;
 	GTNode* VALUE = CONSTVAR->child(3);
-	bool valueScalar = ((Pikachu::NetG::rules)VALUE->root().site == Pikachu::NetG::VALUE_single_);
-	size_t dim = getValueDim(VALUE);
-	if (valueScalar != obj->GetScalar() || dim != obj->GetDim())
+	error = valueList.build(eme, VALUE, this, dst);
+	if (error != 0) return error;
+	if (TT != valueList.GetType())
 	{
-		errorCode = ErrorInitialAorS;
-		errorInfor1 = line;
-		errorInfor2 = dim;
-		errorInfor4 = obj->GetScalar();
-		return 48975644;
+		errorCode = ErrorAssignType;
+		errorInfor2 = valueList.GetType();
+		ErrorNode = VALUE;
+		return 48975643;
 	}
-	if (valueScalar)
+	if (valueList.GetCount() != obj->GetDim() || valueList.IsScalar() != obj->GetScalar())
 	{
-		GTNode* EXP_RIGHT = VALUE->child(0);//single: EXP_RIGHT;
-		ConstObj* srcR = NULL;
-		int error = GetAConst(srcR, eme, EXP_RIGHT, dst);
-		if (error != 0) return error;
-		if (obj->GetType() != srcR->GetType())
-		{
-			errorCode = ErrorAssignType;
-			return 4897895;
-		}
-		obj->assign(srcR);
-		delete srcR;
+		errorCode = ErrorAssignDim;
+		ErrorNode = VALUE;
+		return 48975645;
 	}
-	else
+
+	for (size_t i = 0; i < valueList.GetCount(); i++)
 	{
-		GTNode* VALUELIST = VALUE->child(1);//multi: squareL VALUELIST squareR;
-		GTNode* VALUES = VALUELIST->child(1);// VALUELIST: EXP_RIGHT VALUES;
-		GTNode* EXP_RIGHT = VALUELIST->child(0);
-		ConstObj* srcR = NULL;
-		int error = GetAConst(srcR, eme, EXP_RIGHT, dst);
-		if (error != 0) return error;
-		if (obj->GetType() != srcR->GetType())
-		{
-			errorCode = ErrorAssignType;
-			return 4897896;
-		}
-		obj->assign(srcR, 0);
-		delete srcR;
-		for (size_t i = 1; i < dim; i++)
-		{
-			GTNode* NEXTVALUE = VALUES->child(i - 1);
-			EXP_RIGHT = NEXTVALUE->child(1);
-			ConstObj* srcR = NULL;
-			int error = GetAConst(srcR, eme, EXP_RIGHT, dst);
-			if (error != 0) return error;
-			if (obj->GetType() != srcR->GetType())
-			{
-				errorCode = ErrorAssignType;
-				return 4897897;
-			}
-			obj->assign(srcR, i);
-			delete srcR;
-		}
+		ConstObj* srcR = valueList.GetValue(i);
+		obj->assign(i, srcR);
 	}
 	return error;
 }
@@ -1746,15 +1477,16 @@ ConstObj::ConstObj(size_t dim, bool Scalar, ConstObj::type TTT, const char* Name
 
 	// 初始化默认值
 	value initVal;
+	switch (T) {
+	case _sint_: initVal.i = 0; break;
+	case _unit_: initVal.u = 0; break;
+	case _bool_: initVal.b = false; break;
+	case _complex_: initVal.t = NULL; break; // 张量需额外初始化
+	case _real_: initVal.f = 0.0; break;
+	}
 	for (size_t i = 0; i < dim; ++i) {
 		S[i] = status::liberal; // 默认为未赋值状态
-		switch (T) {
-		case _sint_: initVal.i = 0; break;
-		case _unit_: initVal.u = 0; break;
-		case _bool_: initVal.b = false; break;
-		case _complex_: initVal.t = NULL; break; // 张量需额外初始化
-		case _real_: initVal.f = 0.0; break;
-		}
+		
 		V[i] = initVal;
 	}
 }
@@ -2038,7 +1770,8 @@ void ConstObj::assign(size_t NO, sint right) {
 	V[NO].i = right;
 	S[NO] = status::valued;
 }
-void ConstObj::assign(const ConstObj* srcR) {
+void ConstObj::assign(const ConstObj* srcR) 
+{
 	if (!srcR) return;  // 空指针检查[1](@ref)
 
 	// 1. 自赋值检查（避免资源释放导致数据丢失）
@@ -2130,6 +1863,37 @@ void ConstObj::assign(const ConstObj* srcR, size_t No)
 	}
 	V.append(newVal);  // 添加新值
 }
+void ConstObj::assign(size_t No, const ConstObj* srcR)
+{
+	if (!srcR) return;  // 空指针检查[1](@ref)
+	if (No >= V.count()) return; // 越界检查
+	if (T != srcR->T) return;//
+	S[No] = srcR->S[0];
+	switch (T) {
+	case _sint_:
+		V[No].i = srcR->V[0].i;
+		break;
+	case _unit_:
+		V[No].u = srcR->V[0].u;
+		break;
+	case _bool_:
+		V[No].b = srcR->V[0].b;
+		break;
+	case _real_:
+		V[No].f = srcR->V[0].f;
+		break;
+	case _complex_:
+		if (srcR->V[0].t) 
+		{
+			V[0].t = NULL; 
+		}
+		else {
+			V[0].t = NULL;
+		}
+		break;
+	}
+}
+
 
 var::var(Expres::node* srcR)
 {
@@ -2540,12 +2304,494 @@ void context::initial(void)
 	parent = NULL;
 }
 
+IDinfor::IDinfor()
+{
+	scalar = true;
+	index = 0;
+	backup = NULL;
+}
+IDinfor::~IDinfor()
+{
+}
+int IDinfor::build(const lex& eme, GTNode* ID, BuildInfor* infor, context* dst)
+{
+	backup = ID;
+	const char* temp = NULL;
+	GTNode* Def = ID->child(0);
+	if (!Def->root().rules)
+		temp = eme.GetWord(Def->root().site);
+	SetName(temp);
+
+	NetG::rules RR = (NetG::rules)ID->root().site;
+	scalar = (RR == NetG::rules::ID_single_);
+	size_t line = ID->child(0)->root().site;
 
 
+	index = 0;
+	if (!scalar)
+	{
+		ConstObj* Const_ = NULL;
+		int error = infor->GetAConst(Const_, eme, ID->child(1)->child(1), dst);
+		if (error != 0) return error;
+		if (!Const_->SorUint())
+		{
+			infor->errorInfor1 = line;
+			infor->ErrorNode = ID;
+			infor->errorCode = BuildInfor::ErrorNeedAInt;
+			return 1234234;
+		}
+		sint temp = Const_->GetSint();
+		if (temp < 0)
+		{
+			infor->errorInfor1 = line;
+			infor->errorInfor2 = temp;
+			infor->ErrorNode = ID;
+			infor->errorCode = BuildInfor::ErrorMinusIndex;
+			return 1234267;
+		}
+		delete Const_;
+		index = temp;
+	}
+	else index = 0;
+	return 0;
+}
+var* IDinfor::GetLocalVarR(int& error, BuildInfor* infor, context* dst)
+{
+	var* temp = dst->SearchLocal(GetName());
+	if (temp == NULL) return temp;
+	if (scalar != temp->scalar())
+	{
+		infor->errorCode = BuildInfor::ErrorSAmissMatch;
+		infor->ErrorNode = backup;
+		error = 326785342;
+		return NULL;
+	}
+	size_t Index = GetIndex();
+	if (Index >= temp->count())
+	{
+		infor->errorCode = BuildInfor::ErrorIndexOutofRange;
+		infor->ErrorNode = backup;
+		error = 123134545;
+		return NULL;
+	}
+	if (temp->Getnode(Index) == NULL)
+	{
+		infor->errorCode = BuildInfor::ErrorMissingVarDef;
+		infor->ErrorNode = backup;
+		error = 123134545;
+		return  NULL;
+	}
+	return temp;
+}
+ConstObj* IDinfor::GetAllConstR(int& error, BuildInfor* infor, context* dst)
+{
+	ConstObj* temp = dst->searchConst(GetName());
+	if (temp == NULL) return temp;
+	if (scalar != temp->GetScalar())
+	{
+		infor->errorCode = BuildInfor::ErrorSAmissMatch;
+		infor->ErrorNode = backup;
+		error = 326785342;
+		return NULL;
+	}
+	size_t Index = GetIndex();
+	if (Index >= temp->GetDim())
+	{
+		infor->errorCode = BuildInfor::ErrorIndexOutofRange;
+		infor->ErrorNode = backup;
+		error = 123134545;
+		return NULL;
+	}
+	if (temp->GetState(Index) == ConstObj::liberal)
+	{
+		infor->errorCode = BuildInfor::ErrorMissingConstVarDef;
+		infor->ErrorNode = backup;
+		error = 123134546;
+		return  NULL;
+	}
+	return temp;
+}
+bool IDinfor::CheckType(int& error, BuildInfor* infor)const
+{
+	if (!scalar && index == 0)
+	{
+		infor->errorCode = BuildInfor::VarAlreadDef;
+		infor->ErrorNode = backup;
+		error = 128931231;
+		return true;
+	}
+	return false;
+}
+var* IDinfor::SetVarL(int& error, BuildInfor* infor, context* dst, const char* attri)
+{
+	size_t dim = GetDim();
+	const char* name = GetName();
+	if (CheckType(error, infor)) return NULL;
+	var* old = dst->search(name);
+	ConstObj* oldC = dst->searchConst(name);
+	if (old != NULL || oldC != NULL)
+	{
+		infor->errorCode = BuildInfor::VarAlreadDef;
+		infor->ErrorNode = backup;
+		error = 234789433;
+		return NULL;
+	}
+	var* newVar = new var;
+	newVar->SetName(name);
+	if (attri != NULL)newVar->SetAttri(attri);
+
+	if (!scalar)
+	{
+		newVar->SetCount(dim);
+	}
+	dst->global.append(newVar);
+	return newVar;
+}
+ConstObj* IDinfor::SetConstL(int& error, BuildInfor* infor, context* dst, ConstObj::type TTT)
+{
+	size_t dim = GetDim();
+	const char* name = GetName();
+	if (CheckType(error, infor)) return NULL;
+	var* old = dst->search(name);
+	ConstObj* oldC = dst->searchConst(name);
+	if (old != NULL || oldC != NULL)
+	{
+		infor->errorCode = BuildInfor::VarAlreadDef;
+		infor->ErrorNode = backup;
+		error = 23494453;
+		return NULL;
+	}
+
+	ConstObj* newVar = new ConstObj(dim, scalar, TTT, name);
+	dst->Cobj.append(newVar);
+	return newVar;
+}
+void IDinfor::AssignLocalVarL(int& error, BuildInfor* infor, context* dst, void* SrcR)
+{
+	size_t index = GetIndex();
+	const char* name = GetName();
+	var* old = dst->SearchLocal(name);
+	if (old == NULL)
+	{
+		infor->errorCode = BuildInfor::ErrorMissingVarDef;
+		infor->ErrorNode = backup;
+		error = 234789433;
+		return;
+	}
+	if (index >= old->count())
+	{
+		infor->errorCode = BuildInfor::ErrorIndexOutofRange;
+		infor->ErrorNode = backup;
+		error = 123134545;
+		return;
+	}
+	if (SrcR != NULL)
+		old->SetInfor(SrcR, index);
+	return;
+}
+var* IDinfor::GetLocalVarL(int& error, BuildInfor* infor, context* dst)
+{
+	size_t index = GetIndex();
+	const char* name = GetName();
+	var* old = dst->SearchLocal(name);
+	if (old == NULL)
+	{
+		infor->errorCode = BuildInfor::ErrorMissingVarDef;
+		infor->ErrorNode = backup;
+		error = 234789433;
+		return NULL;
+	}
+	if (old->compareAttri("para") || old->compareAttri("input"))
+	{
+		infor->errorCode = BuildInfor::AssignAparaOrinput;
+		infor->ErrorNode = backup;
+		error = 2432235343;
+		return NULL;
+	}
+	if (index >= old->count())
+	{
+		infor->errorCode = BuildInfor::ErrorIndexOutofRange;
+		infor->ErrorNode = backup;
+		error = 123134545;
+		return NULL;
+	}
+	return old;
+}
+ConstObj* IDinfor::GetLocalConstL(int& error, BuildInfor* infor, context* dst)
+{
+	size_t index = GetIndex();
+	const char* name = GetName();
+	ConstObj* old = dst->SearchConstLocal(name);
+	if (old == NULL)
+	{
+		infor->errorCode = BuildInfor::ErrorMissingConstVarDef;
+		infor->ErrorNode = backup;
+		error = 237894345;
+		return NULL;
+	}
+	if (index >= old->GetDim())
+	{
+		infor->errorCode = BuildInfor::ErrorIndexOutofRange;
+		infor->ErrorNode = backup;
+		error = 121343245;
+		return NULL;
+	}
+	return old;
+}
 
 
+#include<string.h>
+TensorID::TensorID()
+{
+}
+TensorID::~TensorID()
+{
+	for (size_t i = 0; i < Tindex.count(); i++)
+	{
+		free(Tindex[i]);
+	}
+	Tindex.clear();
+}
+int TensorID::build(const lex& eme, GTNode* TENSORID, BuildInfor* infor, context* dst)
+{
+	GTNode* ID = TENSORID->child(0);
+	int error = IDinfor::build(eme, ID, infor, dst);
+	if (error != 0)
+	{
+		return error;
+	}
+	NetG::rules RR = (NetG::rules)TENSORID->root().site;
+	if (RR != NetG::rules::INDEXLIST_INDEXLIST_)
+	{
+		infor->errorInfor1 = TENSORID->root().site;
+		infor->ErrorNode = TENSORID;
+		infor->errorCode = BuildInfor::WrongEntrance;
+		return 245234453;
+	}
+	GTNode* INDEXLIST = TENSORID->child(1);
+	GTNode* INDEXUNITS = INDEXLIST->child(1);
 
+	GTiterator iterator;
+	iterator.initial(INDEXUNITS);
+	while (iterator.still())
+	{
+		GTNode* GT = iterator.target();
+		if (iterator.state() == 1)
+		{
+			NetG::rules Rule = (NetG::rules)GT->root().site;
+			switch (Rule)
+			{
 
+			case Pikachu::NetG::INDEXUNITS_single_:
+			{
+				GTNode* ID2 = GT->child(0);
+				if (ID2 == NULL) return 4353; // 安全检查
+				append(eme, ID2, infor, dst);
+				break;
+			}
+			case Pikachu::NetG::INDEXUNITS_multi_:
+			{
+				GTNode* ID2 = GT->child(1);
+				if (ID2 == NULL) return 4353; // 安全检查
+				append(eme, ID2, infor, dst);
+				break;
+			}
+			}
+		}
+		iterator.next();
+	}
+
+}
+char* TensorID::copy(const char* src) const
+{
+	char* dst = (char*)malloc(strlen(src) + 1);
+	if (dst == NULL)
+	{
+		return NULL;
+	}
+	strcpy(dst, src);
+	return dst;
+}
+void TensorID::append(const lex& eme, GTNode* ID2, BuildInfor* infor, context* dst)
+{
+	if (ID2 == NULL) return;
+	NetG::rules Rule = (NetG::rules)ID2->root().site;
+	if (Rule == NetG::rules::ID2_yes_)
+	{
+		GTNode* id = ID2->child(0);
+		const char* name = eme.GetWord(id->root().site);
+		char* newName = copy(name);
+		Tindex.append(newName);
+		return;
+	}
+	else
+	{
+		Tindex.append(NULL);
+	}
+}
+
+ValueList::ValueList()
+{
+	backup = NULL;
+	scalar = true;
+}
+ValueList::~ValueList()
+{
+	for (size_t i = 0; i < values.count(); i++)
+	{
+		delete values[i];
+	}
+	values.clear();
+}
+
+int ValueList::buildSA(const lex& eme, GTNode* VALUE, BuildInfor* infor, context* dst)
+{
+	Pikachu::NetG::rules RRR = (Pikachu::NetG::rules)VALUE->root().site;
+	if (RRR == Pikachu::NetG::VALUE_single_)
+	{
+		scalar = true;
+		backup = VALUE;
+		GTNode* EXP_RIGHT = VALUE->child(0);
+		ConstObj* output = NULL;
+		int error = infor->GetAConst(output, eme, EXP_RIGHT, dst);
+		if (error != 0) return error;
+		values.append(output);
+		return 0;
+	}
+	else
+		return build(eme, VALUE, infor, dst); // 调用build函数处理多值列表
+}
+int ValueList::build(const lex& eme, GTNode* VALUELIST, BuildInfor* infor, context* dst)
+{
+	backup = VALUELIST;
+	scalar = false;
+	GTNode* ID = VALUELIST->child(0);
+	NetG::rules RR = (NetG::rules)VALUELIST->root().site;
+	if (RR != NetG::rules::VALUELIST_VALUELIST_)
+	{
+		infor->errorInfor1 = VALUELIST->root().site;
+		infor->ErrorNode = VALUELIST;
+		infor->errorCode = BuildInfor::WrongEntrance;
+		return 245234453;
+	}
+	GTNode* EXP_RIGHT = VALUELIST->child(0);
+	ConstObj* output = NULL;
+	int error = infor->GetAConst(output, eme, EXP_RIGHT, dst);
+	if (error != 0)
+	{
+		return error;
+	}
+	values.append(output); // 将ConstObj添加到values向量中
+	GTNode* VALUES = VALUELIST->child(1);
+	if (VALUES == NULL) return 4353; // 安全检查
+	for (size_t i = 0; i < VALUES->ChildCount(); i++)
+	{
+		EXP_RIGHT = VALUELIST->child(1);
+		output = NULL;
+		int error = infor->GetAConst(output, eme, EXP_RIGHT, dst);
+		if (error != 0 || output == NULL)
+		{
+			return error;
+		}
+		values.append(output);
+	}
+	ConstObj::type TTT = GetType(); // 默认类型为整型
+	for (size_t i = 0; i < values.count(); i++)
+	{
+		if (values[i]->GetType() != TTT)
+		{
+			infor->errorCode = BuildInfor::ErrorListTypeMismatch; // 类型不匹配错误
+			infor->errorInfor1 = i; // 错误索引
+			infor->ErrorNode = VALUELIST; // 错误节点
+			return 43535; // 返回错误代码
+		}
+	}
+	return 0;
+}
+void ValueList::append(ConstObj* srcR)
+{
+	if (srcR == NULL) return; // 安全检查
+	values.append(srcR); // 添加到值列表中
+}
+int ValueList::checkInt(BuildInfor* infor) const
+{
+	if (GetType() != ConstObj::_sint_ && GetType() != ConstObj::_unit_)
+	{
+		infor->errorCode = BuildInfor::ErrorListTypeMismatch; // 类型不匹配错误
+		infor->ErrorNode = backup; // 错误节点（可选）
+		return 43535; // 返回错误代码
+	}
+	return 0;
+}
+int ValueList::checkIndex(BuildInfor* infor) const
+{
+	if (GetType() != ConstObj::_sint_ && GetType() != ConstObj::_unit_)
+	{
+		infor->errorCode = BuildInfor::ErrorListTypeMismatch; // 类型不匹配错误
+		infor->ErrorNode = backup; // 错误节点（可选）
+		return 43535; // 返回错误代码
+	}
+	if (GetType() == ConstObj::_sint_)
+	{
+		for (size_t i = 0; i < values.count(); i++)
+		{
+			if (values[i]->GetInt() < 0L)
+			{
+				infor->errorCode = BuildInfor::ErrorMinusIndex; // 负索引错误
+				infor->ErrorNode = backup; // 错误节点
+				return 1745227867; // 返回错误代码
+			}
+		}
+	}
+	return 0;
+}
+int ValueList::checkDim(BuildInfor* infor) const
+{
+	if (GetType() != ConstObj::_sint_ && GetType() != ConstObj::_unit_)
+	{
+		infor->errorCode = BuildInfor::ErrorListTypeMismatch; // 类型不匹配错误
+		infor->ErrorNode = backup; // 错误节点（可选）
+		return 43535; // 返回错误代码
+	}
+	for (size_t i = 0; i < values.count(); i++)
+	{
+		if (values[i]->GetInt() < 1LL)
+		{
+			infor->errorCode = BuildInfor::ErrorMinusIndex; // 负索引错误
+			infor->ErrorNode = backup; // 错误节点
+			return 1745227867; // 返回错误代码
+		}
+	}
+	return 0;
+}
+void ValueList::demo(FILE* fp = stdout) const
+{
+	fprintf(fp, "ValueList: %s\n", backup ? "backup->GetName()" : "NULL");
+	fprintf(fp, "Scalar: %s\n", scalar ? "true" : "false");
+	fprintf(fp, "Values count: %zu\n", values.count());
+	for (size_t i = 0; i < values.count(); i++)
+	{
+		if (values[i])
+			values[i]->demo(fp);
+		else
+			fprintf(fp, "Value[%zu]: NULL\n", i);
+	}
+}
+void ValueList::GetDim(vector<size_t>& dst) const
+{
+	for (size_t i = 0; i < values.count(); i++)
+	{
+		if (values[i])
+		{
+			size_t dim = values[i]->GetInt();
+			dst.append(dim);
+		}
+		else
+		{
+			dst.append(0); // 如果值为NULL，添加0维度
+		}
+	}
+}
 
 static bool compare(const char* str1, const char* str2)
 {
@@ -2553,3 +2799,62 @@ static bool compare(const char* str1, const char* str2)
 	for (i = 0; (str1[i] != '\0') && (str1[i] == str2[i]); i++);
 	return str1[i] == str2[i];
 }
+
+
+/*
+bool valueScalar = ((Pikachu::NetG::rules)VALUE->root().site == Pikachu::NetG::VALUE_single_);
+	size_t dim = getValueDim(VALUE);
+	if (valueScalar != obj->GetScalar() || dim != obj->GetDim())
+	{
+		errorCode = ErrorInitialAorS;
+		errorInfor1 = line;
+		errorInfor2 = dim;
+		errorInfor4 = obj->GetScalar();
+		return 48975644;
+	}
+	if (valueScalar)
+	{
+		GTNode* EXP_RIGHT = VALUE->child(0);//single: EXP_RIGHT;
+		ConstObj* srcR = NULL;
+		int error = GetAConst(srcR, eme, EXP_RIGHT, dst);
+		if (error != 0) return error;
+		if (obj->GetType() != srcR->GetType())
+		{
+			errorCode = ErrorAssignType;
+			return 4897895;
+		}
+		obj->assign(srcR);
+		delete srcR;
+	}
+	else
+	{
+		GTNode* VALUELIST = VALUE->child(1);//multi: squareL VALUELIST squareR;
+		GTNode* VALUES = VALUELIST->child(1);// VALUELIST: EXP_RIGHT VALUES;
+		GTNode* EXP_RIGHT = VALUELIST->child(0);
+		ConstObj* srcR = NULL;
+		int error = GetAConst(srcR, eme, EXP_RIGHT, dst);
+		if (error != 0) return error;
+		if (obj->GetType() != srcR->GetType())
+		{
+			errorCode = ErrorAssignType;
+			return 4897896;
+		}
+		obj->assign(srcR, 0);
+		delete srcR;
+		for (size_t i = 1; i < dim; i++)
+		{
+			GTNode* NEXTVALUE = VALUES->child(i - 1);
+			EXP_RIGHT = NEXTVALUE->child(1);
+			ConstObj* srcR = NULL;
+			int error = GetAConst(srcR, eme, EXP_RIGHT, dst);
+			if (error != 0) return error;
+			if (obj->GetType() != srcR->GetType())
+			{
+				errorCode = ErrorAssignType;
+				return 4897897;
+			}
+			obj->assign(srcR, i);
+			delete srcR;
+		}
+	}
+*/
