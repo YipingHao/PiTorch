@@ -189,6 +189,7 @@ namespace Pikachu
 		friend class BuildInfor;
 	protected:
 		Expres* Exp;
+		context* realm;
 		void ruin(void);
 		size_t InputCount;
 		size_t OutputCount;
@@ -199,13 +200,15 @@ namespace Pikachu
 	public:
 		NetInContext();
 		~NetInContext();
-
+		friend class BuildInfor;
 	private:
+		context* realm;
 		NetWork* net;
 		void ruin(void);
 	};
 	class context;
 	class IDinfor;
+	class IndexList;
 	class BuildInfor
 	{
 	public:
@@ -262,6 +265,7 @@ namespace Pikachu
 		void clear(void);
 		friend class context;
 		friend class IDinfor;
+		friend class IndexList;
 	protected:
 		hyperlex::Morpheme MorphemePre;
 		hyperlex::Morpheme LexicalSource;
@@ -297,14 +301,20 @@ namespace Pikachu
 		int GetAConst(ConstObj*& output, const lex& eme, GTNode* GTarget, context* dst);
 		int GetAExpres(Expres::node*& output, const lex& eme, GTNode* EXP_RIGHT, context* dst, func* Func);
 
-
+		enum routine
+		{
+			expression,
+			network,
+		};
 		
-		int buildSymbolicName(const lex& eme, GTNode* PARA, context* dst, func* Func);
-		int buildSymbolicPara(const lex& eme, GTNode* PARA, context* dst, func* Func);
+		int buildRoutineName(routine Rou, const lex& eme, GTNode* PARA, context* dst);
+		int buildRoutinePara(routine Rou, const lex& eme, GTNode* PARA, context* dst);
 		
 		int buildSymbolicBody(const lex& eme, GTNode* PARA, context* dst, func* Func);
 		int buildSymbolicCheck(const lex& eme, GTNode* PARA, context* dst, func* Func);
 		size_t getValueDim(GTNode* GTarget);
+
+		int buildNETBODY(const lex& eme, GTNode* NETBODY, NetInContext* Net);
 	};
 	class IDinfor : public CompilerObj
 	{
@@ -357,6 +367,11 @@ namespace Pikachu
 		ConstObj* SearchConstLocal(const char* name)const;
 		func* searchFuncs(const char* name) const;
 		func* searchFuncsLocal(const char* name) const;
+		NetInContext* SearchNet(const char* name)const;
+		NetInContext* SearchNetLocal(const char* name)const;
+		bool SearchRoutine(const char* name) const;
+		bool SearchRoutineLocal(const char* name) const;
+
 		void demo(FILE* fp = stdout) const;
 		void append(context* child);
 
