@@ -106,6 +106,7 @@ namespace Pikachu
 
 		}
 		void Set(const Tensor& source);
+		void Set(const vector<size_t>& source);
 		bool operator==(const Tensor& Right) const;
 		bool operator!=(const Tensor& Right) const;
 		inline size_t GetOrder(void)const

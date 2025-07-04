@@ -359,6 +359,8 @@ namespace Pikachu
 		virtual bool IsConst(const FuncConst & value) const = 0;
 		virtual bool IsZero(void) const = 0;
 		void setDesc(const Tensor& desc);
+		void setDesc(const vector<size_t>& desc);
+		static LeafType ParseLeafType(const char* input);
 	protected:
 		Affiliation Affi;
 		VortexType Type;
@@ -559,6 +561,13 @@ namespace Pikachu
 		friend class DiNonlinear;
 		friend class MonoLinear;
 		friend class MonoNonlinear;
+
+		Node* NewNodeLeaf(const vector<size_t>& dims, Node::LeafType T);
+		Node* NewNodeMonoLinear(Node* src);
+		Node* NewNodeDiLinear(Node* srcL, Node* srcR, Node::OpType OT);
+		Node* NewNodeMonoNonlinear(Node* src, const Tensor& funcTensor, bool ScalarInput, sint x);
+		Node* NewNodeDiNonlinear(Node* srcL, Node* srcR, const Tensor& funcTensor, bool ScalarInput, sint x, bool ScalarPara, sint omega);
+
 	protected:
 		graph<Node> net;
 

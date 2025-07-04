@@ -368,6 +368,19 @@ void NetWork::NodeAppend(Node* rear)
 	net.append(rear);
 }
 
+Node* NetWork::NewNodeLeaf(const vector<size_t>& dims, Node::LeafType T)
+{
+	LeafNode* New = new LeafNode(this, T, Node::initial);
+	New->setDesc(dims);
+	NodeAppend(New);
+	return New;
+}
+Node* NetWork::NewNodeMonoLinear(Node* src)
+{
+	MonoLinear* dst = NULL;
+	return dst;
+}
+
 void NetWork::BackAcc(Node::Affiliation AA, size_t target, vector<Node*>& label, Node* source)
 {
 	Node *SrcL;

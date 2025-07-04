@@ -6,6 +6,9 @@
 
 using namespace Pikachu;
 
+
+
+
 Node::Node()
 {
 	IfOutput = false;
@@ -19,6 +22,10 @@ Node::~Node()
 }
 
 void Node::setDesc(const Tensor& desc)
+{
+	descriptor.Set(desc);
+}
+void Node::setDesc(const vector<size_t>& desc)
 {
 	descriptor.Set(desc);
 }
@@ -2300,7 +2307,14 @@ void Transform::SetAlpha(long long int ele)
 
 
 
-
+Node::LeafType Node::ParseLeafType(const char* input)
+{
+	if (strcmp(input, "para") == 0) return _leafPara_;
+	if (strcmp(input, "input") == 0) return _leafIn_;
+	if (strcmp(input, "output") == 0) return _leafConst_;
+	if (strcmp(input, "const") == 0) return _leafConst_;
+	return _leafConst_;
+}
 
 
 /*

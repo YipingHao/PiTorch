@@ -14,6 +14,10 @@ void Tensor::Set(const Tensor& source)
 {
 	copy(source);
 }
+void Tensor::Set(const vector<size_t>& source)
+{
+	copy(source);
+}
 bool Tensor::operator==(const Tensor& Right) const
 {
 	size_t i;

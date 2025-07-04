@@ -38,7 +38,7 @@ namespace Pikachu
 		enum type
 		{
 			_sint_,
-			_unit_,
+			_uint_,
 			_bool_,
 			_complex_,
 			_real_,
@@ -49,6 +49,8 @@ namespace Pikachu
 		ConstObj(ConstObj* left, const char* op, ConstObj* right);
 		ConstObj(const char* op, ConstObj* right);
 		ConstObj(size_t dim, bool Scalar, type TTT, const char* Name);
+		ConstObj(function func, const ConstObj* srcR); 
+		ConstObj(function2 func, const ConstObj* left, const ConstObj* srcR);
 		~ConstObj();
 
 		union value
@@ -73,6 +75,20 @@ namespace Pikachu
 		void copy(const ConstObj* src);
 		void copy(const ConstObj* src, size_t No);
 
+		bool inline typeCheck(const ConstObj* src) const
+		{
+			if (src->T == T) return true;
+			if (src->T == _sint_ && T == _uint_) return true; // 整型可以赋值给无符号整型
+			if (src->T == _uint_ && T == _sint_) return true; // 无符号整型可以赋值给整型
+			//if (src->T == _bool_ && T == _sint_) return true; // 布尔可以赋值给整型
+			//if (src->T == _bool_ && T == _uint_) return true; // 布尔可以赋值给无符号整型
+			//if (src->T == _real_ && T == _sint_) return true; // 浮点可以赋值给整型
+			//if (src->T == _real_ && T == _uint_) return true; // 浮点可以赋值给无符号整型
+			//if (src->T == _complex_ && T == _sint_) return true; // 复数可以赋值给整型
+			//if (src->T == _complex_ && T == _uint_) return true; // 复数可以赋值给无符号整型
+			//if (src->T == _complex_ && T == _real_) return true; // 复数可以赋值给浮点
+			return false; // 不支持的类型转换
+		}	
 	protected:
 		type T;
 		bool scalar;
@@ -94,10 +110,40 @@ namespace Pikachu
 		}
 		inline sint GetInt(size_t No = 0) const
 		{
+			switch (T)
+			{
+			case Pikachu::ConstObj::_sint_:
+				return V[No].i;
+			case Pikachu::ConstObj::_uint_:
+				return (sint)V[No].u;
+			case Pikachu::ConstObj::_bool_:
+				return (sint)V[No].b;
+			case Pikachu::ConstObj::_complex_:
+				return (sint)V[No].f;
+			case Pikachu::ConstObj::_real_:
+				return (sint)V[No].f;
+			default:
+				break;
+			}
 			return V[No].i;
 		}
 		inline double GetReal(size_t No = 0) const
 		{
+			switch (T)
+			{
+			case Pikachu::ConstObj::_sint_:
+				return (double)V[No].i;
+			case Pikachu::ConstObj::_uint_:
+				return (double)V[No].u;
+			case Pikachu::ConstObj::_bool_:
+				return (double)V[No].b;
+			case Pikachu::ConstObj::_complex_:
+				return (double)V[No].f;
+			case Pikachu::ConstObj::_real_:
+				return (double)V[No].f;
+			default:
+				break;
+			}
 			return V[No].f;
 		}
 		inline type GetType(void) const
@@ -106,10 +152,18 @@ namespace Pikachu
 		}
 		inline bool SorUint(void) const
 		{
-			return T == _sint_ || T == _unit_;
+			return T == _sint_ || T == _uint_;
 		}
 		inline bool GetScalar(void)const { return scalar; }
 		inline size_t GetDim(void) const { return S.count(); };
+		inline bool isInt(void)	const
+		{
+			return T == _sint_ || T == _uint_;
+		}
+		inline bool isReal(void) const
+		{
+			return T == _real_;
+		}
 	};
 	class var : public CompilerObj
 	{
@@ -135,7 +189,7 @@ namespace Pikachu
 		void initial(void);
 	public:
 		void SetAttri(const char* NewName);
-		inline const char* SetAttri(void)const
+		inline const char* GetAttri(void)const
 		{
 			return attribute;
 		}
@@ -148,6 +202,10 @@ namespace Pikachu
 		inline Expres::node* Getnode(size_t No) const
 		{
 			return (Expres::node*)infors[No];
+		}
+		inline Node* GetTensor(size_t No) const
+		{
+			return (Node*)infors[No];
 		}
 		inline void SetInfor(Expres::node* srcR)
 		{
@@ -245,6 +303,8 @@ namespace Pikachu
 			//scalar and array
 			ErrorAssignType,
 			ErrorAssignDim,
+			
+			ErrorInvalidRvalue,
 
 			SymbolicAlreadyDef,
 			VarAlreadDef,
@@ -270,6 +330,7 @@ namespace Pikachu
 		void clear(void);
 		friend class context;
 		friend class IDinfor;
+		friend class Indexs;
 		friend class TensorID;
 		friend class ValueList;
 	protected:
@@ -321,6 +382,8 @@ namespace Pikachu
 		size_t getValueDim(GTNode* GTarget);
 
 		int buildNETBODY(const lex& eme, GTNode* NETBODY, NetInContext* Net);
+		int buildTENSOR(const lex& eme, GTNode* NET_STATEMENT, NetInContext* Net);
+		int buildNETCheck(const lex& eme, GTNode* NETBODY, context* dst, NetInContext* Net);
 	};
 	class IDinfor : public CompilerObj
 	{
@@ -328,12 +391,14 @@ namespace Pikachu
 		IDinfor();
 		~IDinfor();
 		int build(const lex& eme, GTNode* ID_, BuildInfor* infor, context* dst);
+		void* GetLocalTensorR(int& error, BuildInfor* infor, context* dst);//local
 		var* GetLocalVarR(int &error, BuildInfor* infor, context* dst);//local
 		ConstObj* GetAllConstR(int& error, BuildInfor* infor, context* dst);//global and local
 		var* SetVarL(int& error, BuildInfor* infor, context* dst, const char* attri);
 		ConstObj* SetConstL(int& error, BuildInfor* infor, context* dst, ConstObj::type TTT);
 		void AssignLocalVarL(int& error, BuildInfor* infor, context* dst, void* SrcR);
 		var* GetLocalVarL(int& error, BuildInfor* infor, context* dst);
+		var* GetLocalTensorL(int& error, BuildInfor* infor, context* dst);
 		ConstObj* GetLocalConstL(int& error, BuildInfor* infor, context* dst);
 	protected:
 		bool scalar;
@@ -355,6 +420,32 @@ namespace Pikachu
 		bool CheckType(int& error, BuildInfor* infor)const;
 
 	};
+	class Indexs : public CompilerObj
+	{
+	public:
+		Indexs();
+		~Indexs();
+		int buildSQ_INDEXUNITS(const lex& eme, GTNode* SQ_INDEXUNITS, BuildInfor* infor, context* dst);
+		int buildINDEXLIST(const lex& eme, GTNode* INDEXLIST, BuildInfor* infor, context* dst);
+		int buildINDEXUNITS(const lex& eme, GTNode* INDEXUNITS, BuildInfor* infor, context* dst);
+		int buildSUMSYMBOL(const lex& eme, GTNode* SUMSYMBOL, BuildInfor* infor, context* dst);
+	protected:
+		vector<char*> Tindex;
+		char* copy(const char* src) const;
+		void append(const lex& eme, GTNode* ID2, BuildInfor* infor, context* dst);
+	public:
+		inline const char* operator[](size_t No) const
+		{
+			if (No >= Tindex.count()) return NULL;
+			return Tindex[No];
+		}
+		inline size_t GetCount(void) const
+		{
+			return Tindex.count();
+		}
+	};
+
+	
 	class TensorID : public IDinfor
 	{
 	public:
@@ -364,6 +455,7 @@ namespace Pikachu
 	protected:
 		vector<char*> Tindex;
 		char* copy(const char* src) const;
+		void append(const char* src);
 		void append(const lex& eme, GTNode* ID2, BuildInfor* infor, context* dst);
 	};
 	class ValueList
@@ -395,7 +487,7 @@ namespace Pikachu
 		}
 		inline ConstObj::type GetType(void) const
 		{
-			if (values.count() == 0) return ConstObj::type::_unit_;
+			if (values.count() == 0) return ConstObj::type::_uint_;
 			return values[0]->GetType();
 		}
 		inline ConstObj* GetValue(size_t No) const
