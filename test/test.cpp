@@ -706,10 +706,444 @@ int static Test001(const hyperlex::dictionary& para)
     return error;
 }
 
+#include <cstdlib>
+namespace hyperlex
+{
+	// StringPool 类实现
+	// 这是一个字符串池，用于存储唯一的字符串并提供快速访问
+    //
+    class StringPool
+    {
+    private:
+		// 哈希表节点结构
+        struct HashNode
+        {
+			char* key;// 存储字符串
+			size_t id;// 唯一ID
+			HashNode* next;// 指向下一个节点的指针
+
+            HashNode(const char* k, size_t idx) {
+                key = strdup(k);
+                id = idx;
+                next = NULL;
+            }
+
+            ~HashNode() {
+                free(key);
+            }
+        };
+
+		static const size_t INITIAL_BUCKETS = 64;// 初始桶数量
+		static const double LOAD_FACTOR;// 哈希表负载因子
+
+        // 哈希表相关成员
+        HashNode** buckets;
+		size_t bucketCount;// 桶数量
+		size_t nodeCount;// 哈希表节点数量
+
+        // 向量相关成员
+		char** stringArray;// 存储字符串的数组
+		size_t arraySize;// 数组当前大小
+		size_t arrayCapacity;// 数组容量
+
+        // 哈希函数 (djb2)
+        size_t hash(const char* str) const
+        {
+            size_t hash = 5381;
+            int c;
+            while ((c = *str++)) {
+                hash = ((hash << 5) + hash) ^ c;
+            }
+            return hash;
+        }
+
+        // 在桶中查找字符串
+        HashNode* findInBucket(size_t index, const char* key) const
+        {
+            HashNode* current = buckets[index];
+            while (current)
+            {
+                if (strcmp(current->key, key) == 0)
+                {
+                    return current;
+                }
+                current = current->next;
+            }
+            return NULL;
+        }
+
+        // 扩展哈希表
+        void resizeHashTable()
+        {
+            size_t newBucketCount = bucketCount * 2;
+            HashNode** newBuckets = new HashNode * [newBucketCount]();
+
+            for (size_t i = 0; i < bucketCount; i++)
+            {
+                HashNode* current = buckets[i];
+                while (current) {
+                    HashNode* next = current->next;
+                    size_t newIndex = hash(current->key) % newBucketCount;
+
+                    current->next = newBuckets[newIndex];
+                    newBuckets[newIndex] = current;
+
+                    current = next;
+                }
+            }
+
+            delete[] buckets;
+            buckets = newBuckets;
+            bucketCount = newBucketCount;
+        }
+
+        // 扩展数组
+        void resizeArray()
+        {
+            size_t newCapacity = arrayCapacity ? arrayCapacity * 2 : 8;
+            char** newArray = new char* [newCapacity];
+
+            if (stringArray)
+            {
+                for (size_t i = 0; i < arraySize; i++) {
+                    newArray[i] = stringArray[i];
+                }
+                delete[] stringArray;
+            }
+
+            stringArray = newArray;
+            arrayCapacity = newCapacity;
+        }
+
+    public:
+        StringPool()
+        {
+            buckets = new HashNode * [INITIAL_BUCKETS]();
+            bucketCount = INITIAL_BUCKETS;
+            nodeCount = 0;
+
+            stringArray = nullptr;
+            arraySize = 0;
+            arrayCapacity = 0;
+        }
+
+        ~StringPool() {
+            // 清理哈希表
+            for (size_t i = 0; i < bucketCount; i++) {
+                HashNode* current = buckets[i];
+                while (current) {
+                    HashNode* next = current->next;
+                    delete current;
+                    current = next;
+                }
+            }
+            delete[] buckets;
+
+            // 清理数组
+            delete[] stringArray;
+        }
+
+        // 添加字符串，返回唯一ID
+        size_t append(const char* src) {
+            if (!src) return -1;
+
+            size_t index = hash(src) % bucketCount;
+            HashNode* node = findInBucket(index, src);
+            if (node) {
+                return node->id;
+            }
+
+            if (arraySize >= arrayCapacity)
+            {
+                resizeArray();
+            }
+
+            char* newStr = strdup(src);
+            size_t newId = arraySize;
+            stringArray[arraySize++] = newStr;
+
+            HashNode* newNode = new HashNode(newStr, newId);
+            newNode->next = buckets[index];
+            buckets[index] = newNode;
+            nodeCount++;
+
+            if (static_cast<double>(nodeCount) / bucketCount > LOAD_FACTOR) {
+                resizeHashTable();
+            }
+
+            return newId;
+        }
+
+        // 根据ID获取字符串
+        const char* getString(size_t id) const {
+            if (id >= arraySize) return nullptr;
+            return stringArray[id];
+        }
+
+        const char* operator[](size_t id) const {
+            return getString(id);
+        }
+
+        // 检查字符串是否存在于池中
+        bool contains(const char* src) const {
+            if (!src) return false;
+            size_t index = hash(src) % bucketCount;
+            return findInBucket(index, src) != nullptr;
+        }
+
+        // 获取池中字符串数量
+        size_t size() const {
+            return arraySize;
+        }
+
+        // 获取哈希表元素数量
+        size_t count() const {
+            return nodeCount;
+        }
+
+        // 调试函数
+        void demo(FILE* fp = stdout) const {
+            fprintf(fp, "StringPool contains %zu strings:\n", arraySize);
+            for (size_t i = 0; i < arraySize; i++) {
+                fprintf(fp, "ID: %zu, String: %s\n", i, stringArray[i]);
+            }
+
+            for (size_t i = 0; i < arraySize; i++) {
+                if (!contains(stringArray[i])) {
+                    fprintf(fp, "Warning: String '%s' not found in hash table!\n", stringArray[i]);
+                }
+            }
+
+            if (arraySize != nodeCount) {
+                fprintf(fp, "Warning: Size mismatch between vector (%zu) and hash table (%zu)!\n",
+                    arraySize, nodeCount);
+            }
+        }
+
+        friend void test_string_pool();
+    };
+    const double StringPool::LOAD_FACTOR = 0.75f;
+}
+#include <vector>
+namespace hyperlex
+{
+    void test_string_pool() 
+    {
+        hyperlex::StringPool pool;
+
+        // 测试1: 添加单个字符串
+        const char* str1 = "hello";
+        size_t id1 = pool.append(str1);
+        assert(id1 == 0); // 初始数组为空，ID应为0
+        assert(strcmp(pool.getString(id1), str1) == 0);
+        assert(pool.size() == 1);
+        assert(pool.count() == 1);
+        assert(pool.contains(str1));
+
+        // 测试2: 重复添加相同字符串
+        size_t id2 = pool.append(str1);
+        assert(id2 == id1); // 应返回相同ID
+        assert(pool.size() == 1);
+        assert(pool.count() == 1);
+
+        // 测试3: 添加多个字符串并检查ID
+        const char* str2 = "world";
+        const char* str3 = "test";
+        size_t id3 = pool.append(str2);
+        assert(id3 == 1);
+        size_t id4 = pool.append(str3);
+        assert(id4 == 2);
+        assert(pool.size() == 3);
+        assert(pool.count() == 3);
+
+        // 测试4: 数组扩容
+        // 初始arrayCapacity为0，第一次添加后扩容到8
+        assert(pool.arrayCapacity == 0);
+        for (size_t i = 0; i < 8; ++i) {
+            char buffer[10];
+            sprintf(buffer, "str%d", i);
+            pool.append(buffer);
+        }
+        assert(pool.arrayCapacity == 8);
+        assert(pool.arraySize == 8 + 3); // 已有3个元素，又添加了8个
+
+        // 添加第9+3=11个元素，此时数组已满，会扩容到16
+        char buffer[10];
+        sprintf(buffer, "str%d", 8 + 3);
+        pool.append(buffer);
+        assert(pool.arrayCapacity == 16);
+        assert(pool.arraySize == 12);
+
+        // 测试5: 哈希表扩容
+        // 初始bucketCount = 64，LOAD_FACTOR = 0.75
+        // 当nodeCount >= 64 * 0.75 = 48时会扩容
+        // 我们先添加48个元素
+        for (size_t i = 0; i < 48; ++i) {
+            char buffer[20];
+            sprintf(buffer, "unique_str_%zu", i);
+            pool.append(buffer);
+        }
+        assert(pool.count() == 48 + 3); // 前面已有3个元素
+        assert(pool.bucketCount == 64);
+
+        // 添加第49个元素触发扩容
+        char buffer_last[20];
+        sprintf(buffer_last, "trigger_resize");
+        pool.append(buffer_last);
+        assert(pool.bucketCount == 128); // 桶数应翻倍
+
+        // 验证所有元素仍然可访问
+        for (size_t i = 0; i < 48; ++i) {
+            char buffer[20];
+            sprintf(buffer, "unique_str_%zu", i);
+            assert(pool.contains(buffer));
+        }
+        assert(pool.contains(buffer_last));
+
+        // 测试6: contains方法
+        assert(pool.contains("hello") == true);
+        assert(pool.contains("non_existent") == false);
+
+        // 测试7: 越界访问
+        assert(pool.getString(pool.size()) == nullptr);
+        assert(pool.getString(9999) == nullptr);
+
+        // 测试8: NULL指针处理
+        assert(pool.append(nullptr) == (size_t)-1);
+
+        // 测试9: 哈希冲突
+        // 构造哈希值相同的字符串（可能需要人工构造）
+        // 这里假设两个字符串哈希到同一桶
+        const char* conflict1 = "a";
+        const char* conflict2 = "A"; // 假设这两个字符串哈希到同一桶
+        size_t id5 = pool.append(conflict1);
+        size_t id6 = pool.append(conflict2);
+        assert(id5 != id6); // 不同字符串应有不同ID
+        assert(strcmp(pool.getString(id5), conflict1) == 0);
+        assert(strcmp(pool.getString(id6), conflict2) == 0);
+        assert(pool.contains(conflict1));
+        assert(pool.contains(conflict2));
+
+        // 测试10: 调试函数（可选）
+        // pool.demo(stdout); // 可视化输出，检查是否有警告
+
+        printf("All StringPool tests passed!\n");
+    }
+
+    // 测试1: 添加新字符串返回唯一ID
+    void testAppendNewString() {
+        StringPool pool;
+        size_t id1 = pool.append("hello");
+        size_t id2 = pool.append("world");
+        assert(id1 == 0); // 首个ID应为0
+        assert(id2 == 1); // 后续ID递增
+        std::cout << "testAppendNewString: PASSED\n";
+    }
+
+    // 测试2: 重复添加相同字符串返回相同ID
+    void testAppendDuplicate() {
+        StringPool pool;
+        size_t id1 = pool.append("test");
+        size_t id2 = pool.append("test");
+        assert(id1 == id2); // ID必须一致
+        std::cout << "testAppendDuplicate: PASSED\n";
+    }
+
+    // 测试3: 空指针安全处理
+    void testNullptrHandling() {
+        StringPool pool;
+        size_t id = pool.append(nullptr);
+        assert(id == static_cast<size_t>(-1)); // 返回错误标识
+        std::cout << "testNullptrHandling: PASSED\n";
+    }
+
+    // 测试4: 通过ID获取字符串
+    void testGetString() {
+        StringPool pool;
+        const char* input = "data";
+        size_t id = pool.append(input);
+        const char* output = pool.getString(id);
+        assert(output != nullptr); // 非空指针
+        assert(std::string(output) == input); // 内容一致
+        assert(pool[id] != nullptr); // 运算符[]功能正常
+        std::cout << "testGetString: PASSED\n";
+    }
+
+    // 测试5: 非法ID访问
+    void testInvalidId() {
+        StringPool pool;
+        assert(pool.getString(100) == nullptr); // 超范围返回nullptr
+        assert(pool[100] == nullptr); // 运算符[]同理
+        std::cout << "testInvalidId: PASSED\n";
+    }
+
+    // 测试6: 字符串存在性检查
+    void testContains() {
+        StringPool pool;
+        pool.append("exist");
+        assert(pool.contains("exist") == true); // 存在时返回true
+        assert(pool.contains("missing") == false); // 不存在时返回false
+        std::cout << "testContains: PASSED\n";
+    }
+
+    // 测试7: 空池行为
+    void testEmptyPool() {
+        StringPool pool;
+        assert(pool.size() == 0); // 初始大小为0
+        assert(pool.getString(0) == nullptr); // 空池访问返回nullptr
+        assert(pool.contains("any") == false); // 空池不包含任何字符串
+        std::cout << "testEmptyPool: PASSED\n";
+    }
+
+    // 测试8: 内部数据结构一致性
+    void testInternalConsistency() {
+        StringPool pool;
+        pool.append("A");
+        pool.append("B");
+        assert(pool.size() == pool.count()); // vector与map大小必须相等
+        pool.demo(); // 自检函数无警告输出（观察控制台）
+        std::cout << "testInternalConsistency: PASSED\n";
+    }
+
+    // 测试9: 大量插入压力测试
+    void testMassInsertion() {
+        StringPool pool;
+        const size_t COUNT = 1000;
+        const size_t FACTOR = 100;
+        for (size_t j = 0; j < COUNT * FACTOR; ++j) {
+            size_t i = j % COUNT;
+            std::string s = "str_" + std::to_string(i);
+            size_t id = pool.append(s.c_str());
+            assert(id == i); // ID连续分配
+        }
+        assert(pool.size() == COUNT); // 总数正确
+        assert(pool.count() == COUNT); // map大小同步
+        std::cout << "testMassInsertion: PASSED\n";
+    }
+
+    int test2222() {
+        testAppendNewString();
+        testAppendDuplicate();
+        testNullptrHandling();
+        testGetString();
+        testInvalidId();
+        testContains();
+        testEmptyPool();
+        testInternalConsistency();
+        testMassInsertion();
+
+        std::cout << "\nALL TESTS PASSED!\n";
+        return 0;
+    }
+
+}
+
+
 int static Test002(const hyperlex::dictionary& para)
 {
     int error = 0;
-	
+    hyperlex::test_string_pool();
+    hyperlex::test2222();
     return error;
 }
 
@@ -1337,6 +1771,7 @@ int enumL::GroupGet(int accept)
     0, \
     0, \
     0 };
+
 
 
 
