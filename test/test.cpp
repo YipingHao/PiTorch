@@ -939,7 +939,7 @@ namespace hyperlex
 
 		friend void test_string_pool();
 	};
-	const double StringPool::LOAD_FACTOR = 0.75f;
+	const double StringPool::LOAD_FACTOR = 0.64f;
 }
 #include <vector>
 namespace hyperlex
