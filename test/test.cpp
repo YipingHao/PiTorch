@@ -711,7 +711,7 @@ namespace hyperlex
 {
 	// StringPool 类实现
 	// 这是一个字符串池，用于存储唯一的字符串并提供快速访问
-	//
+	// 它使用哈希表和向量来管理字符串，确保每个字符串都有一个唯一的ID。
 	class StringPool
 	{
 	private:
@@ -747,7 +747,7 @@ namespace hyperlex
 		size_t arrayCapacity;// 数组容量
 
 		// 哈希函数 (djb2)
-		size_t hash(const char* str) const
+		inline size_t hash(const char* str) const
 		{
 			size_t hash = 5381;
 			int c;
@@ -761,7 +761,7 @@ namespace hyperlex
 		}
 
 		// 在桶中查找字符串
-		HashNode* findInBucket(size_t index, const char* key) const
+		inline HashNode* findInBucket(size_t index, const char* key) const
 		{
 			HashNode* current = buckets[index];
 			while (current)
@@ -776,7 +776,7 @@ namespace hyperlex
 		}
 
 		// 扩展哈希表
-		void resizeHashTable()
+		inline void resizeHashTable()
 		{
 			size_t newBucketCount = bucketCount * 2;
 			HashNode** newBuckets = new HashNode * [newBucketCount]();
@@ -801,7 +801,7 @@ namespace hyperlex
 		}
 
 		// 扩展数组
-		void resizeArray()
+		inline void resizeArray()
 		{
 			size_t newCapacity = arrayCapacity ? arrayCapacity * 2 : 8;
 			char** newArray = new char* [newCapacity];
@@ -847,7 +847,7 @@ namespace hyperlex
 		}
 
 		// 添加字符串，返回唯一ID
-		size_t append(const char* src) {
+		inline size_t append(const char* src) {
 			if (!src) return -1;
 
 			size_t index = hash(src) % bucketCount;
@@ -878,34 +878,34 @@ namespace hyperlex
 		}
 
 		// 根据ID获取字符串
-		const char* getString(size_t id) const {
+		inline const char* getString(size_t id) const {
 			if (id >= arraySize) return nullptr;
 			return stringArray[id];
 		}
 
-		const char* operator[](size_t id) const {
+		inline const char* operator[](size_t id) const {
 			return getString(id);
 		}
 
 		// 检查字符串是否存在于池中
-		bool contains(const char* src) const {
+		inline bool contains(const char* src) const {
 			if (!src) return false;
 			size_t index = hash(src) % bucketCount;
 			return findInBucket(index, src) != nullptr;
 		}
 
 		// 获取池中字符串数量
-		size_t size() const {
+		inline size_t size() const {
 			return arraySize;
 		}
 
 		// 获取哈希表元素数量
-		size_t count() const {
+		inline size_t count() const {
 			return nodeCount;
 		}
 
 		// 调试函数
-		void demo(FILE* fp = stdout) const 
+		inline void demo(FILE* fp = stdout) const
 		{
 			fprintf(fp, "StringPool contains %zu strings:\n", arraySize);
 			fprintf(fp, "LOAD FACTOR is %.6lf\n", LOAD_FACTOR);
@@ -928,7 +928,7 @@ namespace hyperlex
 		}
 
 		// 统计哈希冲突总数
-		size_t countCollisions() const {
+		inline size_t countCollisions() const {
 			size_t collisionCount = 0;
 			for (size_t i = 0; i < bucketCount; ++i) {
 				HashNode* node = buckets[i];
@@ -943,7 +943,81 @@ namespace hyperlex
 			}
 			return collisionCount;
 		}
+		inline void copy(const StringPool& source)
+		{
+			// 1. 自赋值检查
+			if (this == &source) return;
 
+			// 2. 清理当前对象（避免内存泄漏）
+			clear();
+			for (size_t i = 0; i < source.size(); i++) 
+			{
+				// 获取源对象中当前索引的字符串
+				const char* str = source.getString(i);
+				append(str);
+			}
+			
+		}
+		inline void append(const StringPool& source, vector<size_t>& NewId)
+		{
+			// 调整输出向量大小以匹配源对象的字符串数量
+			NewId.recount(source.size());
+
+			// 遍历源对象中的所有字符串
+			for (size_t i = 0; i < source.size(); i++) 
+			{
+				// 获取源对象中当前索引的字符串
+				const char* str = source.getString(i);
+				if (!str) {
+					NewId[i] = static_cast<size_t>(-1); // 处理无效字符串
+					//continue;
+				}
+				else
+				{
+					NewId[i] = this->append(str);
+				}
+				// 在当前对象中查找字符串
+				//size_t bucketIndex = hash(str) % bucketCount;
+				//HashNode* node = findInBucket(bucketIndex, str);
+
+				//if (node) {
+					// 字符串已存在：使用现有ID
+				///	NewId[i] = node->id;
+				//}
+				//else {
+					// 字符串不存在：添加到当前对象并获取新ID
+				//	NewId[i] = this->append(str);
+				//}
+			}
+		}
+		inline void clear() 
+		{
+			// 1. 释放哈希表
+			for (size_t i = 0; i < bucketCount; ++i) {
+				HashNode* current = buckets[i];
+				while (current) 
+				{
+					HashNode* next = current->next;
+					delete current; // 析构HashNode（内部释放key）
+					current = next;
+				}
+			}
+			delete[] buckets;// 1.1 重新分配哈希表和字符串数组
+			buckets = new HashNode * [INITIAL_BUCKETS]();
+			bucketCount = INITIAL_BUCKETS;
+			nodeCount = 0;
+
+			// 2. 释放字符串数组
+			for (size_t i = 0; i < arraySize; ++i) {
+				free(stringArray[i]); // 释放每个字符串
+			}
+			delete[] stringArray;
+			stringArray = NULL;
+			arraySize = 0;
+			arrayCapacity = 0;
+
+			
+		}
 		friend void test_string_pool();
 	};
 	const double StringPool::LOAD_FACTOR = 0.48;
