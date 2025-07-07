@@ -1418,6 +1418,11 @@ namespace hyperlex
 		testInvalidId();
 		testContains();
 		testEmptyPool();
+		testClear();
+		testCopy();
+		testAppendPool();
+		testEmptyOperations();
+
 		testInternalConsistency();
 		testMassInsertion();
 		testMassInsertion2();
