@@ -1158,7 +1158,21 @@ namespace hyperlex
         assert(pool.count() == COUNT); // map大小同步
         std::cout << "testMassInsertion: PASSED\n";
     }
-
+    // 测试10: 大量插入压力测试
+    void testMassInsertion2() {
+        StringPool pool;
+        const size_t COUNT = 1000;
+        const size_t FACTOR = 100;
+        for (size_t j = 0; j < COUNT * FACTOR; ++j) {
+            size_t i = j / FACTOR;
+            std::string s = "str_" + std::to_string(i);
+            size_t id = pool.append(s.c_str());
+            assert(id == i); // ID连续分配
+        }
+        assert(pool.size() == COUNT); // 总数正确
+        assert(pool.count() == COUNT); // map大小同步
+        std::cout << "testMassInsertion2: PASSED\n";
+    }
     int test2222() {
         testAppendNewString();
         testAppendDuplicate();
@@ -1169,8 +1183,27 @@ namespace hyperlex
         testEmptyPool();
         testInternalConsistency();
         testMassInsertion();
+        testMassInsertion2();
 
         std::cout << "\nALL TESTS PASSED!\n";
+
+        {
+            hyperlex::StringPool Pool;
+            std::cout << "i: " << Pool.append("i") << std::endl;
+            std::cout << "j: " << Pool.append("j") << std::endl;
+            std::cout << "k: " << Pool.append("k") << std::endl;
+            std::cout << "i: " << Pool.append("i") << std::endl;
+            std::cout << "i: " << Pool.append("i") << std::endl;
+            std::cout << "k: " << Pool.append("k") << std::endl;
+            std::cout << "i: " << Pool.append("i") << std::endl;
+            std::cout << "i: " << Pool.append("i") << std::endl;
+            std::cout << "k: " << Pool.append("k") << std::endl;
+            std::cout << "i: " << Pool.append("i") << std::endl;
+            std::cout << "ii: " << Pool.append("ii") << std::endl;
+            std::cout << "kk: " << Pool.append("kk") << std::endl;
+            std::cout << "jj: " << Pool.append("jj") << std::endl;
+            Pool.demo();
+        }
         return 0;
     }
 
