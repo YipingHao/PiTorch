@@ -1142,8 +1142,9 @@ namespace hyperlex
 int static Test002(const hyperlex::dictionary& para)
 {
     int error = 0;
-    hyperlex::test_string_pool();
+    
     hyperlex::test2222();
+    hyperlex::test_string_pool();
     return error;
 }
 
