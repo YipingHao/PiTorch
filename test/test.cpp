@@ -958,7 +958,7 @@ namespace hyperlex
 			}
 			
 		}
-		inline void append(const StringPool& source, vector<size_t>& NewId)
+		inline void append(const StringPool& source, hyperlex::vector<size_t>& NewId)
 		{
 			// 调整输出向量大小以匹配源对象的字符串数量
 			NewId.recount(source.size());
@@ -1323,6 +1323,91 @@ namespace hyperlex
 		assert(pool.size() == COUNT); // 总数正确
 		assert(pool.count() == COUNT); // map大小同步
 		std::cout << "testMassInsertion3: PASSED\n";
+	}
+
+	// 测试 clear 方法
+	void testClear() {
+		hyperlex::StringPool pool;
+		pool.append("A");
+		pool.append("B");
+		assert(pool.size() == 2);
+
+		pool.clear();
+		assert(pool.size() == 0);        // 验证清空后大小为0
+		assert(pool.count() == 0);       // 哈希表节点数应为0
+		assert(!pool.contains("A"));    // 内容应不存在
+		assert(pool.getString(0) == nullptr); // ID访问返回空
+
+		// 清空后重新添加
+		size_t newId = pool.append("C");
+		assert(newId == 0);  // ID应从0开始重新分配
+		printf("✅ testClear PASSED\n");
+	}
+
+	// 测试 copy 方法（深拷贝）
+	void testCopy() {
+		hyperlex::StringPool src;
+		src.append("X");
+		src.append("Y");
+
+		// 深拷贝测试
+		hyperlex::StringPool dest;
+		dest.copy(src);
+		assert(dest.size() == 2);
+		assert(dest.getString(0) != src.getString(0)); // 指针地址不同
+		assert(strcmp(dest[0], "X") == 0);              // 内容一致
+
+		// 自赋值安全测试
+		dest.copy(dest);
+		assert(dest.size() == 2);  // 数据不应丢失
+		printf("✅ testCopy PASSED\n");
+	}
+
+	// 测试 append 方法（合并池）
+	void testAppendPool() {
+		hyperlex::StringPool dest;
+		dest.append("A");
+
+		hyperlex::StringPool src;
+		src.append("B");
+		src.append("C");
+
+		vector<size_t> newIds;
+		dest.append(src, newIds); // 合并源池
+
+		// 验证映射关系
+		assert(newIds.count() == 2);
+		assert(newIds[0] == 1);   // "B" 在目标池的新ID
+		assert(newIds[1] == 2);   // "C" 在目标池的新ID
+		assert(dest.size() == 3); // 总数=1(A)+2(B/C)
+
+		// 重复合并测试
+		dest.append(src, newIds);
+		assert(newIds[0] == 1);   // 重复字符串应返回现有ID
+		assert(dest.size() == 3); // 总数不变（去重）
+		printf("✅ testAppendPool PASSED\n");
+	}
+
+	// 测试空池操作边界
+	void testEmptyOperations() 
+	{
+		hyperlex::StringPool empty;
+
+		// 清空空池
+		empty.clear();
+		assert(empty.size() == 0);
+
+		// 合并空池到目标池
+		hyperlex::StringPool dest;
+		vector<size_t> newIds;
+		dest.append(empty, newIds);
+		assert(newIds.count() == 0); // 映射列表应为空
+
+		// 拷贝空池
+		hyperlex::StringPool dest2;
+		dest2.copy(empty);
+		assert(dest2.size() == 0);
+		printf("✅ testEmptyOperations PASSED\n");
 	}
 
 	int test2222() {
