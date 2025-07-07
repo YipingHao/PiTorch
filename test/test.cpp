@@ -599,13 +599,13 @@ int static Test000(const hyperlex::dictionary& para)
 
     {
         StringPool Pool;
-        std::cout << "i: " << pool.append("i") << std::endl;
-        std::cout << "j: " << pool.append("j") << std::endl;
-        std::cout << "k: " << pool.append("k") << std::endl;
-        std::cout << "i: " << pool.append("i") << std::endl;
-        std::cout << "i: " << pool.append("i") << std::endl;
-        std::cout << "k: " << pool.append("k") << std::endl;
-        std::cout << "i: " << pool.append("i") << std::endl;
+        std::cout << "i: " << Pool.append("i") << std::endl;
+        std::cout << "j: " << Pool.append("j") << std::endl;
+        std::cout << "k: " << Pool.append("k") << std::endl;
+        std::cout << "i: " << Pool.append("i") << std::endl;
+        std::cout << "i: " << Pool.append("i") << std::endl;
+        std::cout << "k: " << Pool.append("k") << std::endl;
+        std::cout << "i: " << Pool.append("i") << std::endl;
         Pool.demo();
     }
     return 0;
