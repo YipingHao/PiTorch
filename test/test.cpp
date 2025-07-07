@@ -454,7 +454,7 @@ int static Test000(const hyperlex::dictionary& para)
         assert(pool.contains("world") == true);
         assert(pool.contains("test") == false);
         assert(pool.contains(NULL) == false);
-        assert(pool.contains("") == true); // 空字符串已添加
+        assert(pool.contains("") == false); // 空字符串未添加
         std::cout << "Test 3: contains() OK\n";
     }
 
@@ -464,6 +464,7 @@ int static Test000(const hyperlex::dictionary& para)
         assert(id1 == static_cast<size_t>(-1) && "Expected invalid ID for NULL");
         size_t id2 = pool.append("");
         assert(id2 == 3 && "Expected ID 3 for empty string");
+        assert(pool.contains("") == true); // 空字符串已添加
         std::cout << "Test 4: NULL and empty string handling OK\n";
     }
 
