@@ -906,6 +906,8 @@ namespace hyperlex
 		{
 			fprintf(fp, "StringPool contains %zu strings:\n", arraySize);
 			fprintf(fp, "LOAD FACTOR is %.6lf\n", LOAD_FACTOR);
+			size_t colli = countCollisions();
+			fprintf(fp, "Count of collisions %zu, collisions rate: %.6lf\n", colli, (double)colli/ bucketCount);
 			for (size_t i = 0; i < arraySize; i++) {
 				fprintf(fp, "ID: %zu, String: %s\n", i, stringArray[i]);
 			}
@@ -941,7 +943,7 @@ namespace hyperlex
 
 		friend void test_string_pool();
 	};
-	const double StringPool::LOAD_FACTOR = 0.64f;
+	const double StringPool::LOAD_FACTOR = 0.5;
 }
 #include <vector>
 namespace hyperlex
