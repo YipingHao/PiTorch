@@ -791,7 +791,7 @@ namespace hyperlex
 					current = next;
 				}
 			}
-
+			std::cout << "Resizing hash table from " << bucketCount << " to " << newBucketCount << " buckets.\n";
 			delete[] buckets;
 			buckets = newBuckets;
 			bucketCount = newBucketCount;
