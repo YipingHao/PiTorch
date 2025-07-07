@@ -416,6 +416,80 @@ int test(hyperlex::dictionary& para)
 #include <cassert>
 #include <cstdio>
 #include <string>
+class StringPool
+{
+private:
+	std::map<std::string, size_t> stringToIdMap;
+	std::vector<std::string> idToStringVec;
+
+public:
+	StringPool() {}
+	~StringPool() {}
+
+	// 添加字符串，返回其唯一ID
+	inline size_t append(const char* src) {
+		if (!src) return static_cast<size_t>(-1); // 处理空指针
+
+		std::string str(src);
+
+		std::map<std::string, size_t>::iterator it = stringToIdMap.find(str);
+		if (it != stringToIdMap.end()) {
+			return it->second;
+		}
+
+		size_t newId = idToStringVec.size();
+		idToStringVec.push_back(str);
+		stringToIdMap[str] = newId;
+
+		return newId;
+	}
+
+	// 根据ID获取字符串
+	inline const char* getString(size_t id) const {
+		if (id >= idToStringVec.size()) {
+			return nullptr;
+		}
+		return idToStringVec[id].c_str();
+	}
+	const char* operator[](size_t id) const {
+		return getString(id);
+	}
+
+	// 检查字符串是否存在于池中
+	inline bool contains(const char* src) const {
+		if (!src) return false;
+		std::string str(src);
+		return stringToIdMap.find(str) != stringToIdMap.end();
+	}
+
+	// 获取池中字符串数量
+	inline size_t size() const {
+		return idToStringVec.size();
+	}
+	//返回map中元素的数目
+	inline size_t count() const {
+		return stringToIdMap.size();
+	}
+	//展示这个类中全部的键值对，并检查vector中的字符串是否在map中，检查两者中字符串数目是否相等
+	inline void demo(FILE* fp = stdout) const
+	{
+		fprintf(fp, "StringPool contains %zu strings:\n", idToStringVec.size());
+		for (size_t i = 0; i < idToStringVec.size(); ++i) {
+			fprintf(fp, "ID: %zu, String: %s\n", i, idToStringVec[i].c_str());
+		}
+		for (size_t i = 0; i < idToStringVec.size(); ++i)
+		{
+			if (contains(idToStringVec[i].c_str()) == false)
+			{
+				fprintf(fp, "Warning: String %s not found in map!\n", idToStringVec[i].c_str());
+			}
+		}
+		if (idToStringVec.size() != stringToIdMap.size()) {
+			fprintf(fp, "Warning: Size mismatch between vector and map!\n");
+		}
+	}
+};
+
 
 // 测试添加新字符串
 void testAppendNewString()
@@ -1325,8 +1399,9 @@ namespace hyperlex
 		std::cout << "testMassInsertion3: PASSED\n";
 	}
 
-	// 测试 clear 方法
-	void testClear() {
+	// 测试13:  测试 clear 方法
+	void testClear()
+	{
 		hyperlex::StringPool pool;
 		pool.append("A");
 		pool.append("B");
@@ -1344,7 +1419,7 @@ namespace hyperlex
 		printf("✅ testClear PASSED\n");
 	}
 
-	// 测试 copy 方法（深拷贝）
+	//  测试14: 测试 copy 方法（深拷贝）
 	void testCopy() {
 		hyperlex::StringPool src;
 		src.append("X");
@@ -1363,7 +1438,7 @@ namespace hyperlex
 		printf("✅ testCopy PASSED\n");
 	}
 
-	// 测试 append 方法（合并池）
+	//  测试15: 测试 append 方法（合并池）
 	void testAppendPool() {
 		hyperlex::StringPool dest;
 		dest.append("A");
@@ -1388,7 +1463,8 @@ namespace hyperlex
 		printf("✅ testAppendPool PASSED\n");
 	}
 
-	// 测试空池操作边界
+
+	// 测试16: 测试空池操作边界
 	void testEmptyOperations() 
 	{
 		hyperlex::StringPool empty;
@@ -1410,6 +1486,39 @@ namespace hyperlex
 		printf("✅ testEmptyOperations PASSED\n");
 	}
 
+	//  测试17: 测试 append 方法（合并池）
+	void testAppendPool2() {
+		StringPool pool;
+		const size_t COUNT = 1000;
+		const size_t FACTOR = 100;
+		for (size_t j = 0; j < COUNT * FACTOR; ++j) {
+			size_t i = j / FACTOR;
+			std::string s = "str_" + std::to_string(i);
+			size_t id = pool.append(s.c_str());
+			assert(id == i); // ID连续分配
+		}
+		std::cout << "COUNT: " << COUNT << std::endl;
+		std::cout << "pool.size(): " << pool.size() << std::endl;
+		std::cout << "pool.count(): " << pool.count() << std::endl;
+		std::cout << "pool.countCollisions(): " << pool.countCollisions() << std::endl;
+		assert(pool.size() == COUNT); // 总数正确
+		assert(pool.count() == COUNT); // map大小同步
+		
+
+		StringPool dst;
+		dst.copy(pool);
+		assert(dst.size() == pool.size()); // 确保大小一致
+
+		vector<size_t> NewId;
+		dst.append(pool, NewId);
+		for (size_t i = 0; i < COUNT; i++)
+		{
+			assert(pool.count() == COUNT);
+		}
+		assert(dst.size() == pool.size()); // 确保大小一致
+		std::cout << "testAppendPool2: PASSED\n";
+	}
+
 	int test2222() {
 		testAppendNewString();
 		testAppendDuplicate();
@@ -1422,6 +1531,7 @@ namespace hyperlex
 		testCopy();
 		testAppendPool();
 		testEmptyOperations();
+		testAppendPool2();
 
 		testInternalConsistency();
 		testMassInsertion();
