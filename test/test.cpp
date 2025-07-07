@@ -1104,7 +1104,7 @@ namespace hyperlex
 	};
 	const double StringPool::LOAD_FACTOR = 0.48;
 }
-#include <vector>
+//#include <vector>
 namespace hyperlex
 {
 	void test_string_pool() {

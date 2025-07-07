@@ -3,6 +3,7 @@ using namespace hyperlex;
 #define SizeMax ((size_t)0xffffffffffffffff)
 #define CharSize ((size_t)(1 << (sizeof(char) * 8 - 1)))
 
+const double hyperlex::StringPool::LOAD_FACTOR = 0.48;
 
 #include<stdlib.h>
 //typedef size_t uint;
@@ -488,8 +489,8 @@ char* Morpheme::GetString(size_t site) const
 	BC = GetWord(site);
 	return BC.DequeueString();
 }
-//#include <stdlib.h>
-//#include <string.h>
+#include <stdlib.h>
+#include <string.h>
 
 static char* string_from_header(const char* header) 
 {
