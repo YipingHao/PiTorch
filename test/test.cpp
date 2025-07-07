@@ -752,7 +752,7 @@ namespace hyperlex
 			size_t hash = 5381;
 			int c;
 			while ((c = *str++)) {
-				hash = ((hash << 5) + hash) ^ c;
+				hash = ((hash << 4) + hash) ^ c;
 				//hash = (hash >> 16) ^ (hash & 0xFFFF); // 混合高位与低位[2,6](@ref)
 			}
 			return hash;
