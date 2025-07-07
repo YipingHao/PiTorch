@@ -963,7 +963,6 @@ int BuildInfor::buildExp(const lex& eme, GTNode* GTarget, context * dst)
 	int error = 0;
 	
 	NetG::rules RR = (NetG::rules)GTarget->root().site;
-	ConstObj* obj = NULL;
 	size_t line = GTarget->child(0)->root().site;
 
 
@@ -976,7 +975,7 @@ int BuildInfor::buildExp(const lex& eme, GTNode* GTarget, context * dst)
 
 	GTNode* EXP_RIGHT = GTarget->child(2);//exp: ID assign EXP_RIGHT semicolon;
 	ConstObj* srcR = NULL;
-	int error = GetAConst(srcR, eme, EXP_RIGHT, dst);
+	error = GetAConst(srcR, eme, EXP_RIGHT, dst);
 	if (error != 0) return error;
 	if (obj->GetType() != srcR->GetType())
 	{
@@ -1263,7 +1262,7 @@ int BuildInfor::buildSymbolicCheck(const lex& eme, GTNode* SYMBOLIC, context* ds
 			{
 				ErrorNode = SYMBOLIC;
 				errorCode = UndefineOutput;
-				return 8934534345;
+				return 834534345;
 			}
 		}
 		else
@@ -1274,7 +1273,7 @@ int BuildInfor::buildSymbolicCheck(const lex& eme, GTNode* SYMBOLIC, context* ds
 				{
 					ErrorNode = SYMBOLIC;
 					errorCode = UndefineOutput;
-					return 8934534346;
+					return 893534346;
 				}
 			}
 		}
@@ -1397,7 +1396,6 @@ int BuildInfor::buildTENSOR(const lex& eme, GTNode* NET_STATEMENT, NetInContext*
 	context* dst = Net->realm;
 	int error = 0;
 	size_t line = NET_STATEMENT->root().site;
-	NetG::rules RR = (NetG::rules)NET_STATEMENT->root().site;
 	NetWork* net = Net->net;
 
 	GTNode* TENSOR = NET_STATEMENT->child(0);
@@ -1422,7 +1420,7 @@ int BuildInfor::buildTENSOR(const lex& eme, GTNode* NET_STATEMENT, NetInContext*
 	GTNode* TENSORVALUE = NET_STATEMENT->child(3);
 	NetG::rules RR = (NetG::rules)TENSORVALUE->root().site;
 	GTNode* TENSORID;
-	Node* newNode;
+	Node* newNode = NULL;
 	switch (RR)
 	{
 	case Pikachu::NetG::TENSORVALUE_single_:
@@ -1437,7 +1435,7 @@ int BuildInfor::buildTENSOR(const lex& eme, GTNode* NET_STATEMENT, NetInContext*
 		GTNode* SUMSYMBOL = TENSORVALUE->child(0);
 		Indexs list;
 		error = list.buildSUMSYMBOL(eme, SUMSYMBOL, this, dst);
-		if (error != 0) return;
+		if (error != 0) return error;
 
 
 		Node* newNode = net->NewNodeMonoLinear(srcL);
@@ -1474,7 +1472,7 @@ int BuildInfor::buildTENSOR(const lex& eme, GTNode* NET_STATEMENT, NetInContext*
 		GTNode* SUMSYMBOL = TENSORVALUE->child(0);
 		Indexs list;
 		error = list.buildSUMSYMBOL(eme, SUMSYMBOL, this, dst);
-		if (error != 0) return;
+		if (error != 0) return error;
 		break;
 	}
 	case Pikachu::NetG::TENSORVALUE_multiF_:
@@ -1496,7 +1494,7 @@ int BuildInfor::buildTENSOR(const lex& eme, GTNode* NET_STATEMENT, NetInContext*
 		GTNode* INDEXLIST = TENSORVALUE->child(1);
 		Indexs list1;
 		error = list1.buildINDEXLIST(eme, INDEXLIST, this, dst);
-		if (error != 0) return;
+		if (error != 0) return error;
 
 		GTNode* SQ_INDEXUNITS = TENSORVALUE->child(1);
 		Indexs list2;
