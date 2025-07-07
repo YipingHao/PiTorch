@@ -1143,7 +1143,7 @@ namespace hyperlex
 		std::cout << "testInternalConsistency: PASSED\n";
 	}
 
-	// 测试9: 大量插入压力测试
+	// 测试9: 大量插入压力测试1
 	void testMassInsertion() {
 		StringPool pool;
 		const size_t COUNT = 1000;
@@ -1158,7 +1158,7 @@ namespace hyperlex
 		assert(pool.count() == COUNT); // map大小同步
 		std::cout << "testMassInsertion: PASSED\n";
 	}
-	// 测试10: 大量插入压力测试
+	// 测试10: 大量插入压力测试2
 	void testMassInsertion2() 
 	{
 		StringPool pool;
@@ -1195,6 +1195,23 @@ namespace hyperlex
 		assert(pool.contains(longStr));
 		std::cout << "testLongString: PASSED\n";
 	}
+	// 测试10: 大量插入压力测试3
+	void testMassInsertion3()
+	{
+		StringPool pool;
+		const size_t COUNT = 10000;
+		const size_t FACTOR = 10000;
+		for (size_t j = 0; j < COUNT * FACTOR; ++j) {
+			size_t i = j;
+			std::string s = "str_" + std::to_string(i);
+			size_t id = pool.append(s.c_str());
+			assert(id == i); // ID连续分配
+		}
+		assert(pool.size() == COUNT); // 总数正确
+		assert(pool.count() == COUNT); // map大小同步
+		std::cout << "testMassInsertion2: PASSED\n";
+	}
+
 	int test2222() {
 		testAppendNewString();
 		testAppendDuplicate();
