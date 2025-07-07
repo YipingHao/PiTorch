@@ -902,8 +902,10 @@ namespace hyperlex
 		}
 
 		// 调试函数
-		void demo(FILE* fp = stdout) const {
+		void demo(FILE* fp = stdout) const 
+		{
 			fprintf(fp, "StringPool contains %zu strings:\n", arraySize);
+			fprintf(fp, "LOAD FACTOR is %.6lf\n", LOAD_FACTOR);
 			for (size_t i = 0; i < arraySize; i++) {
 				fprintf(fp, "ID: %zu, String: %s\n", i, stringArray[i]);
 			}
