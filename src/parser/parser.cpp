@@ -3280,7 +3280,7 @@ int ValueList::checkDim(BuildInfor* infor) const
 	}
 	return 0;
 }
-void ValueList::demo(FILE* fp = stdout) const
+void ValueList::demo(FILE* fp) const
 {
 	fprintf(fp, "ValueList: %s\n", backup ? "backup->GetName()" : "NULL");
 	fprintf(fp, "Scalar: %s\n", scalar ? "true" : "false");
