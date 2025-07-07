@@ -1687,6 +1687,7 @@ void indiceIS::ItoS(void)
 	clearS();
 }
 
+#include<string.h>
 CompilerObj::CompilerObj()
 {
 	name = NULL;
@@ -1852,7 +1853,6 @@ ConstObj::ConstObj(const char* op, ConstObj* right)
 	value initVal{};
 	scalar = true;
 	S.append(liberal);
-	value initVal;
 	V.append(initVal);
 	// 类型和维度校验
 	if (!right) return;
