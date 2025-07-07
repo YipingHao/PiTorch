@@ -1207,6 +1207,9 @@ namespace hyperlex
 			size_t id = pool.append(s.c_str());
 			assert(id == i); // ID连续分配
 		}
+		std::cout << "COUNT: " << COUNT << std::endl;
+		std::cout << "pool.size(): " << pool.size() << std::endl;
+		std::cout << "pool.count(): " << pool.count() << std::endl;
 		assert(pool.size() == COUNT); // 总数正确
 		assert(pool.count() == COUNT); // map大小同步
 		std::cout << "testMassInsertion3: PASSED\n";
