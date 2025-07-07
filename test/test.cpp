@@ -1202,7 +1202,7 @@ namespace hyperlex
 		const size_t COUNT = 1024 * 1024 * 64; // 64M
 		const size_t FACTOR = 2;
 		for (size_t j = 0; j < COUNT * FACTOR; ++j) {
-			size_t i = j % FACTOR;
+			size_t i = j % COUNT;
 			std::string s = "str_" + std::to_string(i);
 			size_t id = pool.append(s.c_str());
 			assert(id == i); // ID连续分配
