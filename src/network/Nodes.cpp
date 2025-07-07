@@ -2306,7 +2306,7 @@ void Transform::SetAlpha(long long int ele)
 
 
 
-
+#include<string.h>
 Node::LeafType Node::ParseLeafType(const char* input)
 {
 	if (strcmp(input, "para") == 0) return _leafPara_;
