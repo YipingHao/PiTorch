@@ -1206,6 +1206,7 @@ namespace hyperlex
 		testInternalConsistency();
 		testMassInsertion();
 		testMassInsertion2();
+		testLongString();
 
 		std::cout << "\nALL TESTS PASSED!\n";
 
