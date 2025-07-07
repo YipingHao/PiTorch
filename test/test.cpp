@@ -927,108 +927,146 @@ namespace hyperlex
 #include <vector>
 namespace hyperlex
 {
-    void test_string_pool() 
-    {
-        hyperlex::StringPool pool;
-
+    void test_string_pool() {
         // 测试1: 添加单个字符串
-        const char* str1 = "hello";
-        size_t id1 = pool.append(str1);
-        assert(id1 == 0); // 初始数组为空，ID应为0
-        assert(strcmp(pool.getString(id1), str1) == 0);
-        assert(pool.size() == 1);
-        assert(pool.count() == 1);
-        assert(pool.contains(str1));
+        {
+            hyperlex::StringPool pool;
+            const char* str1 = "hello";
+            size_t id1 = pool.append(str1);
+            assert(id1 == 0);
+            assert(strcmp(pool.getString(id1), str1) == 0);
+            assert(pool.size() == 1);
+            assert(pool.count() == 1);
+            assert(pool.contains(str1));
+            printf("✅ Test 1 passed: Adding single string.\n");
+        }
 
         // 测试2: 重复添加相同字符串
-        size_t id2 = pool.append(str1);
-        assert(id2 == id1); // 应返回相同ID
-        assert(pool.size() == 1);
-        assert(pool.count() == 1);
+        {
+            hyperlex::StringPool pool;
+            const char* str1 = "hello";
+            size_t id1 = pool.append(str1);
+            size_t id2 = pool.append(str1);
+            assert(id1 == id2);
+            assert(pool.size() == 1);
+            assert(pool.count() == 1);
+            printf("✅ Test 2 passed: Adding duplicate string.\n");
+        }
 
         // 测试3: 添加多个字符串并检查ID
-        const char* str2 = "world";
-        const char* str3 = "test";
-        size_t id3 = pool.append(str2);
-        assert(id3 == 1);
-        size_t id4 = pool.append(str3);
-        assert(id4 == 2);
-        assert(pool.size() == 3);
-        assert(pool.count() == 3);
+        {
+            hyperlex::StringPool pool;
+            const char* str2 = "world";
+            const char* str3 = "test";
+            size_t id2 = pool.append(str2);
+            size_t id3 = pool.append(str3);
+            assert(id2 == 0);
+            assert(id3 == 1);
+            assert(pool.size() == 2);
+            assert(pool.count() == 2);
+            printf("✅ Test 3 passed: Adding multiple strings and checking IDs.\n");
+        }
 
         // 测试4: 数组扩容
-        // 初始arrayCapacity为0，第一次添加后扩容到8
-        assert(pool.arrayCapacity == 0);
-        for (size_t i = 0; i < 8; ++i) {
-            char buffer[10];
-            sprintf(buffer, "str%d", i);
-            pool.append(buffer);
-        }
-        assert(pool.arrayCapacity == 8);
-        assert(pool.arraySize == 8 + 3); // 已有3个元素，又添加了8个
+        {
+            hyperlex::StringPool pool;
+            assert(pool.arrayCapacity == 0);
+            for (size_t i = 0; i < 8; ++i) {
+                char buffer[10];
+                sprintf(buffer, "str%d", i);
+                pool.append(buffer);
+            }
+            assert(pool.arrayCapacity == 8);
+            assert(pool.arraySize == 8);
 
-        // 添加第9+3=11个元素，此时数组已满，会扩容到16
-        char buffer[10];
-        sprintf(buffer, "str%d", 8 + 3);
-        pool.append(buffer);
-        assert(pool.arrayCapacity == 16);
-        assert(pool.arraySize == 12);
+            char buffer[10];
+            sprintf(buffer, "str%d", 8);
+            pool.append(buffer);
+            assert(pool.arrayCapacity == 16);
+            assert(pool.arraySize == 9);
+            printf("✅ Test 4 passed: Array resizing.\n");
+        }
 
         // 测试5: 哈希表扩容
-        // 初始bucketCount = 64，LOAD_FACTOR = 0.75
-        // 当nodeCount >= 64 * 0.75 = 48时会扩容
-        // 我们先添加48个元素
-        for (size_t i = 0; i < 48; ++i) {
-            char buffer[20];
-            sprintf(buffer, "unique_str_%zu", i);
-            pool.append(buffer);
-        }
-        assert(pool.count() == 48 + 3); // 前面已有3个元素
-        assert(pool.bucketCount == 64);
+        {
+            hyperlex::StringPool pool;
+            for (size_t i = 0; i < 48; ++i) {
+                char buffer[20];
+                sprintf(buffer, "unique_str_%zu", i);
+                pool.append(buffer);
+            }
+            assert(pool.count() == 48);
+            assert(pool.bucketCount == 64);
 
-        // 添加第49个元素触发扩容
-        char buffer_last[20];
-        sprintf(buffer_last, "trigger_resize");
-        pool.append(buffer_last);
-        assert(pool.bucketCount == 128); // 桶数应翻倍
+            char buffer_last[20];
+            sprintf(buffer_last, "trigger_resize");
+            pool.append(buffer_last);
+            assert(pool.bucketCount == 128);
 
-        // 验证所有元素仍然可访问
-        for (size_t i = 0; i < 48; ++i) {
-            char buffer[20];
-            sprintf(buffer, "unique_str_%zu", i);
-            assert(pool.contains(buffer));
+            for (size_t i = 0; i < 48; ++i) {
+                char buffer[20];
+                sprintf(buffer, "unique_str_%zu", i);
+                assert(pool.contains(buffer));
+            }
+            assert(pool.contains(buffer_last));
+            printf("✅ Test 5 passed: Hash table resizing.\n");
         }
-        assert(pool.contains(buffer_last));
 
         // 测试6: contains方法
-        assert(pool.contains("hello") == true);
-        assert(pool.contains("non_existent") == false);
+        {
+            hyperlex::StringPool pool;
+            const char* str1 = "hello";
+            pool.append(str1);
+            assert(pool.contains(str1) == true);
+            assert(pool.contains("non_existent") == false);
+            printf("✅ Test 6 passed: contains method.\n");
+        }
 
         // 测试7: 越界访问
-        assert(pool.getString(pool.size()) == nullptr);
-        assert(pool.getString(9999) == nullptr);
+        {
+            hyperlex::StringPool pool;
+            const char* str1 = "hello";
+            pool.append(str1);
+            assert(pool.getString(0) != nullptr);
+            assert(pool.getString(1) == nullptr);
+            assert(pool.getString(9999) == nullptr);
+            printf("✅ Test 7 passed: Out-of-bounds access.\n");
+        }
 
         // 测试8: NULL指针处理
-        assert(pool.append(nullptr) == (size_t)-1);
+        {
+            hyperlex::StringPool pool;
+            assert(pool.append(nullptr) == (size_t)-1);
+            printf("✅ Test 8 passed: NULL pointer handling.\n");
+        }
 
-        // 测试9: 哈希冲突
-        // 构造哈希值相同的字符串（可能需要人工构造）
-        // 这里假设两个字符串哈希到同一桶
-        const char* conflict1 = "a";
-        const char* conflict2 = "A"; // 假设这两个字符串哈希到同一桶
-        size_t id5 = pool.append(conflict1);
-        size_t id6 = pool.append(conflict2);
-        assert(id5 != id6); // 不同字符串应有不同ID
-        assert(strcmp(pool.getString(id5), conflict1) == 0);
-        assert(strcmp(pool.getString(id6), conflict2) == 0);
-        assert(pool.contains(conflict1));
-        assert(pool.contains(conflict2));
+        // 测试9: 哈希冲突处理
+        {
+            hyperlex::StringPool pool;
+            const char* conflict1 = "a";
+            const char* conflict2 = "A";
+            size_t id1 = pool.append(conflict1);
+            size_t id2 = pool.append(conflict2);
+            assert(id1 != id2);
+            assert(strcmp(pool.getString(id1), conflict1) == 0);
+            assert(strcmp(pool.getString(id2), conflict2) == 0);
+            assert(pool.contains(conflict1));
+            assert(pool.contains(conflict2));
+            printf("✅ Test 9 passed: Hash collision handling.\n");
+        }
 
-        // 测试10: 调试函数（可选）
-        // pool.demo(stdout); // 可视化输出，检查是否有警告
+        // 测试10: 调试函数（手动验证）
+        {
+            hyperlex::StringPool pool;
+            const char* str1 = "hello";
+            pool.append(str1);
+            // pool.demo(stdout); // 可视化输出，检查是否有警告
+            printf("✅ Test 10 passed: Debug function check (manual verification needed).\n");
+        }
 
-        printf("All StringPool tests passed!\n");
+        printf("✅ All StringPool tests passed!\n");
     }
+
 
     // 测试1: 添加新字符串返回唯一ID
     void testAppendNewString() {
