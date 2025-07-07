@@ -1209,7 +1209,7 @@ namespace hyperlex
 		}
 		assert(pool.size() == COUNT); // 总数正确
 		assert(pool.count() == COUNT); // map大小同步
-		std::cout << "testMassInsertion2: PASSED\n";
+		std::cout << "testMassInsertion3: PASSED\n";
 	}
 
 	int test2222() {
@@ -1224,6 +1224,7 @@ namespace hyperlex
 		testMassInsertion();
 		testMassInsertion2();
 		testLongString();
+		testMassInsertion3();
 
 		std::cout << "\nALL TESTS PASSED!\n";
 
