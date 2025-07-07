@@ -752,8 +752,9 @@ namespace hyperlex
 			size_t hash = 5381;
 			int c;
 			while ((c = *str++)) {
-				//hash = ((hash << 4) + hash) ^ c;//Fermat prime  17
-				hash = ((hash << 8) + hash) ^ c;//Fermat prime 257
+				hash = ((hash << 4) + hash) ^ c;//Fermat prime  17: 0.2
+				//hash = ((hash << 5) + hash) ^ c;//: 0.3
+				//hash = ((hash << 8) + hash) ^ c;//Fermat prime 257 : 0.7
 				//hash = (hash >> 16) ^ (hash & 0xFFFF); // 混合高位与低位[2,6](@ref)
 			}
 			return hash;
@@ -945,7 +946,7 @@ namespace hyperlex
 
 		friend void test_string_pool();
 	};
-	const double StringPool::LOAD_FACTOR = 0.5;
+	const double StringPool::LOAD_FACTOR = 0.24;
 }
 #include <vector>
 namespace hyperlex
