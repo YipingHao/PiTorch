@@ -16,6 +16,11 @@ namespace Pikachu
 	typedef hyperlex::tree<hyperlex::GrammarTree::TreeInfor>::PostIterator GTiterator;
 
 	
+	class context;
+	class IDinfor;
+	class TensorID;
+	class ValueList;
+
 	class CompilerObj
 	{
 	public:
@@ -265,10 +270,7 @@ namespace Pikachu
 		NetWork* net;
 		void ruin(void);
 	};
-	class context;
-	class IDinfor;
-	class TensorID; 
-	class ValueList;
+	
 	
 	class BuildInfor
 	{
