@@ -1373,7 +1373,7 @@ int BuildInfor::buildNETCheck(const lex& eme, GTNode* NETBODY, context* dst, Net
 			{
 				ErrorNode = NETBODY;
 				errorCode = UndefineOutput;
-				return 8934534345;
+				return 893434345;
 			}
 		}
 		else
@@ -1384,7 +1384,7 @@ int BuildInfor::buildNETCheck(const lex& eme, GTNode* NETBODY, context* dst, Net
 				{
 					ErrorNode = NETBODY;
 					errorCode = UndefineOutput;
-					return 8934534346;
+					return 893454346;
 				}
 			}
 		}
@@ -1499,7 +1499,7 @@ int BuildInfor::buildTENSOR(const lex& eme, GTNode* NET_STATEMENT, NetInContext*
 		GTNode* SQ_INDEXUNITS = TENSORVALUE->child(1);
 		Indexs list2;
 		error = list2.buildSQ_INDEXUNITS(eme, SQ_INDEXUNITS, this, dst);
-		if (error != 0) return;
+		if (error != 0) return error;
 	}
 	default: 
 	{
@@ -1758,7 +1758,6 @@ ConstObj::ConstObj(ConstObj* left, const char* op, ConstObj* right)// 二元运算构
 	value initVal{};
 	scalar = true;
 	S.append(liberal);
-	value initVal;
 	V.append(initVal);
 	// 类型和维度校验
 	if (!left || !right) return; 
@@ -1792,6 +1791,8 @@ ConstObj::ConstObj(ConstObj* left, const char* op, ConstObj* right)// 二元运算构
 		else if (Rf != 0.0) DstF = Lf / Rf;
 		break;
 	default:
+
+		break;
 	}
 
 	if (left->isReal() || right->isReal())
