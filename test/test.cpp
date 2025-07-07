@@ -1009,12 +1009,15 @@ namespace hyperlex
 		// 测试5: 哈希表扩容
 		{
 			hyperlex::StringPool pool;
-			for (size_t i = 0; i < 48; ++i) {
+			size_t trigger_resize = pool.bucketCount * pool.LOAD_FACTOR;
+			if (static_cast<double>(trigger_resize) / pool.bucketCount > pool.LOAD_FACTOR)
+				trigger_resize -= 1;
+			for (size_t i = 0; i < trigger_resize; ++i) {
 				char buffer[20];
 				sprintf(buffer, "unique_str_%zu", i);
 				pool.append(buffer);
 			}
-			assert(pool.count() == 48);
+			assert(pool.count() == trigger_resize);
 			assert(pool.bucketCount == 64);
 
 			char buffer_last[20];
@@ -1022,7 +1025,7 @@ namespace hyperlex
 			pool.append(buffer_last);
 			assert(pool.bucketCount == 128);
 
-			for (size_t i = 0; i < 48; ++i) {
+			for (size_t i = 0; i < trigger_resize; ++i) {
 				char buffer[20];
 				sprintf(buffer, "unique_str_%zu", i);
 				assert(pool.contains(buffer));
