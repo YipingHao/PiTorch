@@ -1,4 +1,4 @@
-#include"extern.h"
+﻿#include"extern.h"
 #include<cmath>
 using namespace Pikachu;
 
@@ -412,15 +412,90 @@ int test(hyperlex::dictionary& para)
     return error;
 }
 
-
+#include <iostream>
+#include <cassert>
+#include <cstdio>
+#include <string>
 
 int static Test000(const hyperlex::dictionary& para)
 {
     int error = 0;
     std::cout << "welcome: ==================================" << std::endl;
     para.print(stdout);
-    return error;
+
+    std::cout << "=== StringPool Unit Tests ===\n";
+
+    // 创建 StringPool 实例
+    StringPool pool;
+
+    // 测试 1: 添加新字符串
+    {
+        size_t id1 = pool.append("hello");
+        assert(id1 == 0 && "Expected ID 0 for 'hello'");
+        size_t id2 = pool.append("world");
+        assert(id2 == 1 && "Expected ID 1 for 'world'");
+        size_t id3 = pool.append("C++98");
+        assert(id3 == 2 && "Expected ID 2 for 'C++98'");
+        std::cout << "Test 1: append() 新字符串 OK\n";
+    }
+
+    // 测试 2: 添加重复字符串
+    {
+        size_t id1 = pool.append("hello");
+        assert(id1 == 0 && "Expected same ID 0 for repeated 'hello'");
+        size_t id2 = pool.append("world");
+        assert(id2 == 1 && "Expected same ID 1 for repeated 'world'");
+        std::cout << "Test 2: append() 重复字符串 OK\n";
+    }
+
+    // 测试 3: contains() 检查字符串是否存在
+    {
+        assert(pool.contains("hello") == true);
+        assert(pool.contains("world") == true);
+        assert(pool.contains("test") == false);
+        assert(pool.contains(NULL) == false);
+        assert(pool.contains("") == true); // 空字符串已添加
+        std::cout << "Test 3: contains() OK\n";
+    }
+
+    // 测试 4: 空指针和空字符串处理
+    {
+        size_t id1 = pool.append(NULL);
+        assert(id1 == static_cast<size_t>(-1) && "Expected invalid ID for NULL");
+        size_t id2 = pool.append("");
+        assert(id2 == 3 && "Expected ID 3 for empty string");
+        std::cout << "Test 4: NULL and empty string handling OK\n";
+    }
+
+    // 测试 5: getString() 和 operator[]
+    {
+        const char* str1 = pool.getString(0);
+        assert(str1 != nullptr && std::string(str1) == "hello");
+        const char* str2 = pool[1];
+        assert(str2 != nullptr && std::string(str2) == "world");
+        const char* str3 = pool.getString(100);
+        assert(str3 == nullptr && "Expected NULL for out-of-range ID");
+        std::cout << "Test 5: getString() and operator[] OK\n";
+    }
+
+    // 测试 6: size() 和 count()
+    {
+        assert(pool.size() == 4 && "Expected 4 strings in vector");
+        assert(pool.count() == 4 && "Expected 4 entries in map");
+        std::cout << "Test 6: size() and count() OK\n";
+    }
+
+    // 测试 7: demo() 输出和一致性检查
+    {
+        pool.demo(stdout);
+        // 注意：此测试无法自动验证 demo() 的输出内容，需手动检查控制台输出
+        std::cout << "Test 7: demo() 执行完毕\n";
+    }
+
+    std::cout << "\n✅ All tests passed!\n";
+    return 0;
 }
+
 
 static bool compare(const char* str1, const char* str2)
 {
@@ -515,10 +590,107 @@ int static Test001(const hyperlex::dictionary& para)
 
     return error;
 }
+// 测试添加新字符串
+void testAppendNewString() 
+{
+    StringPool pool;
+    size_t id1 = pool.append("hello");
+    size_t id2 = pool.append("world");
+    assert(id1 == 0);
+    assert(id2 == 1);
+    std::cout << "testAppendNewString: PASSED\n";
+}
 
+// 测试重复添加相同字符串
+void testAppendDuplicate() {
+    StringPool pool;
+    size_t id1 = pool.append("test");
+    size_t id2 = pool.append("test");
+    assert(id1 == id2);
+    std::cout << "testAppendDuplicate: PASSED\n";
+}
+
+// 测试空指针处理
+void testNullptrHandling() {
+    StringPool pool;
+    size_t id = pool.append(nullptr);
+    assert(id == static_cast<size_t>(-1));
+    std::cout << "testNullptrHandling: PASSED\n";
+}
+
+// 测试通过ID获取字符串
+void testGetString() {
+    StringPool pool;
+    size_t id = pool.append("data");
+    const char* str = pool.getString(id);
+    assert(str != nullptr && std::string(str) == "data");
+    assert(pool[id] != nullptr); // 测试运算符[]
+    std::cout << "testGetString: PASSED\n";
+}
+
+// 测试非法ID访问
+void testInvalidId() {
+    StringPool pool;
+    assert(pool.getString(100) == nullptr);
+    assert(pool[100] == nullptr);
+    std::cout << "testInvalidId: PASSED\n";
+}
+
+// 测试字符串存在性检查
+void testContains() {
+    StringPool pool;
+    pool.append("exist");
+    assert(pool.contains("exist") == true);
+    assert(pool.contains("missing") == false);
+    std::cout << "testContains: PASSED\n";
+}
+
+// 测试空池行为
+void testEmptyPool() {
+    StringPool pool;
+    assert(pool.size() == 0);
+    assert(pool.getString(0) == nullptr);
+    assert(pool.contains("any") == false);
+    std::cout << "testEmptyPool: PASSED\n";
+}
+
+// 测试内部一致性（vector与map同步）
+void testInternalConsistency() {
+    StringPool pool;
+    pool.append("A");
+    pool.append("B");
+    assert(pool.size() == pool.count());
+    // 调用自检方法验证
+    pool.demo(); // 应无警告输出
+    std::cout << "testInternalConsistency: PASSED\n";
+}
+
+// 压力测试：大量插入
+void testMassInsertion() {
+    StringPool pool;
+    const int COUNT = 1000;
+    for (int i = 0; i < COUNT; ++i) {
+        std::string s = "str_" + std::to_string(i);
+        size_t id = pool.append(s.c_str());
+        assert(id == i); // ID 应连续分配
+    }
+    assert(pool.size() == COUNT);
+    assert(pool.count() == COUNT);
+    std::cout << "testMassInsertion: PASSED\n";
+}
 int static Test002(const hyperlex::dictionary& para)
 {
     int error = 0;
+	std::cout << "Running StringPool tests...\n";
+    testAppendNewString();
+    testAppendDuplicate();
+    testNullptrHandling();
+    testGetString();
+    testInvalidId();
+    testContains();
+    testEmptyPool();
+    testInternalConsistency();
+    testMassInsertion();
     return error;
 }
 
