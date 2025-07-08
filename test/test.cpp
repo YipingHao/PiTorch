@@ -1307,7 +1307,8 @@ public:
 
 		obj.appendS(testData);
 		assert(obj.Scount() == 1);
-
+		obj.StoI();
+		obj.demo();
 		// 清理内存
 		free(str1);
 		free(str2);
@@ -1354,7 +1355,7 @@ public:
 
 		assert(obj.Scount() == 1);
 		assert(obj.Icount() == 1);
-
+		obj.demo();
 		// 清理内存
 		free(str1);
 		free(str2);
