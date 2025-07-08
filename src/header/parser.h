@@ -445,6 +445,10 @@ namespace Pikachu
 		{
 			return Tindex.count();
 		}
+		inline vector<char*> const& GetIndex(void) const
+		{
+			return Tindex;
+		}
 	};
 
 	
@@ -454,11 +458,26 @@ namespace Pikachu
 		TensorID();
 		~TensorID();
 		int build(const lex& eme, GTNode* TENSORID, BuildInfor* infor, context* dst);
+
 	protected:
 		vector<char*> Tindex;
 		char* copy(const char* src) const;
 		void append(const char* src);
 		void append(const lex& eme, GTNode* ID2, BuildInfor* infor, context* dst);
+	public:
+		inline const char* operator[](size_t No) const
+		{
+			if (No >= Tindex.count()) return NULL;
+			return Tindex[No];
+		}
+		inline size_t GetCount(void) const
+		{
+			return Tindex.count();
+		}
+		inline vector<char*> const & GetIndex(void) const
+		{
+			return Tindex;
+		}
 	};
 	class ValueList
 	{
