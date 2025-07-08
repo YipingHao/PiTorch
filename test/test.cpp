@@ -1272,7 +1272,7 @@ int static Test002(const hyperlex::dictionary& para)
 #include <cstdlib>
 #include <cstring>
 #include <assert.h>
-namespace testSI
+struct testSI
 {
 	bool compareStringVectors(const vector<char*>& v1, const vector<char*>& v2) {
 		if (v1.count() != v2.count()) return false;
@@ -1539,14 +1539,17 @@ namespace testSI
 		printf("\n所有测试用例通过!\n");
 		return 0;
 	}
-}
+};
 // 比较两个字符串向量是否相等
 
 
 int static Test003(const hyperlex::dictionary& para)
 {
 	int error = 0;
+	testSI SI;
 
+	std::cout << "SI.test(): " << SI.test() << std::endl;
+	
 	return error;
 }
 int static Test004(const hyperlex::dictionary& para)
