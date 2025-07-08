@@ -2317,6 +2317,180 @@ Node::LeafType Node::ParseLeafType(const char* input)
 }
 
 
+indiceIS::indiceIS()
+{
+}
+indiceIS::~indiceIS()
+{
+	clearS();
+	clearI();
+}
+void indiceIS::clearS(void)
+{
+	for (size_t i = 0; i < indiceS.count(); ++i)
+	{
+		vector<char*>* temp = indiceS[i];
+		for (size_t j = 0; j < temp->count(); ++j)
+		{
+			free((*temp)[j]);
+		}
+		delete temp;
+	}
+	indiceS.clear();
+}
+void indiceIS::clearI(void)
+{
+	for (size_t i = 0; i < indicsI.count(); ++i)
+	{
+		vector<sint>* temp = indicsI[i];
+		delete temp;
+	}
+	indicsI.clear();
+}
+void indiceIS::StoI(void)
+{
+	clearI();
+	hyperlex::StringPool SP;
+	for (size_t i = 0; i < indiceS.count(); ++i)
+	{
+		vector<char*>* temp = indiceS[i];
+		vector<sint>* newI = new vector<sint>();
+		newI->recount(temp->count());
+		for (size_t j = 0; j < temp->count(); ++j)
+		{
+			const char* str = (*temp)[j];
+			sint index = SP.append(str);
+			(*newI)[j] = index + 1; // +1 to avoid zero index
+		}
+		indicsI.append(newI);
+	}
+}
+void indiceIS::ItoS(void)
+{
+	clearS();
+	for (size_t i = 0; i < indicsI.count(); ++i)
+	{
+		vector<sint>* temp = indicsI[i];
+		vector<char*>* newS = new vector<char*>();
+		newS->recount(temp->count());
+		for (size_t j = 0; j < temp->count(); ++j)
+		{
+			sint index = (*temp)[j] - 1; // -1 to adjust for zero index
+			(*newS)[j] = IndexToString(index);
+		}
+		indiceS.append(newS);
+	}
+}
+void indiceIS::demo(FILE* fp) const
+{
+	for (size_t i = 0; i < indicsI.count(); ++i)
+	{
+		const vector<sint>* temp = indicsI[i];
+		fprintf(fp, "Indice I %zu: [", i);
+		if (temp->count() > 0)
+		{
+			fprintf(fp, "%lld", (long long int)(*temp)[0]);
+		}
+		for (size_t j = 1; j < temp->count(); ++j)
+		{
+			fprintf(fp, ", %lld", (long long int)(*temp)[j]);
+		}
+		fprintf(fp, "]\n");
+	}
+	for (size_t i = 0; i < indiceS.count(); i++)
+	{
+		vector<char*>* temp = indiceS[i];
+		fprintf(fp, "Indice S %zu: [", i);
+		if (temp->count() > 0)
+		{
+			fprintf(fp, "%s", (*temp)[0]);
+		}
+		for (size_t j = 1; j < temp->count(); ++j)
+		{
+			fprintf(fp, ", %s", (*temp)[j]);
+		}
+		fprintf(fp, "]\n");
+	}
+}
+void indiceIS::appendS(const vector<char*>& S)
+{
+	vector<char*>* newS = new vector<char*>();
+	newS->recount(S.count());
+	for (size_t i = 0; i < S.count(); ++i)
+	{
+		const char* str = S[i];
+		size_t len = strlen(str);
+		char* newStr = (char*)malloc((len + 1) * sizeof(char));
+		strcpy(newStr, str);
+		(*newS)[i] = newStr;
+	}
+	indiceS.append(newS);
+}
+void indiceIS::appendI(const vector<sint>& I)
+{
+	vector<sint>* newI = new vector<sint>();
+	newI->recount(I.count());
+	for (size_t i = 0; i < I.count(); ++i)
+	{
+		(*newI)[i] = I[i];
+	}
+	indicsI.append(newI);
+}
+char* indiceIS::IndexToString(size_t index)
+{
+	// 预定义的字母表（26个字母）
+	static const char letters[27] = "ijklmnopqrstuvwxyzabcdefgh";
+
+	// 处理小索引（0-25）：单个字母
+	if (index < 26) {
+		char* str = (char*)(malloc(2 * sizeof(char)));
+		str[0] = letters[index];
+		str[1] = '\0';
+		return str;
+	}
+
+	// 处理大索引（≥26）：字母+数字组合
+	size_t n = index - 26;
+	char letter = letters[n % 26];  // 字母部分
+	size_t num_part = n / 26;        // 数字部分
+
+	// 手工计算数字部分的字符串长度
+	size_t num_len = 1;
+	if (num_part > 0) {
+		size_t temp = num_part;
+		while (temp != 0) {
+			num_len++;
+			temp /= 10;
+		}
+		num_len--;  // 修正循环多计的一次
+	}
+
+	// 分配内存：1(字母) + num_len(数字) + 1(结束符)
+	char* str = (char*)malloc((num_len + 2) * sizeof(char));
+	str[0] = letter;  // 设置首字母
+
+	// 手工转换数字部分（不使用库函数）
+	if (num_part == 0) {
+		str[1] = '0';
+		str[2] = '\0';
+	}
+	else
+	{
+		// 从最低位开始填充数字字符
+		size_t pos = num_len;
+		size_t temp = num_part;
+		while (temp != 0) {
+			str[pos] = '0' + (temp % 10);  // 取最后一位转为字符
+			temp /= 10;
+			pos--;
+		}
+		str[num_len + 1] = '\0';  // 设置结束符
+	}
+
+	return str;
+}
+
+
 /*
 class NeuralNetwork;
 class functionNode;//1

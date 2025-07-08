@@ -1618,74 +1618,8 @@ int BuildInfor::buildNETBODY(const lex& eme, GTNode* NETBODY, NetInContext* Net)
 	return error;
 }
 
-class indiceIS
-{
-public:
-	indiceIS();
-	~indiceIS();
-	void StoI(void);
-	void ItoS(void);
-	
 
-	typedef long long int sint;
-protected:
-	vector<vector<char*>*> indiceS;
-	vector<vector<sint>*> indicsI;
 
-	void clearS(void);
-	void clearI(void);
-};
-
-indiceIS::indiceIS()
-{
-}
-indiceIS::~indiceIS()
-{
-	clearS();
-	clearI();
-}
-void indiceIS::clearS(void)
-{
-	for (size_t i = 0; i < indiceS.count(); ++i)
-	{
-		vector<char*>* temp = indiceS[i];
-		for (size_t j = 0; j < temp->count(); ++j)
-		{
-			free((*temp)[j]);
-		}
-		delete temp;
-	}
-	indiceS.clear();
-}
-void indiceIS::clearI(void)
-{
-	for (size_t i = 0; i < indicsI.count(); ++i)
-	{
-		vector<sint>* temp = indicsI[i];
-		delete temp;
-	}
-	indicsI.clear();
-}
-void indiceIS::StoI(void)
-{
-	clearI();
-	for (size_t i = 0; i < indiceS.count(); ++i)
-	{
-		vector<char*>* temp = indiceS[i];
-		vector<sint>* newI = new vector<sint>();
-		for (size_t j = 0; j < temp->count(); ++j)
-		{
-			const char* str = (*temp)[j];
-			sint index = atoi(str);
-			newI->append(index);
-		}
-		indicsI.append(newI);
-	}
-}
-void indiceIS::ItoS(void)
-{
-	clearS();
-}
 
 #include<string.h>
 CompilerObj::CompilerObj()

@@ -599,7 +599,29 @@ namespace Pikachu
 	};
 
 
+	class indiceIS
+	{
+	public:
+		indiceIS();
+		~indiceIS();
+		void StoI(void);
+		void ItoS(void);
+		void demo(FILE* fp = stdout) const;
+		typedef long long int sint;
+	protected:
+		vector<vector<char*>*> indiceS;
+		vector<vector<sint>*> indicsI;
 
+		void clearS(void);
+		void clearI(void);
+	public:
+		inline size_t Scount(void) const { return indiceS.count(); }
+		inline size_t Icount(void) const { return indicsI.count(); }
+		void appendS(const vector<char*>& S);
+		void appendI(const vector<sint>& I);
+		static char* IndexToString(size_t index);
+		friend void testSI::testClearMethods(void);
+	};
 
 	
 }

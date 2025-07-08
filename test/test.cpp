@@ -82,6 +82,7 @@ int test(hyperlex::dictionary& para)
 	{
 	case 0:
 	{
+		std::cout << "StringPool: " << std::endl;
 		error = Test000(para);
 		break;
 	}
@@ -92,6 +93,7 @@ int test(hyperlex::dictionary& para)
 	}
 	case 2:
 	{
+		std::cout << "hyperlex::StringPool: " << std::endl;
 		//std::cout << "Test class file path " << std::endl;
 		error = Test002(para);
 		break;
@@ -1266,9 +1268,285 @@ int static Test002(const hyperlex::dictionary& para)
 	return error;
 }
 
+#include <cstdio>
+#include <cstdlib>
+#include <cstring>
+#include <assert.h>
+namespace testSI
+{
+	bool compareStringVectors(const vector<char*>& v1, const vector<char*>& v2) {
+		if (v1.count() != v2.count()) return false;
+
+		for (size_t i = 0; i < v1.count(); ++i) {
+			if (std::strcmp(v1[i], v2[i]) != 0) return false;
+		}
+
+		return true;
+	}
+
+	// 测试构造函数和析构函数
+	void testConstructorAndDestructor() {
+		indiceIS* obj = new indiceIS();
+		assert(obj->Scount() == 0);
+		assert(obj->Icount() == 0);
+		delete obj;
+		printf("构造函数和析构函数测试通过\n");
+	}
+
+	// 测试 appendS 方法
+	void testAppendS() {
+		indiceIS obj;
+
+		// 准备测试数据
+		vector<char*> testData;
+		char* str1 = strdup("test1");
+		char* str2 = strdup("test2");
+		testData.append(str1);
+		testData.append(str2);
+
+		obj.appendS(testData);
+		assert(obj.Scount() == 1);
+
+		// 清理内存
+		free(str1);
+		free(str2);
+		printf("appendS 方法测试通过\n");
+	}
+
+	// 测试 StoI 转换
+	void testStoIConversion() {
+		indiceIS obj;
+
+		// 准备测试数据
+		vector<char*> testData;
+		char* str1 = strdup("apple");
+		char* str2 = strdup("banana");
+		testData.append(str1);
+		testData.append(str2);
+
+		obj.appendS(testData);
+		obj.StoI();
+
+		assert(obj.Icount() == 1);
+		assert(obj.Scount() == 1);
+
+		// 清理内存
+		free(str1);
+		free(str2);
+		printf("StoI 转换测试通过\n");
+	}
+
+	// 测试 ItoS 转换
+	void testItoSConversion() {
+		indiceIS obj;
+
+		// 准备测试数据
+		vector<char*> testData;
+		char* str1 = strdup("apple");
+		char* str2 = strdup("banana");
+		testData.append(str1);
+		testData.append(str2);
+
+		obj.appendS(testData);
+		obj.StoI();
+		obj.ItoS();
+
+		assert(obj.Scount() == 1);
+		assert(obj.Icount() == 1);
+
+		// 清理内存
+		free(str1);
+		free(str2);
+		printf("ItoS 转换测试通过\n");
+	}
+
+	// 测试 IndexToString 静态方法 - 小索引
+	void testIndexToStringSmall() {
+		for (size_t i = 0; i < 26; ++i) {
+			char* result = indiceIS::IndexToString(i);
+			char expected[2] = { "ijklmnopqrstuvwxyzabcdefgh"[i], '\0' };
+
+			assert(std::strcmp(result, expected) == 0);
+			free(result); // 清理分配的内存
+		}
+		printf("IndexToString 小索引测试通过\n");
+	}
+
+	// 测试 IndexToString 静态方法 - 大索引
+	void testIndexToStringLarge() {
+		struct TestCase {
+			size_t index;
+			const char* expected;
+		};
+
+		TestCase testCases[] = {
+			{26, "i0"},
+			{27, "j0"},
+			{51, "h0"},
+			{52, "i1"},
+			{53, "j1"},
+			{100, "h3"},
+			{1000, "h36"},
+			{10000, "h374"},
+			{100000, "h3836"},
+			{1000000, "h38460"}
+		};
+
+		for (size_t i = 0; i < sizeof(testCases) / sizeof(testCases[0]); ++i) {
+			char* result = indiceIS::IndexToString(testCases[i].index);
+
+			assert(std::strcmp(result, testCases[i].expected) == 0);
+			free(result); // 清理分配的内存
+		}
+		printf("IndexToString 大索引测试通过\n");
+	}
+
+	// 测试 demo 方法 - 验证输出格式
+	void testDemoMethod() {
+		printf("\n===== 开始 demo 方法输出检查 =====");
+		indiceIS obj;
+
+		// 准备测试数据（多组不同数据，覆盖常见场景）
+		vector<char*> testData1;
+		testData1.append(strdup("apple"));
+		testData1.append(strdup("banana"));
+		testData1.append(strdup("cherry"));
+
+		vector<char*> testData2;
+		testData2.append(strdup("dog"));
+		testData2.append(strdup("elephant"));
+
+		obj.appendS(testData1);
+		obj.appendS(testData2);
+		obj.StoI();  // 先转换为数字索引，便于观察 I 和 S 的对应关系
+
+		printf("\n--- demo 方法输出内容如下 ---\n");
+		obj.demo();  // 直接输出到屏幕
+		printf("--- demo 方法输出结束 ---\n");
+
+		// 提示需要检查的内容
+		printf("\n请确认以下几点：\n");
+		printf("1. 输出包含 \"Indice I 0: [ ... ]\" 和 \"Indice I 1: [ ... ]\"（共2组数字索引）\n");
+		printf("2. 输出包含 \"Indice S 0: [apple, banana, cherry]\"（第一组字符串）\n");
+		printf("3. 输出包含 \"Indice S 1: [dog, elephant]\"（第二组字符串）\n");
+		printf("4. 格式是否正确（逗号分隔，方括号包裹）\n");
+
+		// 等待用户确认
+		printf("\n是否通过检查？(输入 y 继续，其他键终止)：");
+		char input[10];
+		fgets(input, sizeof(input), stdin);
+		assert((input[0] == 'y' || input[0] == 'Y') && "demo 方法测试未通过");
+
+		printf("===== demo 方法测试通过 =====\n");
+
+		// 清理内存
+		for (size_t i = 0; i < testData1.count(); ++i) free(testData1[i]);
+		for (size_t i = 0; i < testData2.count(); ++i) free(testData2[i]);
+	}
+
+
+	// 测试连续转换
+	void testMultipleConversions() {
+		indiceIS obj;
+
+		// 准备测试数据
+		vector<char*> testData;
+		char* str1 = strdup("apple");
+		char* str2 = strdup("banana");
+		testData.append(str1);
+		testData.append(str2);
+
+		obj.appendS(testData);
+
+		// 多次转换应保持数据一致性
+		for (int i = 0; i < 5; ++i) {
+			obj.StoI();
+			obj.ItoS();
+		}
+
+		assert(obj.Scount() == 1);
+		assert(obj.Icount() == 1);
+
+		// 清理内存
+		free(str1);
+		free(str2);
+		printf("连续转换测试通过\n");
+	}
+
+	// 测试空数据转换
+	void testEmptyConversion() {
+		indiceIS obj;
+
+		obj.StoI();
+		assert(obj.Icount() == 0);
+
+		obj.ItoS();
+		assert(obj.Scount() == 0);
+
+		printf("空数据转换测试通过\n");
+	}
+
+	// 测试 clear 方法
+	void testClearMethods() {
+		indiceIS obj;
+
+		// 准备测试数据
+		vector<char*> testData1;
+		char* str1 = strdup("apple");
+		char* str2 = strdup("banana");
+		testData1.append(str1);
+		testData1.append(str2);
+
+		vector<char*> testData2;
+		char* str3 = strdup("cherry");
+		char* str4 = strdup("date");
+		testData2.append(str3);
+		testData2.append(str4);
+
+		obj.appendS(testData1);
+		obj.appendS(testData2);
+		obj.StoI();
+
+		obj.clearS();
+		assert(obj.Scount() == 0);
+		assert(obj.Icount() == 2);
+
+		obj.clearI();
+		assert(obj.Icount() == 0);
+
+		// 清理内存
+		free(str1);
+		free(str2);
+		free(str3);
+		free(str4);
+		printf("clear 方法测试通过\n");
+	}
+
+	int test() {
+		printf("开始测试 indiceIS 类...\n\n");
+
+		testConstructorAndDestructor();
+		testAppendS();
+		testStoIConversion();
+		testItoSConversion();
+		testIndexToStringSmall();
+		testIndexToStringLarge();
+		testDemoMethod();
+		testMultipleConversions();
+		testEmptyConversion();
+		testClearMethods();
+
+		printf("\n所有测试用例通过!\n");
+		return 0;
+	}
+}
+// 比较两个字符串向量是否相等
+
+
 int static Test003(const hyperlex::dictionary& para)
 {
 	int error = 0;
+
 	return error;
 }
 int static Test004(const hyperlex::dictionary& para)
