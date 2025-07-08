@@ -1393,9 +1393,10 @@ public:
 			{1000000, "h38460"}
 		};
 
-		for (size_t i = 0; i < sizeof(testCases) / sizeof(testCases[0]); ++i) {
+		for (size_t i = 0; i < sizeof(testCases) / sizeof(testCases[0]); ++i) 
+		{
 			char* result = indiceIS::IndexToString(testCases[i].index);
-
+			assert(result != NULL);
 			assert(std::strcmp(result, testCases[i].expected) == 0);
 			free(result); // 清理分配的内存
 		}
