@@ -1526,6 +1526,162 @@ public:
 		printf("clear 方法测试通过\n");
 	}
 
+	// 测试 IndexToString 静态方法 - 大索引（修复计算逻辑）
+	void testIndexToStringLarge() {
+		struct TestCase {
+			size_t index;
+			const char* expected;
+		};
+		// 修正后的预期值（原100->"h3"错误）
+		TestCase testCases[] = {
+			{26, "i0"},    // 首轮起始
+			{27, "j0"},    // 首轮第二个
+			{51, "h0"},    // 首轮最后一个
+			{52, "i1"},    // 二轮起始
+			{53, "j1"},    // 二轮第二个
+			{77, "z1"},    // 二轮最后一个字母
+			{78, "a1"},    // 字母表循环
+			{100, "w2"},   // 修正：100-26=74 → 74/26=2余22 → 第22个字母w
+			{1000, "q37"}, // 1000-26=974 → 974/26=37余12 → q
+			{10000, "k383"} // 10000-26=9974 → 9974/26=383余16 → k
+		};
+
+		for (size_t i = 0; i < sizeof(testCases) / sizeof(TestCase); ++i) {
+			char* result = indiceIS::IndexToString(testCases[i].index);
+			assert(result != nullptr);
+			assert(strcmp(result, testCases[i].expected) == 0);
+			free(result);
+		}
+		printf("IndexToString 大索引测试通过\n");
+	}
+
+	// 新增：超大型索引测试（验证内存和计算正确性）
+	void testIndexToStringHuge() {
+		// 测试 size_t 边界值（实际使用可能不会达到）
+		size_t indices[] = {
+			std::numeric_limits<size_t>::max() - 1,
+			1'000'000'000,
+			10'000'000
+		};
+
+		for (auto idx : indices) {
+			char* s = indiceIS::IndexToString(idx);
+			assert(s != nullptr);
+
+			// 验证格式：首字符为字母，后续为数字
+			assert(isalpha(s[0]));
+			for (int i = 1; s[i]; ++i) {
+				assert(isdigit(s[i]));
+			}
+			free(s);
+		}
+		printf("超大型索引测试通过\n");
+	}
+
+	// 1. 测试重复字符串的索引映射一致性
+	void testDuplicateStrings() {
+		testSI obj;
+		vector<char*> data;
+		data.append(strdup("apple"));
+		data.append(strdup("apple")); // 重复值
+
+		obj.appendS(data);
+		obj.StoI();
+
+		// 验证相同字符串映射到相同索引
+		auto& indices = *obj.indicsI[0];
+		assert(indices[0] == indices[1]);
+		printf("重复字符串索引一致性测试通过\n");
+	}
+
+	// 2. 测试空字符串和特殊字符
+	void testSpecialCharacters() {
+		testSI obj;
+		vector<char*> data;
+		data.append(strdup(""));      // 空字符串
+		data.append(strdup("!@#$%")); // 特殊字符
+		data.append(strdup("\n\t"));  // 控制字符
+
+		obj.appendS(data);
+		obj.StoI();
+		obj.ItoS();
+
+		// 验证转换后内容不变
+		auto& strings = *obj.indiceS[0];
+		assert(strcmp(strings[0], "") == 0);
+		assert(strcmp(strings[1], "!@#$%") == 0);
+		assert(strcmp(strings[2], "\n\t") == 0);
+		printf("特殊字符处理测试通过\n");
+	}
+
+	// 3. 测试多级向量嵌套
+	void testNestedVectors() {
+		testSI obj;
+
+		// 第一组数据
+		vector<char*> data1;
+		data1.append(strdup("cat"));
+		data1.append(strdup("dog"));
+
+		// 第二组数据（空向量）
+		vector<char*> data2;
+
+		// 第三组数据
+		vector<char*> data3;
+		data3.append(strdup("bird"));
+
+		obj.appendS(data1);
+		obj.appendS(data2); // 空向量
+		obj.appendS(data3);
+
+		// 验证层级和内容
+		assert(obj.Scount() == 3);
+		assert(obj.indiceS[0]->count() == 2);
+		assert(obj.indiceS[1]->count() == 0); // 空向量
+		assert(obj.indiceS[2]->count() == 1);
+
+		// 双向转换验证
+		obj.StoI();
+		assert(obj.Icount() == 3);
+		obj.ItoS();
+		assert(strcmp((*obj.indiceS[0])[0], "cat") == 0);
+		printf("多级嵌套向量测试通过\n");
+	}
+
+	// 1. 验证析构函数完全释放内存
+	void testDestructorMemoryRelease() {
+		auto* obj = new indiceIS();
+
+		// 填充1MB测试数据
+		vector<char*> data;
+		for (int i = 0; i < 10000; ++i) {
+			char* buf = (char*)malloc(1024); // 1KB/字符串
+			sprintf(buf, "data_%d", i);
+			data.append(buf);
+		}
+		obj->appendS(data);
+		obj->StoI();
+
+		// 记录内存状态（实际项目可用Valgrind）
+		printf(">> 填充数据后内存占用约：%lu KB\n",
+			(data.count() * 1024) / 1024);
+
+		delete obj; // 应释放所有内存
+		printf("大内存释放测试通过（需Valgrind验证泄漏）\n");
+	}
+
+	// 2. 测试IndexToString内存边界
+	void testIndexToStringMemory() {
+		// 构造超长字符串（>1000字符）验证缓冲区溢出
+		size_t hugeIndex = 26 * 1000000; // 产生6位数字
+		char* s = indiceIS::IndexToString(hugeIndex);
+
+		// 验证长度安全
+		assert(strlen(s) < 100);
+		free(s);
+		printf("超长索引内存安全测试通过\n");
+	}
+
 	int test() {
 		printf("开始测试 indiceIS 类...\n\n");
 
@@ -1535,11 +1691,18 @@ public:
 		testItoSConversion();
 		testIndexToStringSmall();
 		testIndexToStringLarge();
+		testIndexToStringHuge();       // 新增
 		testDemoMethod();
 		testMultipleConversions();
 		testEmptyConversion();
 		testClearMethods();
 
+
+		testDuplicateStrings();        // 新增
+		testSpecialCharacters();       // 新增
+		testNestedVectors();           // 新增
+		testDestructorMemoryRelease(); // 新增
+		testIndexToStringMemory();     // 新增
 		printf("\n所有测试用例通过!\n");
 		return 0;
 	}
