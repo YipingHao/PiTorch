@@ -1396,7 +1396,7 @@ public:
 		for (size_t i = 0; i < sizeof(testCases) / sizeof(testCases[0]); ++i) 
 		{
 			char* result = indiceIS::IndexToString(testCases[i].index);
-			std::cout << result << std::endl;
+			std::cout << result << "    " << testCases[i].expected << std::endl;
 			assert(result != NULL);
 			assert(std::strcmp(result, testCases[i].expected) == 0);
 			free(result); // 清理分配的内存
