@@ -1560,8 +1560,8 @@ public:
 		// 测试 size_t 边界值（实际使用可能不会达到）
 		size_t indices[] = {
 			std::numeric_limits<size_t>::max() - 1,
-			1'000'000'000,
-			10'000'000
+			1000000000,
+			10000000
 		};
 
 		for (auto idx : indices) {
