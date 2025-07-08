@@ -1272,8 +1272,9 @@ int static Test002(const hyperlex::dictionary& para)
 #include <cstdlib>
 #include <cstring>
 #include <assert.h>
-struct testSI
+class testSI
 {
+public:
 	bool compareStringVectors(const vector<char*>& v1, const vector<char*>& v2) {
 		if (v1.count() != v2.count()) return false;
 

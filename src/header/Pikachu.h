@@ -598,7 +598,7 @@ namespace Pikachu
 		void BackAcc(Node::Affiliation AA, size_t target, vector<Node*>& label, Node* source);
 	};
 
-	struct testSI;
+	class testSI;
 	class indiceIS
 	{
 	public:
@@ -620,7 +620,7 @@ namespace Pikachu
 		void appendS(const vector<char*>& S);
 		void appendI(const vector<sint>& I);
 		static char* IndexToString(size_t index);
-		friend struct testSI;
+		friend class testSI;
 	};
 
 	
