@@ -1473,7 +1473,7 @@ public:
 		free(str2);
 		printf("连续转换测试通过\n");
 	}
-
+	
 	// 测试空数据转换
 	void testEmptyConversion() {
 		indiceIS obj;
@@ -1489,7 +1489,7 @@ public:
 
 	// 测试 clear 方法
 	void testClearMethods() {
-		indiceIS obj;
+		testSI obj;
 
 		// 准备测试数据
 		vector<char*> testData1;
@@ -1540,6 +1540,7 @@ public:
 		printf("\n所有测试用例通过!\n");
 		return 0;
 	}
+	
 };
 // 比较两个字符串向量是否相等
 
