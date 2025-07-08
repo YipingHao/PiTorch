@@ -1527,7 +1527,7 @@ public:
 	}
 
 	// 测试 IndexToString 静态方法 - 大索引（修复计算逻辑）
-	void testIndexToStringLarge() {
+	void testIndexToStringLarge2() {
 		struct TestCase {
 			size_t index;
 			const char* expected;
@@ -1691,6 +1691,7 @@ public:
 		testItoSConversion();
 		testIndexToStringSmall();
 		testIndexToStringLarge();
+		testIndexToStringLarge2();
 		testIndexToStringHuge();       // 新增
 		testDemoMethod();
 		testMultipleConversions();
