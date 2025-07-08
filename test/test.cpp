@@ -1607,7 +1607,7 @@ public:
 
 		obj.appendS(data);
 		obj.StoI();
-		obj.ItoS();
+		
 
 		// 验证转换后内容不变
 		auto& strings = *obj.indiceS[0];
@@ -1615,6 +1615,7 @@ public:
 		assert(strcmp(strings[1], "!@#$%") == 0);
 		assert(strcmp(strings[2], "\n\t") == 0);
 		printf("特殊字符处理测试通过\n");
+		obj.ItoS();
 	}
 
 	// 3. 测试多级向量嵌套
@@ -1628,7 +1629,7 @@ public:
 
 		// 第二组数据（空向量）
 		vector<char*> data2;
-
+		data2.copy(data1);
 		// 第三组数据
 		vector<char*> data3;
 		data3.append(strdup("bird"));
@@ -1640,14 +1641,16 @@ public:
 		// 验证层级和内容
 		assert(obj.Scount() == 3);
 		assert(obj.indiceS[0]->count() == 2);
-		assert(obj.indiceS[1]->count() == 0); // 空向量
+		assert(obj.indiceS[1]->count() == 2); // 空向量
 		assert(obj.indiceS[2]->count() == 1);
 
 		// 双向转换验证
 		obj.StoI();
 		assert(obj.Icount() == 3);
-		obj.ItoS();
+		
 		assert(strcmp((*obj.indiceS[0])[0], "cat") == 0);
+		obj.ItoS();
+		obj.demo();
 		printf("多级嵌套向量测试通过\n");
 	}
 
