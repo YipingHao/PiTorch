@@ -598,7 +598,7 @@ namespace Pikachu
 		void BackAcc(Node::Affiliation AA, size_t target, vector<Node*>& label, Node* source);
 	};
 
-	class testSI;
+	
 	class indiceIS
 	{
 	public:
