@@ -1272,7 +1272,7 @@ int static Test002(const hyperlex::dictionary& para)
 #include <cstdlib>
 #include <cstring>
 #include <assert.h>
-class testSI
+class testSI : public Pikachu::indiceIS
 {
 public:
 	bool compareStringVectors(const vector<char*>& v1, const vector<char*>& v2) {

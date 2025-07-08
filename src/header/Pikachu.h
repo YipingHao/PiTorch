@@ -620,7 +620,6 @@ namespace Pikachu
 		void appendS(const vector<char*>& S);
 		void appendI(const vector<sint>& I);
 		static char* IndexToString(size_t index);
-		friend class testSI;
 	};
 
 	
