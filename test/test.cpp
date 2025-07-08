@@ -1272,6 +1272,8 @@ int static Test002(const hyperlex::dictionary& para)
 #include <cstdlib>
 #include <cstring>
 #include <assert.h>
+#include <limits>   // 必需：定义 std::numeric_limits
+#include <cstddef>  // 建议：确保 size_t 正确定义
 class testSI : public Pikachu::indiceIS
 {
 public:
