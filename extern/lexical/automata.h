@@ -2951,7 +2951,8 @@ namespace hyperlex
 				free(key);
 			}
 		};
-
+		//哈希表中有字符串唯一的存储副本，
+		//stringArray不存储字符串的副本，而是存储指向字符串的指针。
 		static const size_t INITIAL_BUCKETS = 64;// 初始桶数量
 		static const double LOAD_FACTOR;// 哈希表负载因子
 
@@ -2971,10 +2972,11 @@ namespace hyperlex
 			size_t hash = 5381;
 			int c;
 			while ((c = *str++)) {
-				hash = ((hash << 4) + hash) ^ c;//Fermat prime  17: 0.2
-				//hash = ((hash << 5) + hash) ^ c;//: 0.3
+				//hash = ((hash << 4) + hash) ^ c;//Fermat prime  17: 0.2
+				hash = ((hash << 5) + hash) ^ c;//: 0.3
 				//hash = ((hash << 8) + hash) ^ c;//Fermat prime 257 : 0.7
 				//hash = (hash >> 16) ^ (hash & 0xFFFF); // 混合高位与低位[2,6](@ref)
+				hash = (hash * 101) ^ ((hash << 5) + (hash >> 2)) ^ c;
 			}
 			return hash;
 		}
@@ -3066,7 +3068,8 @@ namespace hyperlex
 		}
 
 		// 添加字符串，返回唯一ID
-		inline size_t append(const char* src) {
+		inline size_t append(const char* src) 
+		{
 			if (!src) return -1;
 
 			size_t index = hash(src) % bucketCount;
@@ -3080,11 +3083,13 @@ namespace hyperlex
 				resizeArray();
 			}
 
-			char* newStr = strdup(src);
-			size_t newId = arraySize;
-			stringArray[arraySize++] = newStr;
+			//char* newStr = strdup(src);
+			const size_t newId = arraySize;
+			arraySize++;
+			//stringArray[arraySize++] = newStr;
 
-			HashNode* newNode = new HashNode(newStr, newId);
+			HashNode* newNode = new HashNode(src, newId);
+			//HashNode* newNode = new HashNode(newStr, newId);
 			newNode->next = buckets[index];
 			buckets[index] = newNode;
 			nodeCount++;
@@ -3092,6 +3097,8 @@ namespace hyperlex
 			if (static_cast<double>(nodeCount) / bucketCount > LOAD_FACTOR) {
 				resizeHashTable();
 			}
+
+			stringArray[newId] = newNode->key;
 
 			return newId;
 		}
@@ -3226,10 +3233,6 @@ namespace hyperlex
 			bucketCount = INITIAL_BUCKETS;
 			nodeCount = 0;
 
-			// 2. 释放字符串数组
-			for (size_t i = 0; i < arraySize; ++i) {
-				free(stringArray[i]); // 释放每个字符串
-			}
 			delete[] stringArray;
 			stringArray = NULL;
 			arraySize = 0;

@@ -3,7 +3,7 @@ using namespace hyperlex;
 #define SizeMax ((size_t)0xffffffffffffffff)
 #define CharSize ((size_t)(1 << (sizeof(char) * 8 - 1)))
 
-const double hyperlex::StringPool::LOAD_FACTOR = 0.48;
+const double hyperlex::StringPool::LOAD_FACTOR = 0.64;
 
 #include<stdlib.h>
 //typedef size_t uint;
