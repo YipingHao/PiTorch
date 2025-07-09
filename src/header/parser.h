@@ -385,6 +385,7 @@ namespace Pikachu
 
 		int buildNETBODY(const lex& eme, GTNode* NETBODY, NetInContext* Net);
 		int buildTENSOR(const lex& eme, GTNode* NET_STATEMENT, NetInContext* Net);
+		Node::OpType ParseOpType(const lex& eme, GTNode* OPERATOR);
 		int buildNETCheck(const lex& eme, GTNode* NETBODY, context* dst, NetInContext* Net);
 	};
 	class IDinfor : public CompilerObj
@@ -474,7 +475,7 @@ namespace Pikachu
 		{
 			return Tindex.count();
 		}
-		inline vector<char*> const & GetIndex(void) const
+		inline vector<char*> const & GetSIndex(void) const
 		{
 			return Tindex;
 		}

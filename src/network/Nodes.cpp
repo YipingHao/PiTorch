@@ -45,6 +45,124 @@ void Node::clearCore(void)
 }
 
 
+// Node类及子类中新增的demo函数实现（使用indiceIS进行索引转换）
+
+// Node类实现
+void Node::Demo(FILE* fp) const 
+{
+	
+	fprintf(fp, "Node: %p\n", this);
+	fprintf(fp, "\tAffiliation: ");
+	switch (Affi) {
+	case unknown: fprintf(fp, "unknown\n"); break;
+	case initial: fprintf(fp, "initial\n"); break;
+	case dYdX: fprintf(fp, "dYdX\n"); break;
+	case dLdW: fprintf(fp, "dLdW\n"); break;
+	case Jacobi_: fprintf(fp, "Jacobi_\n"); break;
+	case Hdv: fprintf(fp, "Hdv\n"); break;
+	default: fprintf(fp, "invalid\n"); break;
+	}
+	fprintf(fp, "\tType: ");
+	switch (Type) {
+	case _leaf_: fprintf(fp, "leaf\n"); break;
+	case _MonoLinear_: fprintf(fp, "MonoLinear\n"); break;
+	case _DiLinear_: fprintf(fp, "DiLinear\n"); break;
+	case _MonoNonlinear_: fprintf(fp, "MonoNonlinear\n"); break;
+	case _DiNonlinear_: fprintf(fp, "DiNonlinear\n"); break;
+	default: fprintf(fp, "invalid\n"); break;
+	}
+	fprintf(fp, "\tOp: %d\n", Op);
+	fprintf(fp, "\tIfOutput: %s\n", IfOutput ? "true" : "false");
+	fprintf(fp, "\tDataExpand: %s\n", DataExpand ? "true" : "false");
+	fprintf(fp, "\tDescriptor: "); descriptor.demo(fp);
+	fprintf(fp, "\tNetwork: %p\n", network);
+	vortex<Node>::demo(fp);
+}
+
+// 辅助函数：将整数索引向量转换为字符表示
+static void printIndices(FILE* fp, const vector<sint>& indices) {
+	indiceIS converter;
+	vector<sint> indicesCopy = indices;
+	converter.appendI(indicesCopy);
+	converter.ItoS();
+
+	fprintf(fp, "[");
+	for (size_t i = 0; i < converter.Scount(); i++) {
+		const vector<char*>& strIndices = converter.S(i);
+		for (size_t j = 0; j < strIndices.count(); j++) {
+			fprintf(fp, "%s%s", strIndices[j], j < strIndices.count() - 1 ? ", " : "");
+		}
+	}
+	fprintf(fp, "]\n");
+
+}
+
+void LeafNode::demo(FILE* fp) const 
+{
+	Node::Demo(fp);
+	fprintf(fp, "\tLeafType: ");
+	switch ((LeafType)Op) {
+	case _leafIn_: fprintf(fp, "input\n"); break;
+	case _leafPara_: fprintf(fp, "parameter\n"); break;
+	case _leafConst_: fprintf(fp, "constant\n"); break;
+	default: fprintf(fp, "invalid\n"); break;
+	}
+	fprintf(fp, "\tValue count: %zu\n", value.count());
+	//if (value.count() > 0) {
+	//	fprintf(fp, "\tFirst value: "); value[0].demo(fp);
+	//}
+	fprintf(fp, "\tLabel: %zu\n", Label);
+}
+void MonoLinear::demo(FILE* fp) const 
+{
+	Node::Demo(fp);
+	fprintf(fp, "\tAlpha: %.16lf\n", alpha);
+	fprintf(fp, "\tIndexDst (char): "); printIndices(fp, indexDst);
+	fprintf(fp, "\tIndexSrc (char): "); printIndices(fp, indexSrc);
+	fprintf(fp, "\tDummyIndex: %zu\n", DummyIndex);
+	fprintf(fp, "\tNewIndex: %zu\n", NewIndex);
+	fprintf(fp, "\tRepeatedIndex: %zu\n", RepeatedIndex);
+}
+void DiLinear::demo(FILE* fp) const {
+	Node::Demo(fp);
+	fprintf(fp, "\tOpType: ");
+	switch ((OpType)Op) {
+	case _add_: fprintf(fp, "add\n"); break;
+	case _sub_: fprintf(fp, "sub\n"); break;
+	case _mul_: fprintf(fp, "mul\n"); break;
+	default: fprintf(fp, "invalid\n"); break;
+	}
+	fprintf(fp, "\tIndexDst (char): "); printIndices(fp, indexDst);
+	fprintf(fp, "\tIndexSrcL (char): "); printIndices(fp, indexSrcL);
+	fprintf(fp, "\tIndexSrcR (char): "); printIndices(fp, indexSrcR);
+	fprintf(fp, "\tDummyIndex: %zu\n", DummyIndex);
+	fprintf(fp, "\tRepeatedIndex: %zu\n", RepeatedIndex);
+}
+void MonoNonlinear::demo(FILE* fp) const {
+	Node::Demo(fp);
+	fprintf(fp, "\tScalarInput: %s\n", ScalarInput ? "true" : "false");
+	fprintf(fp, "\tx: %lld\n", (long long)x);
+	fprintf(fp, "\tFunction (char): "); printIndices(fp, function);
+	fprintf(fp, "\tIndexDst (char): "); printIndices(fp, indexDst);
+	fprintf(fp, "\tIndexSrc (char): "); printIndices(fp, indexSrc);
+	fprintf(fp, "\tFuncTensor: "); funcTensor.demo(fp);
+	//fprintf(fp, "\tFormula: "); formula.demo(fp);
+}
+void DiNonlinear::demo(FILE* fp) const {
+	Node::Demo(fp);
+	fprintf(fp, "\tScalarInput: %s\n", ScalarInput ? "true" : "false");
+	fprintf(fp, "\tx: %lld\n", (long long)x);
+	fprintf(fp, "\tScalarPara: %s\n", ScalarPara ? "true" : "false");
+	fprintf(fp, "\tomega: %lld\n", (long long)omega);
+	fprintf(fp, "\tFunction (char): "); printIndices(fp, function);
+	fprintf(fp, "\tIndexDst (char): "); printIndices(fp, indexDst);
+	fprintf(fp, "\tIndexSrc (char): "); printIndices(fp, indexSrc);
+	fprintf(fp, "\tIndexPara (char): "); printIndices(fp, indexPara);
+	fprintf(fp, "\tFuncTensor: "); funcTensor.demo(fp);
+	//fprintf(fp, "\tFormula: "); formula.demo(fp);
+}
+
+
 LeafNode::LeafNode()
 {
 	Type = _leaf_;
@@ -257,34 +375,61 @@ void DiNonlinear::clear(void)
 	clearCore();
 }
 
+/*
+compute:
+	LeafNode: 直接输出descriptor
+	MonoLinear: 根据indexDst和indexSrc计算descriptor
+	DiLinear: 根据indexDst, indexSrcL, indexSrcR计算descriptor
+	MonoNonlinear: 根据indexDst, indexSrc和function计算descriptor
+	DiNonlinear: 根据indexDst, indexSrc, indexPara和function计算descriptor
+*/
 void LeafNode::compute(Tensor& DescOut)const
 {
 	DescOut.Set(descriptor);
 }
+// MonoLinear 节点：根据 indexDst 和 indexSrc 计算输出张量结构
+// MonoLinear node: Compute output tensor descriptor according to indexDst and indexSrc
 void MonoLinear::compute(Tensor& DescOut)const
 {
+	// 设置输出张量的阶（维数）为 indexDst 的长度
+	// Set the order (rank) of output tensor to the length of indexDst
 	DescOut.ChangeOrder(indexDst.count());
 	for (size_t i = 0; i < indexDst.count(); i++)
 	{
+		// 查找 indexDst[i] 是否在 indexSrc 中
+		// Search if indexDst[i] exists in indexSrc
 		size_t site = indexSrc.search(indexDst[i]);
 		if (site == _uintMax_)
 		{
+			// 如果不在 indexSrc，则用自身 descriptor 的第 i 维
+			// If not in indexSrc, use the i-th dimension of own descriptor
 			DescOut.ChangeDim(i, descriptor[i]);
 		}
-		else DescOut.ChangeDim(i, in[0]->descriptor[site]);
+		else
+		{
+			// 如果在 indexSrc，则用输入节点 in[0] 的对应维度
+			// If in indexSrc, use the corresponding dimension from input node in[0]
+			DescOut.ChangeDim(i, in[0]->descriptor[site]);
+		}
 	}
 }
+// DiLinear 节点：根据 indexDst, indexSrcL, indexSrcR 计算输出张量结构
+// DiLinear node: Compute output tensor descriptor according to indexDst, indexSrcL, indexSrcR
 void DiLinear::compute(Tensor& DescOut)const
 {
 	DescOut.ChangeOrder(indexDst.count());
 	for (size_t i = 0; i < indexDst.count(); i++)
 	{
+		// 查找 indexDst[i] 是否在左、右输入的指标中
+		// Search if indexDst[i] exists in indexSrcL and indexSrcR
 		size_t siteL = indexSrcL.search(indexDst[i]);
 		size_t siteR = indexSrcR.search(indexDst[i]);
 		if (siteL == _uintMax_)
 		{
 			if (siteR == _uintMax_)
 			{
+				// 左右都没有，报错
+				// Not found in both, throw error
 				hyperlex::dictionary* error = ErrorGive();
 				error->append("location", "DiLinear::compute");
 				error->append("error", "missing index");
@@ -292,12 +437,18 @@ void DiLinear::compute(Tensor& DescOut)const
 			}
 			else
 				DescOut.ChangeDim(i, in[1]->descriptor[siteR]);
+			// 只在右输入，取右输入的维度
+				// Only in right input, use right input's dimension
 		}
 		else
 		{
+			// 在左输入，取左输入的维度
+			// In left input, use left input's dimension
 			DescOut.ChangeDim(i, in[0]->descriptor[siteL]);
 			if (siteR != _uintMax_)
 			{
+				// 如果左右都出现，必须维度一致，否则报错
+				// If appears in both, dimensions must be equal, else throw error
 				if (in[0]->descriptor[siteL] != in[1]->descriptor[siteR])
 				{
 					hyperlex::dictionary* error = ErrorGive();
@@ -311,17 +462,23 @@ void DiLinear::compute(Tensor& DescOut)const
 		}
 	}
 }
+// MonoNonlinear 节点：根据 indexDst, indexSrc, function 计算输出张量结构
+// MonoNonlinear node: Compute output tensor descriptor according to indexDst, indexSrc, function
 void MonoNonlinear::compute(Tensor& DescOut)const
 {
 	DescOut.ChangeOrder(indexDst.count());
 	for (size_t i = 0; i < indexDst.count(); i++)
 	{
+		// 查找 indexDst[i] 是否在 indexSrc 和 function 中
+		// Search if indexDst[i] exists in indexSrc and function
 		size_t siteS = indexSrc.search(indexDst[i]);
 		size_t siteF = function.search(indexDst[i]);
 		if (siteS == _uintMax_)
 		{
 			if (siteF == _uintMax_)
 			{
+				// 两者都没有，报错
+				// Not found in both, throw error
 				hyperlex::dictionary * error = ErrorGive();
 				error->append("location", "MonoNonlinear::compute");
 				error->append("error", "missing index");
@@ -329,12 +486,19 @@ void MonoNonlinear::compute(Tensor& DescOut)const
 			}
 			else
 				DescOut.ChangeDim(i, funcTensor[siteF]);
+			// 只在 function，取 funcTensor 的维度
+			   // Only in function, use funcTensor's dimension
+
 		}
 		else
 		{
+			// 在 indexSrc，取输入节点的维度
+			// In indexSrc, use input node's dimension
 			DescOut.ChangeDim(i, in[0]->descriptor[siteS]);
 			if (siteF != _uintMax_)
 			{
+				// 如果 function 也有，报错（重复）
+				// If also in function, throw error (repeated index)
 				hyperlex::dictionary* error = ErrorGive();
 				error->append("location", "MonoNonlinear::compute");
 				error->append("error", "repeated index");
@@ -343,11 +507,15 @@ void MonoNonlinear::compute(Tensor& DescOut)const
 		}
 	}
 }
+// DiNonlinear 节点：根据 indexDst, indexSrc, function, indexPara 计算输出张量结构
+// DiNonlinear node: Compute output tensor descriptor according to indexDst, indexSrc, function, indexPara
 void DiNonlinear::compute(Tensor& DescOut)const
 {
 	DescOut.ChangeOrder(indexDst.count());
 	for (size_t i = 0; i < indexDst.count(); i++)
 	{
+		// 查找 indexDst[i] 是否在 indexSrc、function、indexPara 中
+		// Search if indexDst[i] exists in indexSrc, function, indexPara
 		size_t siteS = indexSrc.search(indexDst[i]);
 		size_t siteF = function.search(indexDst[i]);
 		size_t siteP = indexPara.search(indexDst[i]);
@@ -370,6 +538,8 @@ void DiNonlinear::compute(Tensor& DescOut)const
 		}
 		if (count != 0)
 		{
+			// 必须且只能在三者之一出现，否则报错
+			// Must appear in exactly one of the three, else throw error
 			hyperlex::dictionary* error = ErrorGive();
 			error->append("location", "DiNonlinear::compute");
 			error->append("error", "error index");
@@ -1012,6 +1182,7 @@ void MonoLinear::build(const vector<sint>& Src, const vector<sint>& Dst, double 
 		size_t site = indexSrc.search(temp);
 		if (site == _uintMax_) DummyIndex += 1;
 	}
+	alpha = Alpha;
 }
 void MonoLinear::build(const vector<sint>& Src, const vector<sint>& Dst, const vector<size_t>& H, double Alpha)
 {
@@ -1053,6 +1224,60 @@ void MonoLinear::build(const vector<sint>& Src, const vector<sint>& Dst, const v
 		size_t site = indexSrc.search(temp);
 		if (site == _uintMax_) DummyIndex += 1;
 	}
+	alpha = Alpha;
+}
+int MonoLinear::build(Node* src, const vector<sint>& Src, const vector<sint>& dummy, const vector<sint>& Dst, double Alpha)
+{
+	size_t i, j;
+	// 1. 检查 src 是否为 NULL
+	if (!src) return -1;
+
+	// 2. 检查 Src、dummy、Dst 内部是否有重复
+	for (i = 0; i < Src.count(); ++i)
+		for (j = i + 1; j < Src.count(); ++j)
+			if (Src[i] == Src[j]) return -1;
+	for (i = 0; i < dummy.count(); ++i)
+		for (j = i + 1; j < dummy.count(); ++j)
+			if (dummy[i] == dummy[j]) return -1;
+	for (i = 0; i < Dst.count(); ++i)
+		for (j = i + 1; j < Dst.count(); ++j)
+			if (Dst[i] == Dst[j]) return -1;
+
+	// 3. 检查 src 的阶是否等于 Src.count()
+	if (src->descriptor.GetOrder() != Src.count()) return -1;
+
+	// 4. 检查 Src 中的每个指标，要么在 dummy 中，要么在 Dst 中
+	for (i = 0; i < Src.count(); ++i)
+	{
+		bool found = false;
+		for (j = 0; j < dummy.count(); ++j)
+			if (Src[i] == dummy[j]) { found = true; break; }
+		if (!found)
+		{
+			for (j = 0; j < Dst.count(); ++j)
+				if (Src[i] == Dst[j]) { found = true; break; }
+		}
+		if (!found) return -1;
+	}
+
+	// 5. 检查 Dst 中的每个指标不能与 dummy 重复
+	for (i = 0; i < Dst.count(); ++i)
+		for (j = 0; j < dummy.count(); ++j)
+			if (Dst[i] == dummy[j]) return -1;
+
+	// 6. 检查 dummy 中的每个指标必须在 Src 中出现
+	for (i = 0; i < dummy.count(); ++i)
+	{
+		bool found = false;
+		for (j = 0; j < Src.count(); ++j)
+			if (dummy[i] == Src[j]) { found = true; break; }
+		if (!found) return -1;
+	}
+
+	// 7. 赋值
+	build(Src, Dst, Alpha);
+
+	return 0;
 }
 
 
@@ -1064,46 +1289,111 @@ void DiLinear::value(const vector<sint>& SrcL, const vector<sint>& SrcR, const v
 	indexDst.copy(Dst);
 	return;
 }
+/**
+ * @brief 检查并统计二元线性节点的指标重复与哑指标数量
+ *        Check and count repeated and dummy indices for DiLinear node
+ *
+ * 该函数用于分析 indexDst、indexSrcL、indexSrcR 三组指标的关系，统计
+ * - RepeatedIndex: 在左、右输入中都出现且在输出中也出现的“重复指标”数量
+ * - DummyIndex: 只在输入中出现、在输出中未出现的“哑指标”数量
+ * 并对指标的唯一性做检查，若发现同一指标在同一组中出现多次则抛出异常。
+ */
 void DiLinear::build(void)
 {
 	DummyIndex = 0;
+	// 虚指标计数器，dummy index counter
 	RepeatedIndex = 0;
-	size_t countL, countR, count;
+	// 重复指标计数器，repeated index counter
+
+	// 1. 检查每个指标集内部是否有重复
+	// Check for duplicates within each index set
+	int errorCode = 0;
+	for (size_t i = 0; i < indexDst.count(); ++i)
+		for (size_t j = i + 1; j < indexDst.count(); ++j)
+			if (indexDst[i] == indexDst[j])
+				errorCode |= 1;
+	for (size_t i = 0; i < indexSrcL.count(); ++i)
+		for (size_t j = i + 1; j < indexSrcL.count(); ++j)
+			if (indexSrcL[i] == indexSrcL[j])
+				errorCode |= 2;
+	for (size_t i = 0; i < indexSrcR.count(); ++i)
+		for (size_t j = i + 1; j < indexSrcR.count(); ++j)
+			if (indexSrcR[i] == indexSrcR[j])
+				errorCode |= 4;
+	if (errorCode != 0)
+	{
+		hyperlex::dictionary* error;
+		error = new hyperlex::dictionary;
+		error->append("location", "DiLinear::build");
+		error->append("error", "repeat index");
+		error->append("errorCode", errorCode);
+		throw error;
+	}
+
+
+	size_t  countL, countR, count;
+	// 遍历输出指标 indexDst，检查每个指标在左、右输入中出现的次数
+	// For each output index, check its occurrence in left and right input indices
 	for (size_t i = 0; i < indexDst.count(); i++)
 	{
 		countL = indexSrcL.Tcount(indexDst[i]);
 		countR = indexSrcR.Tcount(indexDst[i]);
 		count = countL + countR;
-		if (countL > 1L || countR > 1L)
+		// 如果该指标在左、右输入各出现一次，则为“重复指标”
+	    // If the index appears once in both left and right, it's a repeated index
+		if (count == 2) RepeatedIndex += 1;
+		// 如果输出指标在输入中都没有，抛出异常
+	    // If output index not found in any input, throw error
+		if (count == 0)
 		{
 			hyperlex::dictionary* error;
 			error = new hyperlex::dictionary;
 			error->append("location", "DiLinear::build");
-			error->append("error", "countL > 1L || countR > 1L");
-			error->append("countL", countL);
-			error->append("countR", countR);
-			error->append("i", i);
+			error->append("error", "count == 0");
 			throw error;
 		}
-		if (count == 2) RepeatedIndex += 1;
 	}
 	count = 0;
-	for (size_t i = 0; i < indexSrcL.count(); i++)
+
+	// 3. 统计 DummyIndex
+	// 只在输入（indexSrcL 或 indexSrcR）中出现、在输出（indexDst）中未出现的指标
+	for (size_t i = 0; i < indexSrcL.count(); ++i)
 	{
-		countL = indexDst.Tcount(indexSrcL[i]);
-		if (countL > 1L)
+		countR = indexSrcR.Tcount(indexSrcL[i]);
+		if (countR != 0) DummyIndex += 1;
+		else
 		{
-			hyperlex::dictionary* error;
-			error = new hyperlex::dictionary;
-			error->append("location", "DiLinear::build");
-			error->append("error", "countL > 1L");
-			error->append("countL", countL);
-			throw error;
+			count = indexDst.Tcount(indexSrcL[i]);
+			if (count == 0) {
+				// 左输入中有但输出和右输入都没有，非法
+				hyperlex::dictionary* error;
+				error = new hyperlex::dictionary;
+				error->append("location", "DiLinear::build");
+				error->append("error", "count == 0");
+				throw error;
+			}
 		}
-		if (countL == 1) count += 1;
+	}
+	DummyIndex -= RepeatedIndex;
+	// 3. 统计 DummyIndex
+	// 只在输入（indexSrcL 或 indexSrcR）中出现、在输出（indexDst）中未出现的指标
+	for (size_t i = 0; i < indexSrcR.count(); i++)
+	{
+		countR = indexSrcL.Tcount(indexSrcR[i]);
+		if (countR == 0)
+		{
+			count = indexDst.Tcount(indexSrcR[i]);
+			if (count == 0) {
+				// 右输入中有但输出和左输入都没有，非法
+				hyperlex::dictionary* error;
+				error = new hyperlex::dictionary;
+				error->append("location", "DiLinear::build");
+				error->append("error", "count == 0");
+				throw error;
+			}
+		}
 	}
 
-	DummyIndex = RepeatedIndex - count;
 }
 sint DiLinear::MaxIndex(void) const
 {
@@ -1157,6 +1447,7 @@ hyperlex::dictionary* DiLinear::ErrorGive(void) const
 	inforPrint(*error);
 	return error;
 }
+
 
 
 
@@ -2325,6 +2616,13 @@ indiceIS::~indiceIS()
 	clearS();
 	clearI();
 }
+/**
+ * 清理所有字符串数据
+ * 遍历并释放每个字符串占用的内存，然后释放向量本身
+ *
+ * Clear all string data
+ * Iterate through and free memory occupied by each string, then free the vector itself
+ */
 void indiceIS::clearS(void)
 {
 	for (size_t i = 0; i < indiceS.count(); ++i)
@@ -2338,6 +2636,13 @@ void indiceIS::clearS(void)
 	}
 	indiceS.clear();
 }
+/**
+ * 清理所有整数索引数据
+ * 遍历并释放每个整数向量占用的内存，然后释放向量本身
+ *
+ * Clear all integer index data
+ * Iterate through and free memory occupied by each integer vector, then free the vector itself
+ */
 void indiceIS::clearI(void)
 {
 	for (size_t i = 0; i < indicsI.count(); ++i)
@@ -2347,6 +2652,13 @@ void indiceIS::clearI(void)
 	}
 	indicsI.clear();
 }
+/**
+ * 将存储的字符串转换为整数索引
+ * 使用StringPool将字符串映射到唯一索引（+1以避免零索引）
+ *
+ * Convert stored strings to integer indices
+ * Use StringPool to map strings to unique indices (+1 to avoid zero index)
+ */
 void indiceIS::StoI(void)
 {
 	clearI();
@@ -2365,6 +2677,15 @@ void indiceIS::StoI(void)
 		indicsI.append(newI);
 	}
 }
+/**
+ * 将存储的索引转换为字符串
+ * 使用IndexToString方法将索引转换为字符串表示
+ * 注意：此方法不能还原原始字符串，只能生成新的编码
+ *
+ * Convert stored indices to strings
+ * Use IndexToString method to convert indices to string representations
+ * Note: This method cannot restore original strings, only generate new encodings
+ */
 void indiceIS::ItoS(void)
 {
 	clearS();
@@ -2381,6 +2702,13 @@ void indiceIS::ItoS(void)
 		indiceS.append(newS);
 	}
 }
+/**
+ * 演示当前的索引状态
+ * 将每个整数索引和字符串索引打印到指定的文件指针
+ *
+ * Demonstrate the current index state
+ * Print each integer index and string index to the specified file pointer
+ */
 void indiceIS::demo(FILE* fp) const
 {
 	for (size_t i = 0; i < indicsI.count(); ++i)
@@ -2412,6 +2740,13 @@ void indiceIS::demo(FILE* fp) const
 		fprintf(fp, "]\n");
 	}
 }
+/**
+ * 添加字符串组
+ * 复制输入的字符串向量到内部存储，为每个字符串分配新内存
+ *
+ * Add a group of strings
+ * Copy the input string vector to internal storage, allocating new memory for each string
+ */
 void indiceIS::appendS(const vector<char*>& S)
 {
 	vector<char*>* newS = new vector<char*>();
@@ -2426,6 +2761,13 @@ void indiceIS::appendS(const vector<char*>& S)
 	}
 	indiceS.append(newS);
 }
+/**
+ * 添加索引组
+ * 复制输入的索引向量到内部存储
+ *
+ * Add a group of indices
+ * Copy the input index vector to internal storage
+ */
 void indiceIS::appendI(const vector<sint>& I)
 {
 	vector<sint>* newI = new vector<sint>();
@@ -2436,6 +2778,55 @@ void indiceIS::appendI(const vector<sint>& I)
 	}
 	indicsI.append(newI);
 }
+/**
+ * 将数字索引转换为字符串表示
+ *
+ * 该方法实现了一种特殊的索引到字符串的映射机制：
+ * - 小索引（0-25）映射为单个小写字母
+ * - 大索引（≥26）映射为"字母+数字"的组合形式
+ *
+ * 字母表使用自定义顺序（从'i'开始），这可能与特定应用场景或历史编码习惯有关。
+ * 注意：此方法不还原原始字符串，仅生成索引的编码表示。
+ * 返回的字符串需调用者手动释放内存（通过free()）。
+ *
+ * @param index 待转换的数字索引（非负整数）
+ * @return 指向动态分配的字符串的指针，需手动释放
+ *
+ * Example:
+ *   Index 0 → "i"
+ *   Index 1 → "j"
+ *   ...
+ *   Index 25 → "h"
+ *   Index 26 → "i0"
+ *   Index 27 → "j0"
+ *   Index 52 → "i1"
+ *   Index 78 → "i2"
+ *
+ * Convert numerical index to string representation
+ *
+ * This method implements a special index-to-string mapping mechanism:
+ * - Small indices (0-25) are mapped to single lowercase letters
+ * - Large indices (≥26) are mapped to "letter+number" combinations
+ *
+ * The alphabet uses a custom order (starting from 'i'), which may relate to
+ * specific application requirements or historical encoding conventions.
+ * Note: This method does not restore the original string, but generates
+ * an encoded representation of the index.
+ * The returned string must be manually freed by the caller (via free()).
+ *
+ * @param index The numerical index to convert (non-negative integer)
+ * @return Pointer to a dynamically allocated string, must be freed manually
+ *
+ * Example:
+ *   Index 0 → "i"
+ *   Index 1 → "j"
+ *   ...
+ *   Index 25 → "h"
+ *   Index 26 → "i0"
+ *   Index 27 → "j0"
+ *   Index 52 → "i1"
+ *   Index 78 → "i2"
+ */
 char* indiceIS::IndexToString(size_t index)
 {
 	// 预定义的字母表（26个字母）

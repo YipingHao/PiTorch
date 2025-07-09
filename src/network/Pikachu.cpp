@@ -368,16 +368,79 @@ void NetWork::NodeAppend(Node* rear)
 	net.append(rear);
 }
 
-Node* NetWork::NewNodeLeaf(const vector<size_t>& dims, Node::LeafType T)
+Node* NetWork::NewNodeLeaf(const dims_t& dims, Node::LeafType T)
 {
 	LeafNode* New = new LeafNode(this, T, Node::initial);
 	New->setDesc(dims);
 	NodeAppend(New);
 	return New;
 }
-Node* NetWork::NewNodeMonoLinear(Node* src)
+Node* NetWork::NewNodeMonoLinear(const dims_t&dims, Node* src, double factor_, indiceIS& indice)
 {
-	MonoLinear* dst = NULL;
+	if (indice.Icount() != 3) return NULL;
+	MonoLinear* dst = new MonoLinear(Node::initial);
+	int error = dst->build(src, indice.I(0), indice.I(1), indice.I(2), factor_);
+	if (error != 0)
+	{
+		delete dst;
+		return NULL;
+	}
+	net.ArcAdd(src, dst);
+	Tensor Desc;
+	Desc.Set(dims);
+	dst->compute(Desc);
+	dst->setDesc(Desc);
+	if (Desc != dims)
+	{
+		delete dst;
+		return NULL;
+	}
+	NodeAppend(dst);
+	return dst;
+}
+Node* NetWork::NewNodeDiLinear(const dims_t& dims, Node* srcL, Node* srcR, Node::OpType OT, indiceIS& indice)
+{
+	// 检查indice组数
+	if (indice.Icount() != 4) return NULL;
+
+	// 创建DiLinear节点，设置操作类型和归属
+	DiLinear* dst = new DiLinear(OT, Node::initial);
+
+	// 设置指标
+	//IS.appendS(id.GetIndex());
+	//IS.appendS(list.GetIndex());
+	//IS.appendS(idL.GetIndex());
+	//IS.appendS(idR.GetIndex());
+	dst->indexSrcL.copy(indice.I(0));
+	dst->indexSrcR.copy(indice.I(2));
+	dst->indexDst.copy(indice.I(3));
+
+	// 检查指标合法性
+	try {
+		dst->build();
+	}
+	catch (...) {
+		delete dst;
+		return NULL;
+	}
+
+	// 建立网络连接
+	net.ArcAdd(srcL, srcR, dst);
+
+	// 计算输出张量结构
+	Tensor Desc;
+	Desc.Set(dims);
+	dst->compute(Desc);
+	dst->setDesc(Desc);
+
+	// 校验输出结构
+	if (Desc != dims) {
+		delete dst;
+		return NULL;
+	}
+
+	// 添加到网络
+	NodeAppend(dst);
 	return dst;
 }
 

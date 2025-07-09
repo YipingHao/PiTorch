@@ -109,6 +109,7 @@ namespace Pikachu
 		void Set(const vector<size_t>& source);
 		bool operator==(const Tensor& Right) const;
 		bool operator!=(const Tensor& Right) const;
+		bool operator!=(const vector<size_t>& dims) const;
 		inline size_t GetOrder(void)const
 		{
 			return Count;

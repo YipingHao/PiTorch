@@ -1397,7 +1397,14 @@ int BuildInfor::buildTENSOR(const lex& eme, GTNode* NET_STATEMENT, NetInContext*
 	int error = 0;
 	size_t line = NET_STATEMENT->root().site;
 	NetWork* net = Net->net;
-
+	NetG::nonterminal TTTT = (NetG::nonterminal)NetG::RulesToSymbol[NET_STATEMENT->root().site];
+	if (TTTT != NetG::nonterminal::_NET_STATEMENT_)
+	{
+		errorInfor1 = line;
+		ErrorNode = NET_STATEMENT;
+		errorCode = BuildInfor::WrongEntrance;
+		return 5343456;
+	}
 	GTNode* TENSOR = NET_STATEMENT->child(0);
 	GTNode* VALUELIST = TENSOR->child(2);
 
@@ -1410,9 +1417,8 @@ int BuildInfor::buildTENSOR(const lex& eme, GTNode* NET_STATEMENT, NetInContext*
 	VL.GetDim(dims);
 
 	GTNode* TENSOR_ID = NET_STATEMENT->child(1);
-	GTNode* ID = TENSOR_ID->child(0);
 	TensorID id;
-	error = id.build(eme, ID, this, dst);
+	error = id.build(eme, TENSOR_ID, this, dst);
 	if (error != 0) return error;
 	var* Lvalue = id.GetLocalVarL(error, this, dst);
 	if (error != 0) return error;
@@ -1437,8 +1443,22 @@ int BuildInfor::buildTENSOR(const lex& eme, GTNode* NET_STATEMENT, NetInContext*
 		error = list.buildSUMSYMBOL(eme, SUMSYMBOL, this, dst);
 		if (error != 0) return error;
 
+		indiceIS IS;
+		IS.appendS(id.GetSIndex());
+		IS.appendS(list.GetIndex());
+		IS.appendS(idL.GetSIndex());
+		IS.StoI();
 
-		Node* newNode = net->NewNodeMonoLinear(srcL);
+
+		Node* newNode = net->NewNodeMonoLinear(dims, srcL, 1.0, IS);
+		if (newNode == NULL)
+		{
+			errorCode = ErrorUnsupportType;
+			errorInfor1 = line;
+			ErrorNode = TENSORID;
+			return 4245341;
+		}
+		Lvalue->SetInfor((void*)newNode, id.GetIndex());
 		break;
 	}	
 	case Pikachu::NetG::TENSORVALUE_multi_:
@@ -1457,7 +1477,32 @@ int BuildInfor::buildTENSOR(const lex& eme, GTNode* NET_STATEMENT, NetInContext*
 		Node* srcR = (Node*)idR.GetLocalTensorR(error, this, dst);
 		if (error != 0) return error;
 		
-		Node* newNode = net->NewNodeMonoLinear(srcL);
+		GTNode* SUMSYMBOL = TENSORVALUE->child(0);
+		Indexs list;
+		error = list.buildSUMSYMBOL(eme, SUMSYMBOL, this, dst);
+		if (error != 0) return error;
+
+		GTNode* OPERATOR = TENSORVALUE->child(2);
+		Node::OpType OTT = ParseOpType(eme, OPERATOR);
+
+
+		indiceIS IS;
+		IS.appendS(id.GetSIndex());
+		IS.appendS(list.GetIndex());
+		IS.appendS(idL.GetSIndex());
+		IS.appendS(idR.GetSIndex());
+		IS.StoI();
+
+		//Node* newNode = net->NewNodeMonoLinear(srcL);
+		Node* newNode = net->NewNodeDiLinear(dims, srcL, srcR, OTT, IS);
+		if (newNode == NULL)
+		{
+			errorCode = ErrorUnsupportType;
+			errorInfor1 = line;
+			ErrorNode = TENSORID;
+			return 42423341;
+		}
+		Lvalue->SetInfor((void*)newNode, id.GetIndex());
 		break;
 	}
 	case Pikachu::NetG::TENSORVALUE_singleF_:
@@ -1512,6 +1557,19 @@ int BuildInfor::buildTENSOR(const lex& eme, GTNode* NET_STATEMENT, NetInContext*
 	}
 	id.AssignLocalVarL(error, this, dst, newNode);
 	return error;
+}
+Node::OpType BuildInfor::ParseOpType(const lex& eme, GTNode* OPERATOR)
+{
+	NetG::nonterminal TTTT = (NetG::nonterminal)NetG::RulesToSymbol[OPERATOR->root().site];
+	if (TTTT != NetG::nonterminal::_OPERATOR_)
+	{
+		hyperlex::dictionary* error = new hyperlex::dictionary;
+		error->append("error", "TTTT != NetG::nonterminal::_OPERATOR_");
+		throw error;
+	}
+	GTNode* Node_ = OPERATOR->child(0);
+	const char* Op = eme.GetWord(Node_->root().site);
+
 }
 
 int BuildInfor::buildNETBODY(const lex& eme, GTNode* NETBODY, NetInContext* Net)

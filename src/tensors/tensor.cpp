@@ -34,6 +34,14 @@ bool Tensor::operator!=(const Tensor& Right) const
 		if (content[i] != Right.content[i]) return true;
 	return false;
 }
+bool Tensor::operator!=(const Tensor& Right) const
+{
+	if (Count != Right.Count) return true;
+	for (size_t i = 0; i < Count; i++)
+		if (content[i] != Right.content[i]) return true;
+	return false;
+}
+
 
 void Tensor::demo(FILE* fp)const
 {
