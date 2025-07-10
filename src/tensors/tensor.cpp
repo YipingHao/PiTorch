@@ -34,11 +34,11 @@ bool Tensor::operator!=(const Tensor& Right) const
 		if (content[i] != Right.content[i]) return true;
 	return false;
 }
-bool Tensor::operator!=(const Tensor& Right) const
+bool Tensor::operator!=(const vector<size_t>& Right) const
 {
-	if (Count != Right.Count) return true;
+	if (Count != Right.count()) return true;
 	for (size_t i = 0; i < Count; i++)
-		if (content[i] != Right.content[i]) return true;
+		if (content[i] != Right[i]) return true;
 	return false;
 }
 
