@@ -525,6 +525,7 @@ namespace Pikachu
 	public:
 		MonoFunc();
 		~MonoFunc();
+		void build(Expres* source);
 		void differential(void);
 		void copy(const MonoFunc& source);
 		inline size_t GetOutputDim(void) const
