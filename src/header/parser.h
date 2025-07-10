@@ -293,6 +293,7 @@ namespace Pikachu
 			ErrorRepeatVarDef,
 			ErrorMissingConstVarDef,
 			ErrorMissingVarDef,
+			ErrorMissingFuncDef,
 			ErrorMinusIndex,
 			ErrorIndexOutofRange,
 			ErrorSAmissMatch,
@@ -394,6 +395,7 @@ namespace Pikachu
 		IDinfor();
 		~IDinfor();
 		int build(const lex& eme, GTNode* ID_, BuildInfor* infor, context* dst);
+		int build(const char* id, GTNode* Backup, BuildInfor* infor, context* dst);
 		void* GetLocalTensorR(int& error, BuildInfor* infor, context* dst);//local
 		var* GetLocalVarR(int &error, BuildInfor* infor, context* dst);//local
 		ConstObj* GetAllConstR(int& error, BuildInfor* infor, context* dst);//global and local
@@ -403,6 +405,7 @@ namespace Pikachu
 		var* GetLocalVarL(int& error, BuildInfor* infor, context* dst);
 		var* GetLocalTensorL(int& error, BuildInfor* infor, context* dst);
 		ConstObj* GetLocalConstL(int& error, BuildInfor* infor, context* dst);
+		func* GetAllFuncR(int& error, BuildInfor* infor, context* dst);
 	protected:
 		bool scalar;
 		size_t index;
@@ -459,7 +462,7 @@ namespace Pikachu
 		TensorID();
 		~TensorID();
 		int build(const lex& eme, GTNode* TENSORID, BuildInfor* infor, context* dst);
-
+		int BuildSingle(const lex& eme, GTNode* TENSORID, BuildInfor* infor, context* dst);
 	protected:
 		vector<char*> Tindex;
 		char* copy(const char* src) const;

@@ -2606,6 +2606,19 @@ Node::LeafType Node::ParseLeafType(const char* input)
 	if (strcmp(input, "const") == 0) return _leafConst_;
 	return _leafConst_;
 }
+Node::OpType Node::ParseOpType(const char* input)
+{
+	if (strcmp(input, "+") == 0) return _add_;
+	if (strcmp(input, "-") == 0) return _sub_;
+	if (strcmp(input, "*") == 0) return _mul_;
+	hyperlex::dictionary* error = new hyperlex::dictionary();
+	error->append("error", "Unknown operation type");
+	error->append("input", input);
+	error->append("valid", "+, -, *");
+	error->append("location", "Node::ParseOpType");
+	throw error;
+	return _add_; // 默认返回加法
+}
 
 
 indiceIS::indiceIS()

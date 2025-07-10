@@ -365,6 +365,7 @@ namespace Pikachu
 		void setDesc(const Tensor& desc);
 		void setDesc(const vector<size_t>& desc);
 		static LeafType ParseLeafType(const char* input);
+		static OpType ParseOpType(const char* input);
 	protected:
 		Affiliation Affi;
 		VortexType Type;

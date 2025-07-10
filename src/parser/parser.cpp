@@ -1507,6 +1507,14 @@ int BuildInfor::buildTENSOR(const lex& eme, GTNode* NET_STATEMENT, NetInContext*
 	}
 	case Pikachu::NetG::TENSORVALUE_singleF_:
 	{
+		const char* funcName = eme.GetWord(TENSORVALUE->child(0)->root().site);
+		IDinfor funcID;
+		error = funcID.build(funcName, TENSORVALUE->child(0), this, dst);
+		if (error != 0) return error;
+		func* funcR = funcID.GetAllFuncR(error, this, dst);
+		if (error != 0) return error;
+
+
 		TENSORID = TENSORVALUE->child(4);
 		TensorID idL;
 		error = idL.build(eme, TENSORID, this, dst);
@@ -1569,7 +1577,7 @@ Node::OpType BuildInfor::ParseOpType(const lex& eme, GTNode* OPERATOR)
 	}
 	GTNode* Node_ = OPERATOR->child(0);
 	const char* Op = eme.GetWord(Node_->root().site);
-
+	return Node::ParseOpType(Op);
 }
 
 int BuildInfor::buildNETBODY(const lex& eme, GTNode* NETBODY, NetInContext* Net)
@@ -2674,6 +2682,15 @@ int IDinfor::build(const lex& eme, GTNode* ID, BuildInfor* infor, context* dst)
 	else index = 0;
 	return 0;
 }
+int IDinfor::build(const char* id, GTNode* Backup, BuildInfor* infor, context* dst)
+{
+	backup = Backup;
+	SetName(id);
+	scalar = true;
+	index = 0;
+
+	return 0;
+}
 var* IDinfor::GetLocalVarR(int& error, BuildInfor* infor, context* dst)
 {
 	var* temp = dst->SearchLocal(GetName());
@@ -2926,7 +2943,25 @@ ConstObj* IDinfor::GetLocalConstL(int& error, BuildInfor* infor, context* dst)
 	}
 	return old;
 }
-
+func* IDinfor::GetAllFuncR(int& error, BuildInfor* infor, context* dst)
+{
+	if (!scalar)
+	{
+		infor->errorCode = BuildInfor::ErrorSAmissMatch;
+		infor->ErrorNode = backup;
+		error = 326785342;
+		return NULL;
+	}
+	func* temp = dst->searchFuncs(GetName());
+	if (temp == NULL)
+	{
+		infor->errorCode = BuildInfor::ErrorMissingFuncDef;
+		infor->ErrorNode = backup;
+		error = 123134545;
+		return NULL;
+	}
+	return temp;
+}
 
 #include<string.h>
 Indexs::Indexs()
@@ -3099,6 +3134,18 @@ int TensorID::build(const lex& eme, GTNode* TENSORID, BuildInfor* infor, context
 	for (size_t i = 0; i < indexss.GetCount(); i++)
 	{
 		append(indexss[i]);
+	}
+	return 0;
+}
+int TensorID::BuildSingle(const lex& eme, GTNode* TENSORID, BuildInfor* infor, context* dst)
+{
+	int error = build(eme, TENSORID, infor, dst);
+	if (error) return error;
+	if (!scalar)
+	{
+		infor->errorCode = BuildInfor::ErrorSAmissMatch; // 错误：标量与非标量不匹配
+		infor->ErrorNode = TENSORID; // 错误节点
+		return 326785342; // 返回错误代码
 	}
 	return 0;
 }

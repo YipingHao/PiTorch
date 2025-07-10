@@ -443,6 +443,14 @@ Node* NetWork::NewNodeDiLinear(const dims_t& dims, Node* srcL, Node* srcR, Node:
 	NodeAppend(dst);
 	return dst;
 }
+Node* NetWork::NewNodeMonoNonlinear(Node* src, const Tensor& funcTensor, bool ScalarInput, sint x)
+{
+
+}
+Node* NetWork::NewNodeDiNonlinear(Node* srcL, Node* srcR, const Tensor& funcTensor, bool ScalarInput, sint x, bool ScalarPara, sint omega)
+{
+
+}
 
 void NetWork::BackAcc(Node::Affiliation AA, size_t target, vector<Node*>& label, Node* source)
 {
