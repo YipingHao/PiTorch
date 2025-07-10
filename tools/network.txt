@@ -6,7 +6,7 @@
 	NET_STATEMENT:
 	{
 		const: CONSTVAR;
-		exp: ID assign VALUE semicolon;
+		exp: ID assign EXP_RIGHT semicolon;
 		def: def ID semicolon;
 		//def2: def ID TENSOR semicolon;
 		tensorDef1: TENSOR ID semicolon;//input para

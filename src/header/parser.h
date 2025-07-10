@@ -453,6 +453,10 @@ namespace Pikachu
 		{
 			return Tindex;
 		}
+		inline vector<char*> const& GetSIndex(void) const
+		{
+			return Tindex;
+		}
 	};
 
 	

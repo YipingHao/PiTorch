@@ -1534,6 +1534,13 @@ MonoNonlinear* MonoNonlinear::differential(Affiliation AA)
 	gradient = diff;
 	return diff;
 }
+int MonoNonlinear::build(const dims_t& dims, Node* srcL, Expres* func, indiceIS& indice)
+{
+	if (srcL == NULL || func == NULL) return -1;
+
+	return 0;
+}
+
 
 sint DiNonlinear::MaxIndex(void) const
 {

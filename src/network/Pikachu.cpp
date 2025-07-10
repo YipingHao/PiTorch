@@ -443,13 +443,51 @@ Node* NetWork::NewNodeDiLinear(const dims_t& dims, Node* srcL, Node* srcR, Node:
 	NodeAppend(dst);
 	return dst;
 }
-Node* NetWork::NewNodeMonoNonlinear(Node* src, const Tensor& funcTensor, bool ScalarInput, sint x)
+Node* NetWork::NewNodeMonoNonlinear(const dims_t& dims, Node* srcL, Expres* func, indiceIS& indice)
 {
-
+	if (indice.Icount() != 4) return NULL;
+	MonoNonlinear* dst = new MonoNonlinear(Node::initial);
+	int error = dst->build(srcL, func, indice.I(0), indice.I(1), indice.I(2));
+	if (error != 0)
+	{
+		delete dst;
+		return NULL;
+	}
+	net.ArcAdd(srcL, dst);
+	Tensor Desc;
+	Desc.Set(dims);
+	dst->compute(Desc);
+	dst->setDesc(Desc);
+	if (Desc != dims)
+	{
+		delete dst;
+		return NULL;
+	}
+	NodeAppend(dst);
+	return dst;
 }
-Node* NetWork::NewNodeDiNonlinear(Node* srcL, Node* srcR, const Tensor& funcTensor, bool ScalarInput, sint x, bool ScalarPara, sint omega)
+Node* NetWork::NewNodeDiNonlinear(const dims_t& dims, Node* srcL, Node* srcR, Expres* func, indiceIS& indice)
 {
-
+	if (indice.Icount() != 5) return NULL;
+	DiNonlinear* dst = new DiNonlinear(Node::initial);
+	int error = dst->build(srcL, srcR, func, indice.I(0), indice.I(1), indice.I(2), indice.I(3));
+	if (error != 0)
+	{
+		delete dst;
+		return NULL;
+	}
+	net.ArcAdd(srcL, srcR, dst);
+	Tensor Desc;
+	Desc.Set(dims);
+	dst->compute(Desc);
+	dst->setDesc(Desc);
+	if (Desc != dims)
+	{
+		delete dst;
+		return NULL;
+	}
+	NodeAppend(dst);
+	return dst;
 }
 
 void NetWork::BackAcc(Node::Affiliation AA, size_t target, vector<Node*>& label, Node* source)

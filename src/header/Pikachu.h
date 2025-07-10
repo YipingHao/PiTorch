@@ -489,6 +489,8 @@ namespace Pikachu
 		bool IsConst(const FuncConst& value) const;
 		bool IsZero(void) const;
 		void demo(FILE* fp = stdout) const;
+
+		int build(const dims_t& dims, Node* srcL, Expres* func, indiceIS& indice);
 	protected:
 		Tensor funcTensor;
 		bool ScalarInput;
@@ -611,8 +613,8 @@ namespace Pikachu
 		Node* NewNodeLeaf(const dims_t& dims, Node::LeafType T);
 		Node* NewNodeMonoLinear(const dims_t&dims, Node* src, double factor_, indiceIS & indice);
 		Node* NewNodeDiLinear(const dims_t& dims, Node* srcL, Node* srcR, Node::OpType OT, indiceIS& indice);
-		Node* NewNodeMonoNonlinear(Node* src, const Tensor& funcTensor, bool ScalarInput, sint x);
-		Node* NewNodeDiNonlinear(Node* srcL, Node* srcR, const Tensor& funcTensor, bool ScalarInput, sint x, bool ScalarPara, sint omega);
+		Node* NewNodeMonoNonlinear(const dims_t& dims, Node* srcL, Expres * func, indiceIS& indice);
+		Node* NewNodeDiNonlinear(const dims_t& dims, Node* srcL, Node* srcR, Expres* func, indiceIS& indice);
 
 	protected:
 		graph<Node> net;

@@ -434,6 +434,10 @@ MonoFunc::~MonoFunc()
 		delete cluster[i];
 	}
 }
+void MonoFunc::build(Expres* source)
+{
+
+}
 void MonoFunc::differential(void)
 {
 	if (InputDim == 1)

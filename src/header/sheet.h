@@ -147,29 +147,29 @@ namespace Pikachu
 			STATEMENT_def1_ = 51,
 			STATEMENT_def2_ = 52,
 			STATEMENT_exp_ = 53,
-			VALUE_single_ = 54,
-			VALUE_multi_ = 55,
-			VALUELIST_VALUELIST_ = 56,
-			VALUES_VALUES_ = 57,
-			//<NEXTVALUE*>_first_ = 58,
-			//<NEXTVALUE*>_multi_ = 59,
-			NEXTVALUE_NEXTVALUE_ = 60,
-			NETWORK_NETWORK_ = 61,
-			NETBODY_net_ = 62,
-			//<NET_STATEMENT*>_first_ = 63,
-			//<NET_STATEMENT*>_multi_ = 64,
-			NET_STATEMENT_const_ = 65,
-			NET_STATEMENT_exp_ = 66,
-			NET_STATEMENT_def_ = 67,
-			NET_STATEMENT_tensorDef1_ = 68,
-			NET_STATEMENT_tensorDef2_ = 69,
-			CONSTVAR_def1_ = 70,
-			CONSTVAR_def2_ = 71,
-			//[type]_real_ = 72,
-			//[type]_complex_ = 73,
-			//[type]_sint_ = 74,
-			//[type]_uint_ = 75,
-			//[type]_bool_ = 76,
+			CONSTVAR_def1_ = 54,
+			CONSTVAR_def2_ = 55,
+			//[type]_real_ = 56,
+			//[type]_complex_ = 57,
+			//[type]_sint_ = 58,
+			//[type]_uint_ = 59,
+			//[type]_bool_ = 60,
+			VALUE_single_ = 61,
+			VALUE_multi_ = 62,
+			VALUELIST_VALUELIST_ = 63,
+			VALUES_VALUES_ = 64,
+			//<NEXTVALUE*>_first_ = 65,
+			//<NEXTVALUE*>_multi_ = 66,
+			NEXTVALUE_NEXTVALUE_ = 67,
+			NETWORK_NETWORK_ = 68,
+			NETBODY_net_ = 69,
+			//<NET_STATEMENT*>_first_ = 70,
+			//<NET_STATEMENT*>_multi_ = 71,
+			NET_STATEMENT_const_ = 72,
+			NET_STATEMENT_exp_ = 73,
+			NET_STATEMENT_def_ = 74,
+			NET_STATEMENT_tensorDef1_ = 75,
+			NET_STATEMENT_tensorDef2_ = 76,
 			TENSORID_TENSORID_ = 77,
 			TENSOR_TENSOR_ = 78,
 			INDEXLIST_INDEXLIST_ = 79,
@@ -178,12 +178,13 @@ namespace Pikachu
 			ID2_yes_ = 82,
 			ID2_no_ = 83,
 			TENSORVALUE_single_ = 84,
-			TENSORVALUE_multi_ = 85,
-			TENSORVALUE_singleF_ = 86,
-			TENSORVALUE_multiF_ = 87,
-			SUMSYMBOL_single_ = 88,
-			SUMSYMBOL_multi_ = 89,
-			SQ_INDEXUNITS_single_ = 90
+			TENSORVALUE_single1_ = 85,
+			TENSORVALUE_multi_ = 86,
+			TENSORVALUE_singleF_ = 87,
+			TENSORVALUE_multiF_ = 88,
+			SUMSYMBOL_single_ = 89,
+			SUMSYMBOL_multi_ = 90,
+			SQ_INDEXUNITS_single_ = 91
 		};
 		enum nonterminal
 		{
@@ -212,17 +213,17 @@ namespace Pikachu
 			_SYMBOLICBODY_ = 22,
 			//_<STATEMENT*>_ = 23,
 			_STATEMENT_ = 24,
-			_VALUE_ = 25,
-			_VALUELIST_ = 26,
-			_VALUES_ = 27,
-			//_<NEXTVALUE*>_ = 28,
-			_NEXTVALUE_ = 29,
-			_NETWORK_ = 30,
-			_NETBODY_ = 31,
-			//_<NET_STATEMENT*>_ = 32,
-			_NET_STATEMENT_ = 33,
-			_CONSTVAR_ = 34,
-			//_[type]_ = 35,
+			_CONSTVAR_ = 25,
+			//_[type]_ = 26,
+			_VALUE_ = 27,
+			_VALUELIST_ = 28,
+			_VALUES_ = 29,
+			//_<NEXTVALUE*>_ = 30,
+			_NEXTVALUE_ = 31,
+			_NETWORK_ = 32,
+			_NETBODY_ = 33,
+			//_<NET_STATEMENT*>_ = 34,
+			_NET_STATEMENT_ = 35,
 			_TENSORID_ = 36,
 			_TENSOR_ = 37,
 			_INDEXLIST_ = 38,
@@ -236,12 +237,12 @@ namespace Pikachu
 		static const size_t NonTerminalCount;
 		static const size_t TerminalCount;
 		static const size_t RulesCount;
-		static const int GOTO[176][44];
-		static const int ACTION[176][53];
-		static const int RulesToSymbol[91];
-		static const int RulesLength[91];
-		static const char* const RulesName[91];
-		static const int Implicit[91];
+		static const int GOTO[179][44];
+		static const int ACTION[179][53];
+		static const int RulesToSymbol[92];
+		static const int RulesLength[92];
+		static const char* const RulesName[92];
+		static const int Implicit[92];
 	};
 	struct NetPreL
 	{
