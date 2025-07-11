@@ -1525,7 +1525,7 @@ int BuildInfor::buildTENSORsingle(Node*& newNode, const vector<size_t>& dims, Te
 	IS.StoI();
 
 
-	Node* newNode = net->NewNodeMonoLinear(dims, srcL, alpha, IS);
+	newNode = net->NewNodeMonoLinear(dims, srcL, alpha, IS);
 	if (newNode == NULL)
 	{
 		errorCode = ErrorUnsupportType;
@@ -1581,7 +1581,7 @@ int BuildInfor::buildTENSORmulti(Node*& newNode, const vector<size_t>& dims, Ten
 	IS.StoI();
 
 	//Node* newNode = net->NewNodeMonoLinear(srcL);
-	Node* newNode = net->NewNodeDiLinear(dims, srcL, srcR, OTT, IS);
+	newNode = net->NewNodeDiLinear(dims, srcL, srcR, OTT, IS);
 	if (newNode == NULL)
 	{
 		errorCode = ErrorUnsupportType;
@@ -1631,7 +1631,7 @@ int BuildInfor::buildTENSORsingleF(Node*& newNode, const vector<size_t>& dims, T
 	IS.StoI();
 
 
-	Node* newNode = net->NewNodeMonoNonlinear(dims, srcL, funcR->Exp, IS);
+	newNode = net->NewNodeMonoNonlinear(dims, srcL, funcR->Exp, IS);
 	if (newNode == NULL)
 	{
 		errorCode = ErrorUnsupportType;
@@ -1689,7 +1689,7 @@ int BuildInfor::buildTENSORmultiF(Node*& newNode, const vector<size_t>& dims, Te
 	IS.StoI();
 
 
-	Node* newNode = net->NewNodeDiNonlinear(dims, srcL, srcR, funcR->Exp, IS);
+	newNode = net->NewNodeDiNonlinear(dims, srcL, srcR, funcR->Exp, IS);
 	if (newNode == NULL)
 	{
 		errorCode = ErrorUnsupportType;
