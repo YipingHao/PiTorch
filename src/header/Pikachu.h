@@ -26,6 +26,51 @@ namespace Pikachu
 {
 	typedef vector<size_t> dims_t;
 	typedef vector<sint> indice_t;
+	/**
+ * @brief 索引字符串与整数转换类
+ *
+ * 该类用于处理字符串与整数张量索引之间的双向转换，支持批量操作和演示功能。
+ * 字符串存储在动态分配的内存中，索引使用sint类型（长整型）表示。
+ *
+ * @class indiceIS
+ * @brief Index String-Integer Conversion Class
+ *
+ * This class handles bidirectional conversion between strings and integer indices,
+ * supporting batch operations and demonstration functionality.
+ * Strings are stored in dynamically allocated memory, and indices are represented using
+ * the sint type (long integer).
+ */
+	class indiceIS
+	{
+	public:
+		indiceIS();// 构造函数：初始化对象 | Constructor: Initialize the object
+		~indiceIS();// 析构函数：清理资源 | Destructor: Clean up resources
+		void StoI(void);          // 将字符串转换为索引 | Convert strings to indices
+		void ItoS(void);          // 将索引转换为字符串 | Convert indices to strings
+		void demo(FILE* fp = stdout) const;  // 演示当前存储的索引和字符串 | Demonstrate stored indices and strings
+		//typedef long long int sint;
+	protected:
+		vector<vector<char*>*> indiceS;  // 存储字符串的二维向量 | 2D vector storing strings
+		vector<vector<sint>*> indicsI;   // 存储索引的二维向量 | 2D vector storing indices
+
+		void clearS(void);  // 清理字符串数据 | Clear string data
+		void clearI(void);  // 清理索引数据 | Clear index data
+	public:
+		/** 获取存储的字符串组数量 | Get the number of stored string groups */
+		inline size_t Scount(void) const { return indiceS.count(); }
+		/** 获取存储的索引组数量 | Get the number of stored index groups */
+		inline size_t Icount(void) const { return indicsI.count(); }
+		/** 获取指定索引处的字符串组引用 | Get reference to the string group at specified index */
+		inline vector<char*> const& S(size_t index)const { return *indiceS[index]; }
+		/** 获取指定索引处的索引组引用 | Get reference to the index group at specified index */
+		inline vector<sint> const& I(size_t index)const { return *indicsI[index]; }
+		// 添加字符串组 | Add a group of strings
+		void appendS(const vector<char*>& S);
+		// 添加索引组 | Add a group of indices */
+		void appendI(const vector<sint>& I);
+		/** 将数字索引转换为字符串表示 | Convert numerical index to string representation */
+		static char* IndexToString(size_t index);
+	};
 
 	class network;
 	
@@ -560,37 +605,7 @@ namespace Pikachu
 	
 	
 	
-	class indiceIS
-	{
-	public:
-		indiceIS();// 构造函数：初始化对象 | Constructor: Initialize the object
-		~indiceIS();// 析构函数：清理资源 | Destructor: Clean up resources
-		void StoI(void);          // 将字符串转换为索引 | Convert strings to indices
-		void ItoS(void);          // 将索引转换为字符串 | Convert indices to strings
-		void demo(FILE* fp = stdout) const;  // 演示当前存储的索引和字符串 | Demonstrate stored indices and strings
-		//typedef long long int sint;
-	protected:
-		vector<vector<char*>*> indiceS;  // 存储字符串的二维向量 | 2D vector storing strings
-		vector<vector<sint>*> indicsI;   // 存储索引的二维向量 | 2D vector storing indices
-
-		void clearS(void);  // 清理字符串数据 | Clear string data
-		void clearI(void);  // 清理索引数据 | Clear index data
-	public:
-		/** 获取存储的字符串组数量 | Get the number of stored string groups */
-		inline size_t Scount(void) const { return indiceS.count(); }
-		/** 获取存储的索引组数量 | Get the number of stored index groups */
-		inline size_t Icount(void) const { return indicsI.count(); }
-		/** 获取指定索引处的字符串组引用 | Get reference to the string group at specified index */
-		inline vector<char*> const& S(size_t index)const { return *indiceS[index]; }
-		/** 获取指定索引处的索引组引用 | Get reference to the index group at specified index */
-		inline vector<sint> const& I(size_t index)const { return *indicsI[index]; }
-		// 添加字符串组 | Add a group of strings
-		void appendS(const vector<char*>& S);
-		// 添加索引组 | Add a group of indices */
-		void appendI(const vector<sint>& I);
-		/** 将数字索引转换为字符串表示 | Convert numerical index to string representation */
-		static char* IndexToString(size_t index);
-	};
+	
 
 	class NetWork
 	{
@@ -645,20 +660,7 @@ namespace Pikachu
 		void BackAcc(Node::Affiliation AA, size_t target, vector<Node*>& label, Node* source);
 	};
 
-	/**
- * @brief 索引字符串与整数转换类
- *
- * 该类用于处理字符串与整数张量索引之间的双向转换，支持批量操作和演示功能。
- * 字符串存储在动态分配的内存中，索引使用sint类型（长整型）表示。
- *
- * @class indiceIS
- * @brief Index String-Integer Conversion Class
- *
- * This class handles bidirectional conversion between strings and integer indices,
- * supporting batch operations and demonstration functionality.
- * Strings are stored in dynamically allocated memory, and indices are represented using
- * the sint type (long integer).
- */
+	
 	
 
 	
