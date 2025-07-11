@@ -12,7 +12,7 @@ EXTERN = $(BASE)extern/lib/
 
 COFILE = $(ODIR)Pikachu.o $(ODIR)PikaType.o $(ODIR)Nodes.o $(ODIR)tensor.o 
 SOFILE = $(ODIR)symbolic.o $(ODIR)SymbolicIR.o $(ODIR)expression.o $(ODIR)manifold.o
-POFILE = $(ODIR)Pexp.o $(ODIR)LGsheet.o $(ODIR)parser.o 
+POFILE = $(ODIR)Pexp.o $(ODIR)LGsheet.o $(ODIR)parser.o $(ODIR)GUnit.o 
 HFILE = $(HEAD)PikaType.h $(HEAD)PikaTemplate.h $(HEAD)Pikachu.h $(HEAD)Symbolic.h $(HEAD)parser.h
 Extern = -lHyperlex -lHyperAlgebra
 TestOFile = $(TEST)main.o $(TEST)test.o $(TEST)test_old.o 
@@ -59,6 +59,9 @@ $(ODIR)LGsheet.o:$(LEX)LGsheet.cpp $(HFILE)
 
 $(ODIR)parser.o:$(LEX)parser.cpp $(HFILE)
 	$(CC) -o $(ODIR)parser.o -c $(Option) $(LEX)parser.cpp
+
+$(ODIR)GUnit.o:$(LEX)GUnit.cpp $(HFILE)
+	$(CC) -o $(ODIR)GUnit.o -c $(Option) $(LEX)GUnit.cpp
 
 test.exe: $(COFILE) $(TestOFile) $(SOFILE) $(POFILE)   libHyperPes.a
 	$(CC) -o $(TEST)test.exe $(TestOFile) -L$(BASE) -lHyperPes  -L$(EXTERN)  $(Extern)
