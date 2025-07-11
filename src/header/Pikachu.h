@@ -24,6 +24,9 @@
 #include"Symbolic.h"
 namespace Pikachu
 {
+	typedef vector<size_t> dims_t;
+	typedef vector<sint> indice_t;
+
 	class network;
 	
 	class GraphNode;
@@ -555,8 +558,7 @@ namespace Pikachu
 	
 
 	
-	typedef vector<size_t> dims_t;
-	typedef vector<sint> indice_t;
+	
 	
 	class indiceIS
 	{
