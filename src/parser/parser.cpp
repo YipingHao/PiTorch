@@ -1408,7 +1408,7 @@ int BuildInfor::buildTENSOR(const lex& eme, GTNode* NET_STATEMENT, NetInContext*
 	ValueList VL;
 	error = VL.build(eme, VALUELIST, this, dst);
 	if (error != 0) return error;
-	error = VL.checkDim(this);
+	error = VL.checkDim(this);// dim[i] mast >= 1
 	if (error != 0) return error;
 	vector<size_t> dims;
 	VL.GetDim(dims);
@@ -1429,177 +1429,27 @@ int BuildInfor::buildTENSOR(const lex& eme, GTNode* NET_STATEMENT, NetInContext*
 	case Pikachu::NetG::TENSORVALUE_single_:
 	case Pikachu::NetG::TENSORVALUE_single1_:
 	{
-		size_t delta = (RR == NetG::TENSORVALUE_single1_ ? 1 : 0);
-
-		TENSORID = TENSORVALUE->child(1 + delta);
-		TensorID idL;
-		error = idL.build(eme, TENSORID, this, dst);
+		error = buildTENSORsingle(newNode, dims, id, eme, TENSORVALUE, Net);
 		if (error != 0) return error;
-		Node* srcL = (Node*)idL.GetLocalTensorR(error, this, dst);
-		if (error != 0) return error;
-
-		GTNode* SUMSYMBOL = TENSORVALUE->child(delta);
-		Indexs list;
-		error = list.buildSUMSYMBOL(eme, SUMSYMBOL, this, dst);
-		if (error != 0) return error;
-
-		double alpha = 1.0;
-
-		if (RR == NetG::TENSORVALUE_single1_)
-		{
-			GTNode* EXP_RIGHT = TENSORVALUE->child(0);
-			ConstObj *Alpha = NULL;
-			error = GetAConst(Alpha, eme, EXP_RIGHT, dst);
-			if (error != 0) return error;
-			alpha = Alpha->GetReal();
-			delete Alpha;
-		}
-
-		indiceIS IS;
-		IS.appendS(id.GetSIndex());
-		IS.appendS(list.GetIndex());
-		IS.appendS(idL.GetSIndex());
-		IS.StoI();
-
-
-		Node* newNode = net->NewNodeMonoLinear(dims, srcL, alpha, IS);
-		if (newNode == NULL)
-		{
-			errorCode = ErrorUnsupportType;
-			errorInfor1 = line;
-			ErrorNode = TENSORID;
-			return 4245341;
-		}
-		Lvalue->SetInfor((void*)newNode, id.GetIndex());
 		break;
 	}
 	case Pikachu::NetG::TENSORVALUE_multi_:
 	{
-		TensorID idL, idR;
-
-		TENSORID = TENSORVALUE->child(1);
-		error = idL.build(eme, TENSORID, this, dst);
+		error = buildTENSORmulti(newNode, dims, id, eme, TENSORVALUE, Net);
 		if (error != 0) return error;
-		Node* srcL = (Node*)idL.GetLocalTensorR(error, this, dst);
-		if (error != 0) return error;
-
-		TENSORID = TENSORVALUE->child(3);
-		error = idR.build(eme, TENSORID, this, dst);
-		if (error != 0) return error;
-		Node* srcR = (Node*)idR.GetLocalTensorR(error, this, dst);
-		if (error != 0) return error;
-		
-		GTNode* SUMSYMBOL = TENSORVALUE->child(0);
-		Indexs list;
-		error = list.buildSUMSYMBOL(eme, SUMSYMBOL, this, dst);
-		if (error != 0) return error;
-
-		GTNode* OPERATOR = TENSORVALUE->child(2);
-		Node::OpType OTT = ParseOpType(eme, OPERATOR);
-
-
-		indiceIS IS;
-		IS.appendS(id.GetSIndex());
-		IS.appendS(list.GetIndex());
-		IS.appendS(idL.GetSIndex());
-		IS.appendS(idR.GetSIndex());
-		IS.StoI();
-
-		//Node* newNode = net->NewNodeMonoLinear(srcL);
-		Node* newNode = net->NewNodeDiLinear(dims, srcL, srcR, OTT, IS);
-		if (newNode == NULL)
-		{
-			errorCode = ErrorUnsupportType;
-			errorInfor1 = line;
-			ErrorNode = TENSORID;
-			return 42423341;
-		}
-		Lvalue->SetInfor((void*)newNode, id.GetIndex());
 		break;
 	}
 	case Pikachu::NetG::TENSORVALUE_singleF_:
 	{
-		TENSORID = TENSORVALUE->child(0);
-		TensorID funR;
-		error = funR.BuildSingle(eme, TENSORID, this, dst);
-		func* funcR = funR.GetAllFuncR(error, this, dst);
-
-		GTNode* SQ_INDEXUNITS = TENSORVALUE->child(1);
-		Indexs listFunc;
-		error = listFunc.buildSQ_INDEXUNITS(eme, SQ_INDEXUNITS, this, dst);
+		error = buildTENSORsingleF(newNode, dims, id, eme, TENSORVALUE, Net);
 		if (error != 0) return error;
-
-		TENSORID = TENSORVALUE->child(3);
-		TensorID idL;
-		error = idL.build(eme, TENSORID, this, dst);
-		if (error != 0) return error;
-		Node* srcL = (Node*)idL.GetLocalTensorR(error, this, dst);
-		if (error != 0) return error;
-
-		indiceIS IS;
-		IS.appendS(id.GetSIndex());
-		IS.appendS(funR.GetSIndex());
-		IS.appendS(listFunc.GetSIndex());
-		IS.appendS(idL.GetSIndex());
-		IS.StoI();
-
-
-		Node* newNode = net->NewNodeMonoNonlinear(dims, srcL, funcR->Exp, IS);
-		if (newNode == NULL)
-		{
-			errorCode = ErrorUnsupportType;
-			errorInfor1 = line;
-			ErrorNode = TENSORID;
-			return 4245341;
-		}
-		Lvalue->SetInfor((void*)newNode, id.GetIndex());
 		break;
 	}
 	case Pikachu::NetG::TENSORVALUE_multiF_:
 	{
-		TENSORID = TENSORVALUE->child(0);
-		TensorID funR;
-		error = funR.BuildSingle(eme, TENSORID, this, dst);
-		func* funcR = funR.GetAllFuncR(error, this, dst);
-
-		GTNode* SQ_INDEXUNITS = TENSORVALUE->child(1);
-		Indexs listFunc;
-		error = listFunc.buildSQ_INDEXUNITS(eme, SQ_INDEXUNITS, this, dst);
+		error = buildTENSORmultiF(newNode, dims, id, eme, TENSORVALUE, Net);
 		if (error != 0) return error;
-
-		TensorID idL, idR;
-
-		TENSORID = TENSORVALUE->child(3);
-		error = idL.build(eme, TENSORID, this, dst);
-		if (error != 0) return error;
-		Node* srcL = (Node*)idL.GetLocalTensorR(error, this, dst);
-		if (error != 0) return error;
-
-		TENSORID = TENSORVALUE->child(5);
-		error = idR.build(eme, TENSORID, this, dst);
-		if (error != 0) return error;
-		Node* srcR = (Node*)idR.GetLocalTensorR(error, this, dst);
-		if (error != 0) return error;
-
-		indiceIS IS;
-		IS.appendS(id.GetSIndex());
-		IS.appendS(funR.GetSIndex());
-		IS.appendS(listFunc.GetSIndex());
-		IS.appendS(idL.GetSIndex());
-		IS.appendS(idR.GetSIndex());
-		IS.StoI();
-
-
-		Node* newNode = net->NewNodeDiNonlinear(dims, srcL, srcR, funcR->Exp, IS);
-		if (newNode == NULL)
-		{
-			errorCode = ErrorUnsupportType;
-			errorInfor1 = line;
-			ErrorNode = TENSORID;
-			return 4245341;
-		}
-		Lvalue->SetInfor((void*)newNode, id.GetIndex());
-
+		break;
 	}
 	default: 
 	{
@@ -1610,7 +1460,8 @@ int BuildInfor::buildTENSOR(const lex& eme, GTNode* NET_STATEMENT, NetInContext*
 	}
 		
 	}
-	id.AssignLocalVarL(error, this, dst, newNode);
+	Lvalue->SetInfor((void*)newNode, id.GetIndex());
+	//id.AssignLocalVarL(error, this, dst, newNode);
 	return error;
 }
 Node::OpType BuildInfor::ParseOpType(const lex& eme, GTNode* OPERATOR)
@@ -1626,6 +1477,230 @@ Node::OpType BuildInfor::ParseOpType(const lex& eme, GTNode* OPERATOR)
 	const char* Op = eme.GetWord(Node_->root().site);
 	return Node::ParseOpType(Op);
 }
+
+int BuildInfor::buildTENSORsingle(Node*& newNode, const vector<size_t>& dims, TensorID& id,\
+	const lex& eme, GTNode* TENSORVALUE, NetInContext* Net)
+{
+	NetG::rules RR = (NetG::rules)TENSORVALUE->root().site;
+	size_t line = TENSORVALUE->root().site;
+	size_t delta = (RR == NetG::TENSORVALUE_single1_ ? 1 : 0);
+	if (RR != NetG::TENSORVALUE_single_ && RR != NetG::TENSORVALUE_single1_)
+	{
+		errorCode = WrongEntrance;
+		errorInfor1 = line;
+		ErrorNode = TENSORVALUE;
+		return 97895342;
+	}
+	context* dst = Net->realm;
+	NetWork* net = Net->net;
+
+	GTNode* TENSORID = TENSORVALUE->child(1 + delta);
+	TensorID idL;
+	int error = idL.build(eme, TENSORID, this, dst);
+	if (error != 0) return error;
+	Node* srcL = (Node*)idL.GetLocalTensorR(error, this, dst);
+	if (error != 0) return error;
+
+	GTNode* SUMSYMBOL = TENSORVALUE->child(delta);
+	Indexs list;
+	error = list.buildSUMSYMBOL(eme, SUMSYMBOL, this, dst);
+	if (error != 0) return error;
+
+	double alpha = 1.0;
+
+	if (RR == NetG::TENSORVALUE_single1_)
+	{
+		GTNode* EXP_RIGHT = TENSORVALUE->child(0);
+		ConstObj* Alpha = NULL;
+		error = GetAConst(Alpha, eme, EXP_RIGHT, dst);
+		if (error != 0) return error;
+		alpha = Alpha->GetReal();
+		delete Alpha;
+	}
+
+	indiceIS IS;
+	IS.appendS(id.GetSIndex());
+	IS.appendS(list.GetIndex());
+	IS.appendS(idL.GetSIndex());
+	IS.StoI();
+
+
+	Node* newNode = net->NewNodeMonoLinear(dims, srcL, alpha, IS);
+	if (newNode == NULL)
+	{
+		errorCode = ErrorUnsupportType;
+		errorInfor1 = line;
+		ErrorNode = TENSORID;
+		return 4245341;
+	}
+	return error;
+}
+int BuildInfor::buildTENSORmulti(Node*& newNode, const vector<size_t>& dims, TensorID& id, \
+	const lex& eme, GTNode* TENSORVALUE, NetInContext* Net)
+{
+	NetG::rules RR = (NetG::rules)TENSORVALUE->root().site;
+	size_t line = TENSORVALUE->root().site;
+	if (RR != NetG::TENSORVALUE_multi_)
+	{
+		errorCode = WrongEntrance;
+		errorInfor1 = line;
+		ErrorNode = TENSORVALUE;
+		return 97192342;
+	}
+	context* dst = Net->realm;
+	NetWork* net = Net->net;
+
+	TensorID idL, idR;
+
+	GTNode* TENSORID = TENSORVALUE->child(1);
+	int error = idL.build(eme, TENSORID, this, dst);
+	if (error != 0) return error;
+	Node* srcL = (Node*)idL.GetLocalTensorR(error, this, dst);
+	if (error != 0) return error;
+
+	TENSORID = TENSORVALUE->child(3);
+	error = idR.build(eme, TENSORID, this, dst);
+	if (error != 0) return error;
+	Node* srcR = (Node*)idR.GetLocalTensorR(error, this, dst);
+	if (error != 0) return error;
+
+	GTNode* SUMSYMBOL = TENSORVALUE->child(0);
+	Indexs list;
+	error = list.buildSUMSYMBOL(eme, SUMSYMBOL, this, dst);
+	if (error != 0) return error;
+
+	GTNode* OPERATOR = TENSORVALUE->child(2);
+	Node::OpType OTT = ParseOpType(eme, OPERATOR);
+
+
+	indiceIS IS;
+	IS.appendS(id.GetSIndex());
+	IS.appendS(list.GetIndex());
+	IS.appendS(idL.GetSIndex());
+	IS.appendS(idR.GetSIndex());
+	IS.StoI();
+
+	//Node* newNode = net->NewNodeMonoLinear(srcL);
+	Node* newNode = net->NewNodeDiLinear(dims, srcL, srcR, OTT, IS);
+	if (newNode == NULL)
+	{
+		errorCode = ErrorUnsupportType;
+		errorInfor1 = line;
+		ErrorNode = TENSORID;
+		return 42423341;
+	}
+	return error;
+}
+int BuildInfor::buildTENSORsingleF(Node*& newNode, const vector<size_t>& dims, TensorID& id, \
+	const lex& eme, GTNode* TENSORVALUE, NetInContext* Net)
+{
+	NetG::rules RR = (NetG::rules)TENSORVALUE->root().site;
+	size_t line = TENSORVALUE->root().site;
+	if (RR != NetG::TENSORVALUE_singleF_)
+	{
+		errorCode = WrongEntrance;
+		errorInfor1 = line;
+		ErrorNode = TENSORVALUE;
+		return 97192342;
+	}
+	context* dst = Net->realm;
+	NetWork* net = Net->net;
+
+	GTNode* TENSORID = TENSORVALUE->child(0);
+	TensorID funR;
+	int error = funR.BuildSingle(eme, TENSORID, this, dst);
+	func* funcR = funR.GetAllFuncR(error, this, dst);
+
+	GTNode* SQ_INDEXUNITS = TENSORVALUE->child(1);
+	Indexs listFunc;
+	error = listFunc.buildSQ_INDEXUNITS(eme, SQ_INDEXUNITS, this, dst);
+	if (error != 0) return error;
+
+	TENSORID = TENSORVALUE->child(3);
+	TensorID idL;
+	error = idL.build(eme, TENSORID, this, dst);
+	if (error != 0) return error;
+	Node* srcL = (Node*)idL.GetLocalTensorR(error, this, dst);
+	if (error != 0) return error;
+
+	indiceIS IS;
+	IS.appendS(id.GetSIndex());
+	IS.appendS(funR.GetSIndex());
+	IS.appendS(listFunc.GetSIndex());
+	IS.appendS(idL.GetSIndex());
+	IS.StoI();
+
+
+	Node* newNode = net->NewNodeMonoNonlinear(dims, srcL, funcR->Exp, IS);
+	if (newNode == NULL)
+	{
+		errorCode = ErrorUnsupportType;
+		errorInfor1 = line;
+		ErrorNode = TENSORID;
+		return 4245341;
+	}
+	return 0;
+}
+int BuildInfor::buildTENSORmultiF(Node*& newNode, const vector<size_t>& dims, TensorID& id, \
+	const lex& eme, GTNode* TENSORVALUE, NetInContext* Net)
+{
+	NetG::rules RR = (NetG::rules)TENSORVALUE->root().site;
+	size_t line = TENSORVALUE->root().site;
+	if (RR != NetG::TENSORVALUE_singleF_)
+	{
+		errorCode = WrongEntrance;
+		errorInfor1 = line;
+		ErrorNode = TENSORVALUE;
+		return 97192342;
+	}
+	context* dst = Net->realm;
+	NetWork* net = Net->net;
+
+	GTNode* TENSORID = TENSORVALUE->child(0);
+	TensorID funR;
+	int error = funR.BuildSingle(eme, TENSORID, this, dst);
+	func* funcR = funR.GetAllFuncR(error, this, dst);
+
+	GTNode* SQ_INDEXUNITS = TENSORVALUE->child(1);
+	Indexs listFunc;
+	error = listFunc.buildSQ_INDEXUNITS(eme, SQ_INDEXUNITS, this, dst);
+	if (error != 0) return error;
+
+	TensorID idL, idR;
+
+	TENSORID = TENSORVALUE->child(3);
+	error = idL.build(eme, TENSORID, this, dst);
+	if (error != 0) return error;
+	Node* srcL = (Node*)idL.GetLocalTensorR(error, this, dst);
+	if (error != 0) return error;
+
+	TENSORID = TENSORVALUE->child(5);
+	error = idR.build(eme, TENSORID, this, dst);
+	if (error != 0) return error;
+	Node* srcR = (Node*)idR.GetLocalTensorR(error, this, dst);
+	if (error != 0) return error;
+
+	indiceIS IS;
+	IS.appendS(id.GetSIndex());
+	IS.appendS(funR.GetSIndex());
+	IS.appendS(listFunc.GetSIndex());
+	IS.appendS(idL.GetSIndex());
+	IS.appendS(idR.GetSIndex());
+	IS.StoI();
+
+
+	Node* newNode = net->NewNodeDiNonlinear(dims, srcL, srcR, funcR->Exp, IS);
+	if (newNode == NULL)
+	{
+		errorCode = ErrorUnsupportType;
+		errorInfor1 = line;
+		ErrorNode = TENSORID;
+		return 4245341;
+	}
+	
+	return error;
+}
+
 
 int BuildInfor::buildNETBODY(const lex& eme, GTNode* NETBODY, NetInContext* Net)
 {
@@ -1742,59 +1817,96 @@ static bool compare(const char* str1, const char* str2)
 
 
 /*
-bool valueScalar = ((Pikachu::NetG::rules)VALUE->root().site == Pikachu::NetG::VALUE_single_);
-	size_t dim = getValueDim(VALUE);
-	if (valueScalar != obj->GetScalar() || dim != obj->GetDim())
+
 	{
-		errorCode = ErrorInitialAorS;
-		errorInfor1 = line;
-		errorInfor2 = dim;
-		errorInfor4 = obj->GetScalar();
-		return 48975644;
-	}
-	if (valueScalar)
-	{
-		GTNode* EXP_RIGHT = VALUE->child(0);//single: EXP_RIGHT;
-		ConstObj* srcR = NULL;
-		int error = GetAConst(srcR, eme, EXP_RIGHT, dst);
+		size_t delta = (RR == NetG::TENSORVALUE_single1_ ? 1 : 0);
+
+		TENSORID = TENSORVALUE->child(1 + delta);
+		TensorID idL;
+		error = idL.build(eme, TENSORID, this, dst);
 		if (error != 0) return error;
-		if (obj->GetType() != srcR->GetType())
-		{
-			errorCode = ErrorAssignType;
-			return 4897895;
-		}
-		obj->assign(srcR);
-		delete srcR;
-	}
-	else
-	{
-		GTNode* VALUELIST = VALUE->child(1);//multi: squareL VALUELIST squareR;
-		GTNode* VALUES = VALUELIST->child(1);// VALUELIST: EXP_RIGHT VALUES;
-		GTNode* EXP_RIGHT = VALUELIST->child(0);
-		ConstObj* srcR = NULL;
-		int error = GetAConst(srcR, eme, EXP_RIGHT, dst);
+		Node* srcL = (Node*)idL.GetLocalTensorR(error, this, dst);
 		if (error != 0) return error;
-		if (obj->GetType() != srcR->GetType())
+
+		GTNode* SUMSYMBOL = TENSORVALUE->child(delta);
+		Indexs list;
+		error = list.buildSUMSYMBOL(eme, SUMSYMBOL, this, dst);
+		if (error != 0) return error;
+
+		double alpha = 1.0;
+
+		if (RR == NetG::TENSORVALUE_single1_)
 		{
-			errorCode = ErrorAssignType;
-			return 4897896;
-		}
-		obj->assign(srcR, 0);
-		delete srcR;
-		for (size_t i = 1; i < dim; i++)
-		{
-			GTNode* NEXTVALUE = VALUES->child(i - 1);
-			EXP_RIGHT = NEXTVALUE->child(1);
-			ConstObj* srcR = NULL;
-			int error = GetAConst(srcR, eme, EXP_RIGHT, dst);
+			GTNode* EXP_RIGHT = TENSORVALUE->child(0);
+			ConstObj *Alpha = NULL;
+			error = GetAConst(Alpha, eme, EXP_RIGHT, dst);
 			if (error != 0) return error;
-			if (obj->GetType() != srcR->GetType())
-			{
-				errorCode = ErrorAssignType;
-				return 4897897;
-			}
-			obj->assign(srcR, i);
-			delete srcR;
+			alpha = Alpha->GetReal();
+			delete Alpha;
 		}
+
+		indiceIS IS;
+		IS.appendS(id.GetSIndex());
+		IS.appendS(list.GetIndex());
+		IS.appendS(idL.GetSIndex());
+		IS.StoI();
+
+
+		Node* newNode = net->NewNodeMonoLinear(dims, srcL, alpha, IS);
+		if (newNode == NULL)
+		{
+			errorCode = ErrorUnsupportType;
+			errorInfor1 = line;
+			ErrorNode = TENSORID;
+			return 4245341;
+		}
+		Lvalue->SetInfor((void*)newNode, id.GetIndex());
+		break;
+	}
+*/
+/*
+
+	{
+		TensorID idL, idR;
+
+		TENSORID = TENSORVALUE->child(1);
+		error = idL.build(eme, TENSORID, this, dst);
+		if (error != 0) return error;
+		Node* srcL = (Node*)idL.GetLocalTensorR(error, this, dst);
+		if (error != 0) return error;
+
+		TENSORID = TENSORVALUE->child(3);
+		error = idR.build(eme, TENSORID, this, dst);
+		if (error != 0) return error;
+		Node* srcR = (Node*)idR.GetLocalTensorR(error, this, dst);
+		if (error != 0) return error;
+
+		GTNode* SUMSYMBOL = TENSORVALUE->child(0);
+		Indexs list;
+		error = list.buildSUMSYMBOL(eme, SUMSYMBOL, this, dst);
+		if (error != 0) return error;
+
+		GTNode* OPERATOR = TENSORVALUE->child(2);
+		Node::OpType OTT = ParseOpType(eme, OPERATOR);
+
+
+		indiceIS IS;
+		IS.appendS(id.GetSIndex());
+		IS.appendS(list.GetIndex());
+		IS.appendS(idL.GetSIndex());
+		IS.appendS(idR.GetSIndex());
+		IS.StoI();
+
+		//Node* newNode = net->NewNodeMonoLinear(srcL);
+		Node* newNode = net->NewNodeDiLinear(dims, srcL, srcR, OTT, IS);
+		if (newNode == NULL)
+		{
+			errorCode = ErrorUnsupportType;
+			errorInfor1 = line;
+			ErrorNode = TENSORID;
+			return 42423341;
+		}
+		Lvalue->SetInfor((void*)newNode, id.GetIndex());
+		break;
 	}
 */

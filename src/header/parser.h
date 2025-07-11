@@ -386,6 +386,16 @@ namespace Pikachu
 
 		int buildNETBODY(const lex& eme, GTNode* NETBODY, NetInContext* Net);
 		int buildTENSOR(const lex& eme, GTNode* NET_STATEMENT, NetInContext* Net);
+
+		int buildTENSORsingle(Node*& newNode, const vector<size_t>&dims, TensorID& id, \
+			const lex& eme, GTNode* TENSORVALUE, NetInContext* Net);
+		int buildTENSORmulti(Node*& newNode, const vector<size_t>& dims, TensorID& id, \
+			const lex& eme, GTNode* TENSORVALUE, NetInContext* Net);
+		int buildTENSORsingleF(Node*& newNode, const vector<size_t>& dims, TensorID& id,\
+			const lex& eme, GTNode* TENSORVALUE, NetInContext* Net);
+		int buildTENSORmultiF(Node*& newNode, const vector<size_t>& dims, TensorID& id, \
+			const lex& eme, GTNode* TENSORVALUE, NetInContext* Net);
+
 		Node::OpType ParseOpType(const lex& eme, GTNode* OPERATOR);
 		int buildNETCheck(const lex& eme, GTNode* NETBODY, context* dst, NetInContext* Net);
 	};

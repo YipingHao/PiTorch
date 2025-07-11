@@ -1186,7 +1186,7 @@ void IDinfor::AssignLocalVarL(int& error, BuildInfor* infor, context* dst, void*
 }
 var* IDinfor::GetLocalVarL(int& error, BuildInfor* infor, context* dst)
 {
-	size_t index = GetIndex();
+	size_t index__ = GetIndex();
 	const char* name = GetName();
 	var* old = dst->SearchLocal(name);
 	if (old == NULL)
@@ -1203,7 +1203,7 @@ var* IDinfor::GetLocalVarL(int& error, BuildInfor* infor, context* dst)
 		error = 2432235343;
 		return NULL;
 	}
-	if (index >= old->count())
+	if (index__ >= old->count())
 	{
 		infor->errorCode = BuildInfor::ErrorIndexOutofRange;
 		infor->ErrorNode = backup;
