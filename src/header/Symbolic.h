@@ -315,9 +315,6 @@ namespace Pikachu
 		void PrintForwardMiniOp(VISA1& instru, vector<size_t>& FreeReg)const;
 		void PrintForwardMiniReg(VISA1& instru, vector<size_t>& FreeReg)const;
 
-		inline size_t OutputAmount(void)const { return output.count(); }
-		inline size_t ParameterAmount(void)const { return ParameterCount; }
-		inline size_t InputGroup(void)const { return InputDim.count(); }
 		friend class BuildInfor;
 	protected:
 		graph<node> formula;
@@ -372,6 +369,27 @@ namespace Pikachu
 		//========================
 		int ManifoldBuild(const char * source);
 		void ManifoldBuild(GLTree* Tree, hyperlex::Morpheme& eme, int* state);
+	public:
+		inline size_t OutputAmount(void)const { return output.count(); }
+		inline size_t ParameterAmount(void)const { return ParameterCount; }
+		inline size_t InputGroup(void)const { return InputDim.count(); }
+		inline size_t InputCount(void)const
+		{
+			size_t count = 0;
+			for (size_t i = 0; i < InputDim.count(); ++i)
+			{
+				count += InputDim[i];
+			}
+			return count;
+		}
+		size_t NodeCount(void)const;
+		inline void SetParameterCount(size_t Rvalue)
+		{
+			ParameterCount = Rvalue;
+		}
+		void ShrinkOutput(size_t victim);
+		// remove all the output node expression except the victim
+		// without Simplification
 	};
 
 	class activation : public expression
@@ -522,12 +540,15 @@ namespace Pikachu
 		size_t InputDim;
 		vector<size_t> function;
 		vector<Expres*> cluster;
+		size_t order;
 	public:
 		MonoFunc();
 		~MonoFunc();
 		void build(Expres* source);
 		void differential(void);
+		void clear(void);
 		void copy(const MonoFunc& source);
+		void demo(FILE* fp = stdout) const;
 		inline size_t GetOutputDim(void) const
 		{
 			return OutputDim;
@@ -557,6 +578,7 @@ namespace Pikachu
 		size_t OutputDim;
 		size_t InputDim;
 		size_t ParameterDim;
+		size_t order;
 		vector<size_t> function;
 		vector<Expres*> original;
 		vector<bool> diffInfor;
@@ -567,6 +589,9 @@ namespace Pikachu
 		void diffX(void);
 		void differential(bool X);
 		void copy(const DiFunc& source);
+		void clear(void);
+		void demo(FILE* fp = stdout) const;
+		void build(Expres* source);
 		inline size_t GetOutputDim(void) const
 		{
 			return OutputDim;

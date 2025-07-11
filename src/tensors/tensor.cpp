@@ -1784,7 +1784,19 @@ void dispatch::forward(const tensor& ForwardSrc, const elementwise& DescSrc, boo
 
 
 
+configurations::configurations()
+{
+	OutputFusionLimit = 1024;
+}
+configurations::~configurations()
+{
+}
+void configurations::demo(FILE* fp)const
+{
+	fprintf(fp, "configurations:\n");
+	fprintf(fp, "OutputFusionLimit: %zu\n", OutputFusionLimit);
 
+}
 
 
 

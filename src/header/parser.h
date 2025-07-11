@@ -244,6 +244,14 @@ namespace Pikachu
 			}
 			Scalar = false;
 		}
+		inline bool IfAlldefine(void) const
+		{
+			for (size_t i = 0; i < infors.count(); i++)
+			{
+				if (infors[i] == NULL) return false;
+			}
+			return true;
+		}
 	};
 	class func : public CompilerObj
 	{
@@ -312,6 +320,7 @@ namespace Pikachu
 			SymbolicAlreadyDef,
 			VarAlreadDef,
 			TooMuchPara,
+			TooLessPara,
 			TooMuchInput,
 			NoneOutput,
 			UndefineOutput,
@@ -325,6 +334,7 @@ namespace Pikachu
 			ErrorUnsupportFunc,
 			ErrorUnKnowEXP,
 
+			ErrorSelfCheck,
 			ErrorUndefined,
 			buildUndone,
 		};

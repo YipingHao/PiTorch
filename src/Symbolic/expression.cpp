@@ -2707,6 +2707,17 @@ void Expres::copy(const Expres& source, size_t OutNo)
     }
     OutputAppend(label[source.output[OutNo]->site()]);
 }
+//Simplify01();
+/*
+ * Simplify01:
+ * 1. remove the same node
+ * 2. remove the same operation
+ * 3. remove the same function
+ */
+ //Simplify02():
+/*
+
+*/
 bool Expres::Simplify(void)
 {
     bool changed_;
@@ -3175,6 +3186,8 @@ Expres::Ele* Expres::NewNode(type T, size_t S1, size_t S2)
     Expres::Ele* New;
     New = new Expres::Ele(T, S1, S2);
     formula.append(New);
+    //if(T == _LeafPara_)
+	//	ParameterCount += 1;
     return New;
 }
 Expres::Ele* Expres::NewNode(long int ele)
@@ -4372,3 +4385,23 @@ bool Expres::Simplify10(void)
     return changed_;
 }
 //========================
+
+
+size_t Expres::NodeCount(void)const
+{
+    size_t count_ = 0;
+    for (size_t i = 0; i < formula.count(); i++)
+    {
+        Expres::Ele* here = formula[i]; 
+		if (formula[i] != NULL) count_++;
+    }
+	return count_;  
+}
+void Expres::ShrinkOutput(size_t victim)
+{
+	Ele* temp = output[victim];
+    ClearOutput();
+	OutputAppend(temp);
+}
+
+

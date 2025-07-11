@@ -425,21 +425,61 @@ void manifolds::backward(void)
 
 MonoFunc::MonoFunc()
 {
+	InputDim = 0;
+	OutputDim = 0;
+	order = 0;
+
 	OutputFusion = true;
 }
 MonoFunc::~MonoFunc()
+{
+	clear();
+}
+void MonoFunc::build(Expres* source)
+{
+	configurations Config;
+	OutputDim = source->OutputAmount();
+	InputDim = source->InputCount();
+	OutputFusion = Config.OutputFusion(source->NodeCount());
+	if (OutputFusion)
+	{
+		Expres* dst = new Expres;
+		dst->copy(*source);
+		cluster.recount(1);
+		cluster[0] = dst;
+		function.recount(1);
+		function[0] = OutputDim;
+	}
+	else
+	{
+		cluster.recount(OutputDim);
+		for (size_t i = 0; i < OutputDim; i++)
+		{
+			cluster[i] = new Expres;
+			cluster[i]->copy(*source);
+			cluster[i]->ShrinkOutput(i);//
+			cluster[i]->Simplify();
+		}
+		function.recount(1);
+		function[0] = OutputDim;
+	}
+}
+void MonoFunc::clear(void)
 {
 	for (size_t i = 0; i < cluster.count(); i++)
 	{
 		delete cluster[i];
 	}
-}
-void MonoFunc::build(Expres* source)
-{
-
+	cluster.clear();
+	function.clear();
+	InputDim = 0;
+	OutputDim = 0;
+	OutputFusion = true;
+	order = 0;
 }
 void MonoFunc::differential(void)
 {
+	order += 1;
 	if (InputDim == 1)
 	{
 		for (size_t i = 0; i < cluster.count(); i++)
@@ -475,6 +515,7 @@ void MonoFunc::copy(const MonoFunc& source)
 	OutputFusion = source.OutputFusion;
 	OutputDim = source.OutputDim;
 	InputDim = source.InputDim;
+	order = source.order;
 
 	function.copy(source.function);
 	cluster.recount(source.cluster.count());
@@ -484,11 +525,60 @@ void MonoFunc::copy(const MonoFunc& source)
 		cluster[i]->copy(*(source[i]));
 	}
 }
-
+void MonoFunc::demo(FILE* fp) const
+{
+	fprintf(fp, "MonoFunc: OutputDim = %zu, InputDim = %zu, ", OutputDim, InputDim);
+	fprintf(fp, "Order = %zu, OutputFusion = %s\n", order, OutputFusion ? "true" : "false");
+	if (InputDim == 1 || order == 0)
+	{
+		for (size_t i = 0; i < cluster.count(); i++)
+		{
+			fprintf(fp, "Function %zu:\n", i);
+			cluster[i]->demo(fp);
+		}
+	}
+	else 
+	{
+		vector<size_t> indice;
+		indice.recount(order);
+		for (size_t i = 0; i < cluster.count(); i++)
+		{
+			// Calculate the indices for the current function
+			/*
+			
+			*/
+			size_t index = i;
+			for (size_t j = 0; j < order; j++)
+			{
+				indice[order - j - 1] = index % InputDim;
+				index /= InputDim;
+			}
+			if (OutputFusion || OutputDim == 1)
+			{
+				fprintf(fp, "No[%zu] diff:", i);
+			}
+			else
+			{
+				fprintf(fp, "No[%zu] diff[%zu]:", i, index);
+			}
+			for (size_t j = 0; j < order; j++)
+			{
+				fprintf(fp, "[%zu]", indice[j]);
+			}
+			fprintf(fp, "\n");
+			cluster[i]->demo(fp);
+		}
+	}
+}
 
 DiFunc::DiFunc()
 {
 	OutputFusion = true;
+	OutputDim = 0;
+	InputDim = 0;
+	ParameterDim = 0;
+	order = 0;
+
 }
 DiFunc::~DiFunc()
 {
@@ -503,6 +593,7 @@ DiFunc::~DiFunc()
 }
 void DiFunc::diffX(void)
 {
+	order += 1;
 	if (InputDim == 1)
 	{
 		for (size_t i = 0; i < cluster.count(); i++)
@@ -535,6 +626,7 @@ void DiFunc::diffX(void)
 }
 void DiFunc::differential(bool X)
 {
+	order += 1;
 	diffInfor.append(X);
 	if (X)
 	{
@@ -551,6 +643,7 @@ void DiFunc::copy(const DiFunc& source)
 	OutputDim = source.OutputDim;
 	InputDim = source.InputDim;
 	ParameterDim = source.ParameterDim;
+	order = source.order;
 
 	diffInfor.copy(source.diffInfor);
 	function.copy(source.function);
@@ -566,4 +659,95 @@ void DiFunc::copy(const DiFunc& source)
 		original[i]->copy(*(source.original[i]));
 	}
 }
+void DiFunc::clear(void)
+{
+	for (size_t i = 0; i < cluster.count(); i++)
+	{
+		delete cluster[i];
+	}
+	cluster.clear();
+	function.clear();
+	InputDim = 0;
+	OutputDim = 0;
+	ParameterDim = 0;
+	OutputFusion = true;
+	order = 0;
+	for (size_t i = 0; i < original.count(); i++)
+	{
+		delete original[i];
+	}
+	original.clear();
+	diffInfor.clear();
+}
+void DiFunc::demo(FILE* fp) const
+{
+	fprintf(fp, "DiFunc: OutputDim = %zu, InputDim = %zu, ParameterDim = %zu\n", OutputDim, InputDim, ParameterDim);
+	fprintf(fp, "Order = %zu, OutputFusion = %s\n", order, OutputFusion ? "true" : "false");
+	if (InputDim == 1 || order == 0)
+	{
+		for (size_t i = 0; i < cluster.count(); i++)
+		{
+			fprintf(fp, "Function %zu:\n", i);
+			cluster[i]->demo(fp);
+		}
+		return;
+	}
+	vector<size_t> indice;
+	indice.recount(order);
+	for (size_t i = 0; i < cluster.count(); i++)
+	{
+		fprintf(fp, "No[%zu] diff:", i);
+		size_t index = i;
+		for (size_t j = 0; j < order; j++)
+		{
+			indice[order - j - 1] = index % (diffInfor[j] ? InputDim : ParameterDim);
+			index /= (diffInfor[j] ? InputDim : ParameterDim);
+		}
+		for (size_t j = 0; j < order; j++)
+		{
+			fprintf(fp, "[%zu]", indice[j]);
+		}
+		fprintf(fp, "\n");
+		cluster[i]->demo(fp);
+	}
+	for (size_t i = 0; i < cluster.count(); i++)
+	{
+		fprintf(fp, "Function %zu:\n", i);
+		cluster[i]->demo(fp);
+	}
+}
+void DiFunc::build(Expres* source)
+{
+	OutputDim = source->OutputAmount();
+	InputDim = source->InputCount();
+	ParameterDim = source->ParameterAmount();
+	OutputFusion = true;
+	if (OutputFusion)
+	{
+		Expres* dst = new Expres;
+		dst->copy(*source);
+		cluster.recount(1);
+		cluster[0] = dst;
+	}
+	else
+	{
+		cluster.recount(OutputDim);
+		for (size_t i = 0; i < OutputDim; i++)
+		{
+			cluster[i] = new Expres;
+			cluster[i]->copy(*source);
+			cluster[i]->differetial(0, i, true);
+			cluster[i]->Simplify();
+		}
+	}
+	for (size_t i = 0; i < InputDim; i++)
+	{
+		Expres* dst = new Expres;
+		dst->copy(*source);
+		dst->differetial(0, i, true);
+		dst->Simplify();
+		original.append(dst);
+	}
+}
+
 

@@ -330,6 +330,29 @@ namespace Pikachu
 
 
 
+	class configurations
+	{
+	public:
+		configurations();
+		~configurations();
+
+	protected:
+		size_t OutputFusionLimit;
+	public:
+		inline void SetOutputFusionLimit(size_t limit)
+		{
+			OutputFusionLimit = limit;
+		}
+		inline size_t GetOutputFusionLimit(void) const
+		{
+			return OutputFusionLimit;
+		}
+		inline bool OutputFusion(size_t outputCount) const
+		{
+			return outputCount > OutputFusionLimit;
+		}
+		void demo(FILE* fp = stdout) const;
+	};
 
 
 

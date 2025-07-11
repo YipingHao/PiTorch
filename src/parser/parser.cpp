@@ -1231,7 +1231,7 @@ int BuildInfor::buildSymbolicBody(const lex& eme, GTNode* SYMBOLICBODY, context*
 int BuildInfor::buildSymbolicCheck(const lex& eme, GTNode* SYMBOLIC, context* dst, func* Func)
 {
 	int error = 0;
-	if (Func->InputCount > 1)
+	if (Func->InputCount != 1)
 	{
 		errorCode = TooMuchInput;
 		ErrorNode = SYMBOLIC;
@@ -1243,36 +1243,38 @@ int BuildInfor::buildSymbolicCheck(const lex& eme, GTNode* SYMBOLIC, context* ds
 		ErrorNode = SYMBOLIC;
 		return 234789407;
 	}
-	if (Func->OutputCount == 0 || Func->OutputCount > 1)
+	if (Func->OutputCount != 1)
 	{
 		ErrorNode = SYMBOLIC;
 		errorCode = NoneOutput;
 		return 79858736;
 	}
+	Expres* Exp = Func->Exp;
 	for (size_t i = 0; i < dst->global.count(); i++)
 	{
 		var* temp = dst->global[i];
-		if (!temp->compareAttri("output")) continue;
-		if (temp->scalar())
+		if (temp->compareAttri("output"))
 		{
-			if (temp->Getnode() == NULL)
+			if (temp->IfAlldefine())
 			{
 				ErrorNode = SYMBOLIC;
 				errorCode = UndefineOutput;
-				return 834534345;
+				return 893534346;
 			}
-		}
-		else
-		{
 			for (size_t j = 0; j < temp->count(); j++)
 			{
-				if (temp->Getnode(j) == NULL)
-				{
-					ErrorNode = SYMBOLIC;
-					errorCode = UndefineOutput;
-					return 893534346;
-				}
+				Exp->OutputAppend(temp->Getnode(j));
 			}
+			if (Exp->OutputAmount() != temp->count())
+			{
+				ErrorNode = SYMBOLIC;
+				errorCode = ErrorSelfCheck;
+				return 893534346;
+			}
+		}
+		else if (temp->compareAttri("para"))
+		{
+			Exp->SetParameterCount(temp->count());
 		}
 	}
 
@@ -1609,7 +1611,17 @@ int BuildInfor::buildTENSORsingleF(Node*& newNode, const vector<size_t>& dims, T
 	GTNode* TENSORID = TENSORVALUE->child(0);
 	TensorID funR;
 	int error = funR.BuildSingle(eme, TENSORID, this, dst);
+	if (error != 0)return error;
 	func* funcR = funR.GetAllFuncR(error, this, dst);
+	if (error != 0)return error;
+
+	if(funcR->ParaCount == 1)
+	{
+		errorCode = TooMuchPara;
+		errorInfor1 = line;
+		ErrorNode = TENSORID;
+		return 42445341;
+	}
 
 	GTNode* SQ_INDEXUNITS = TENSORVALUE->child(1);
 	Indexs listFunc;
@@ -1659,7 +1671,16 @@ int BuildInfor::buildTENSORmultiF(Node*& newNode, const vector<size_t>& dims, Te
 	GTNode* TENSORID = TENSORVALUE->child(0);
 	TensorID funR;
 	int error = funR.BuildSingle(eme, TENSORID, this, dst);
+	if (error != 0)return error;
 	func* funcR = funR.GetAllFuncR(error, this, dst);
+	if (error != 0)return error;
+	if (funcR->ParaCount != 1)
+	{
+		errorCode = TooLessPara;
+		errorInfor1 = line;
+		ErrorNode = TENSORID;
+		return 42445331;
+	}
 
 	GTNode* SQ_INDEXUNITS = TENSORVALUE->child(1);
 	Indexs listFunc;
