@@ -445,9 +445,10 @@ Node* NetWork::NewNodeDiLinear(const dims_t& dims, Node* srcL, Node* srcR, Node:
 }
 Node* NetWork::NewNodeMonoNonlinear(const dims_t& dims, Node* srcL, Expres* func, indiceIS& indice)
 {
+	int error = 0;
 	if (indice.Icount() != 4) return NULL;
 	MonoNonlinear* dst = new MonoNonlinear(Node::initial);
-	int error = dst->build(srcL, func, indice.I(0), indice.I(1), indice.I(2));
+	//int error = dst->build(srcL, func, indice.I(0), indice.I(1), indice.I(2));
 	if (error != 0)
 	{
 		delete dst;
@@ -468,9 +469,10 @@ Node* NetWork::NewNodeMonoNonlinear(const dims_t& dims, Node* srcL, Expres* func
 }
 Node* NetWork::NewNodeDiNonlinear(const dims_t& dims, Node* srcL, Node* srcR, Expres* func, indiceIS& indice)
 {
+	int error = 0;
 	if (indice.Icount() != 5) return NULL;
 	DiNonlinear* dst = new DiNonlinear(Node::initial);
-	int error = dst->build(srcL, srcR, func, indice.I(0), indice.I(1), indice.I(2), indice.I(3));
+	//int error = dst->build(srcL, srcR, func, indice.I(0), indice.I(1), indice.I(2), indice.I(3));
 	if (error != 0)
 	{
 		delete dst;
