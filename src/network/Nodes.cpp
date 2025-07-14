@@ -226,13 +226,16 @@ MonoNonlinear::MonoNonlinear()
 {
 	Type = _MonoNonlinear_;
 
-
+	ScalarInput = true;
+	x = -1;
 	gradient = NULL;
 }
 MonoNonlinear::MonoNonlinear(Affiliation AA)
 {
 	Type = _MonoNonlinear_;
 
+	ScalarInput = true;
+	x = -1;
 
 	gradient = NULL;
 	Affi = AA;
@@ -1537,8 +1540,72 @@ MonoNonlinear* MonoNonlinear::differential(Affiliation AA)
 int MonoNonlinear::build(const dims_t& dims, Node* srcL, Expres* func, indiceIS& indice)
 {
 	if (srcL == NULL || func == NULL) return -1;
+	//TENSOR TENSORID assign TENSORVALUE semicolon;
+	//TENSORID(TensorID funR) SQ_INDEXUNITS(listFunc) left TENSORID(idSrcL) right;
+	vector<sint> const& dstI = indice.I(0);//IS.appendS(id.GetSIndex());
+	vector<sint> const& funcI = indice.I(1);//IS.appendS(funR.GetSIndex());
+	vector<sint> const& listI = indice.I(2);//IS.appendS(listFunc.GetSIndex());
+	vector<sint> const& srcLI = indice.I(3);//IS.appendS(idSrcL.GetSIndex());
 
-	return 0;
+	formula.build(func);
+	ScalarInput = formula.ScalarInput();
+	if (1 != listI.count())
+	{
+		return 2343223; // 错误代码，函数索引维度不匹配
+	}
+	funcTensor.Set(formula.GetDims());
+	if (!ScalarInput) x = listI[0];
+	function.copy(funcI);
+
+	indexDst.copy(dstI);
+	indexSrc.copy(srcLI);
+
+	return (int)CheckIndice();
+}
+MonoNonlinear::ErrorInfor MonoNonlinear::CheckIndice(void) const
+{
+	// 1. 检查 indexSrc、indexDst、function 内部是否有重复
+	for (size_t i = 0; i < indexSrc.count(); ++i)
+		for (size_t j = i + 1; j < indexSrc.count(); ++j)
+			if (indexSrc[i] == indexSrc[j]) return IndexRedundancy;
+	for (size_t i = 0; i < indexDst.count(); ++i)
+		for (size_t j = i + 1; j < indexDst.count(); ++j)
+			if (indexDst[i] == indexDst[j]) return IndexDstRedundancy;
+	for (size_t i = 0; i < function.count(); ++i)
+		for (size_t j = i + 1; j < function.count(); ++j)
+			if (function[i] == function[j]) return FunctionRedundancy;
+	// 2. 检查 x 是否在 indexSrc 中不在则报错。是否在indexDst中，在则报错
+	if (!ScalarInput)
+	{
+		size_t site = indexSrc.search(x);
+		if (site == _uintMax_) return XNotInIndexSrc; // x 不在 indexSrc 中，报错
+		size_t siteDst = indexDst.search(x);
+		if (siteDst != _uintMax_) return XInIndexDst; // x 在 indexDst 中，报错
+	}
+	// 3. 检查 indexDst 中的每个指标是否在 indexSrc 或 function 中
+	for (size_t i = 0; i < indexDst.count(); ++i)
+	{
+		sint temp = indexDst[i];
+		size_t siteSrc = indexSrc.search(temp);
+		size_t siteFunc = function.search(temp);
+		if (siteSrc == _uintMax_ && siteFunc == _uintMax_) return IndexDstNotInIndexSrcOrFunction;
+	}
+	//4.检查 indexSrc或function中的指标，如果不是x，那么必须在indexDst中
+	for (size_t i = 0; i < indexSrc.count(); ++i)
+	{
+		sint temp = indexSrc[i];
+		if (temp == x) continue; // 如果是 x，跳过检查
+		size_t siteDst = indexDst.search(temp);
+		if (siteDst == _uintMax_) return IndexSrcOrFunctionNotInIndexDst;
+	}
+	for (size_t i = 0; i < function.count(); ++i)
+	{
+		sint temp = function[i];
+		if (temp == x) continue; // 如果是 x，跳过检查
+		size_t siteDst = indexDst.search(temp);
+		if (siteDst == _uintMax_) return IndexSrcOrFunctionNotInIndexDst;
+	}
+	return NoError;
 }
 
 
@@ -1671,6 +1738,91 @@ hyperlex::dictionary* DiNonlinear::ErrorGive(void) const
 	inforPrint(*error);
 	return error;
 }
+int DiNonlinear::build(const dims_t& dims, Node* srcL, Node* srcR, Expres* func, indiceIS& indice)
+{
+	if (srcL == NULL || srcR == NULL || func == NULL) return -1;
+	//TENSOR TENSORID assign TENSORVALUE semicolon;
+	//TENSORID(TensorID funR) SQ_INDEXUNITS(listFunc) left TENSORID(idSrcL) right;
+	vector<sint> const& dstI = indice.I(0);//IS.appendS(id.GetSIndex());
+	vector<sint> const& funcI = indice.I(1);//IS.appendS(funR.GetSIndex());
+	vector<sint> const& listI = indice.I(2);//IS.appendS(listFunc.GetSIndex());
+	vector<sint> const& srcLI = indice.I(3);//IS.appendS(idSrcL.GetSIndex());
+	vector<sint> const& srcRI = indice.I(4);//IS.appendS(idSrcR.GetSIndex());
+	formula.build(func);
+	ScalarInput = formula.ScalarInput();
+	ScalarPara = formula.ScalarPara();
+	if (2 != listI.count())
+	{
+		return 2343223; // 错误代码，函数索引维度不匹配
+	}
+	funcTensor.Set(formula.GetDims());
+	if (!ScalarInput) x = listI[0];
+	if (!ScalarPara) omega = listI[1];
+	function.copy(funcI);
+	indexDst.copy(dstI);
+	indexSrc.copy(srcLI);
+	indexPara.copy(srcRI);
+	return (int)CheckIndice();
+}
+DiNonlinear::ErrorInfor DiNonlinear::CheckIndice(void) const
+{
+	// 1. 检查 indexSrc、indexDst、function, indexPara 内部是否有重复
+	for (size_t i = 0; i < indexSrc.count(); ++i)
+		for (size_t j = i + 1; j < indexSrc.count(); ++j)
+			if (indexSrc[i] == indexSrc[j]) return IndexRedundancy;
+	for (size_t i = 0; i < indexDst.count(); ++i)
+		for (size_t j = i + 1; j < indexDst.count(); ++j)
+			if (indexDst[i] == indexDst[j]) return IndexDstRedundancy;
+	for (size_t i = 0; i < function.count(); ++i)
+		for (size_t j = i + 1; j < function.count(); ++j)
+			if (function[i] == function[j]) return FunctionRedundancy;
+	for (size_t i = 0; i < indexPara.count(); ++i)
+		for (size_t j = i + 1; j < indexPara.count(); ++j)
+			if (indexPara[i] == indexPara[j]) return IndexParaRedundancy;
+	// 2. 检查 x 是否在 indexSrc 中不在则报错。是否在indexDst中，在则报错
+	if (!ScalarInput)
+	{
+		size_t site = indexSrc.search(x);
+		if (site == _uintMax_) return XNotInIndexSrc; // x 不在 indexSrc 中，报错
+		size_t siteDst = indexDst.search(x);
+		if (siteDst != _uintMax_) return XInIndexDst; // x 在 indexDst 中，报错
+	}
+	// 3. 检查 omega 是否在 indexPara 中不在则报错。是否在indexDst中，在则报错
+	if (!ScalarPara)
+	{
+		size_t site = indexPara.search(omega);
+		if (site == _uintMax_) return OmegaNotInIndexPara; // omega 不在 indexPara 中，报错
+		size_t siteDst = indexDst.search(omega);
+		if (siteDst != _uintMax_) return OmegaInIndexDst; // omega 在 indexDst 中，报错
+	}
+	// 4. 检查 indexDst 中的每个指标是否在 indexSrc 或 function 中
+	for (size_t i = 0; i < indexDst.count(); ++i)
+	{
+		sint temp = indexDst[i];
+		size_t siteSrc = indexSrc.search(temp);
+		size_t siteFunc = function.search(temp);
+		if (siteSrc == _uintMax_ && siteFunc == _uintMax_) return IndexDstNotInIndexSrcOrFunction;
+	}
+	//5.检查 indexSrc或function中的指标，如果不是x，那么必须在indexDst中
+	for (size_t i = 0; i < indexSrc.count(); ++i)
+	{
+		sint temp = indexSrc[i];
+		if (temp == x || temp == omega) continue; // 如果是 x，跳过检查
+		size_t siteDst = indexDst.search(temp);
+		if (siteDst == _uintMax_) return IndexSrcOrFunctionNotInIndexDst;
+	}
+	for (size_t i = 0; i < function.count(); ++i)
+	{
+		sint temp = function[i];
+		if (temp == x || temp == omega) continue; // 如果是 x，跳过检查
+		size_t siteDst = indexDst.search(temp);
+		if (siteDst == _uintMax_) return IndexSrcOrFunctionNotInIndexDst;
+	}
+	//6.检查x是否等于omega
+	if (!ScalarInput && !ScalarPara && x == omega) return XEqualOmega; // x 等于 omega，报错
+	
+	return NoError;
+}
 
 
 #include<string.h>
@@ -1760,8 +1912,16 @@ void indiceIS::StoI(void)
 		for (size_t j = 0; j < temp->count(); ++j)
 		{
 			const char* str = (*temp)[j];
-			sint index = SP.append(str);
-			(*newI)[j] = index + 1; // +1 to avoid zero index
+			if (str == NULL)
+			{
+				(*newI)[j] = -1; // 使用 -1 作为特殊标记
+			}
+			else
+			{
+				sint index = SP.append(str);
+				(*newI)[j] = index + 1; // +1 to avoid zero index
+			}
+			
 		}
 		indicsI.append(newI);
 	}

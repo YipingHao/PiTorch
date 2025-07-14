@@ -440,15 +440,13 @@ void MonoFunc::build(Expres* source)
 	configurations Config;
 	OutputDim = source->OutputAmount();
 	InputDim = source->InputCount();
-	OutputFusion = Config.OutputFusion(source->NodeCount());
+	OutputFusion = Config.OutputFusion(source->NodeCount()) || OutputDim == 1;
 	if (OutputFusion)
 	{
 		Expres* dst = new Expres;
 		dst->copy(*source);
 		cluster.recount(1);
 		cluster[0] = dst;
-		function.recount(1);
-		function[0] = OutputDim;
 	}
 	else
 	{
@@ -460,9 +458,9 @@ void MonoFunc::build(Expres* source)
 			cluster[i]->ShrinkOutput(i);//
 			cluster[i]->Simplify();
 		}
-		function.recount(1);
-		function[0] = OutputDim;
 	}
+	dims.recount(1);
+	dims[0] = OutputDim;
 }
 void MonoFunc::clear(void)
 {
@@ -471,7 +469,7 @@ void MonoFunc::clear(void)
 		delete cluster[i];
 	}
 	cluster.clear();
-	function.clear();
+	dims.clear();
 	InputDim = 0;
 	OutputDim = 0;
 	OutputFusion = true;
@@ -507,7 +505,7 @@ void MonoFunc::differential(void)
 			}
 		}
 		for (size_t i = 0; i < oldDim; i++) delete primitive[i];
-		function.append(InputDim);
+		dims.append(InputDim);
 	}
 }
 void MonoFunc::copy(const MonoFunc& source)
@@ -517,7 +515,7 @@ void MonoFunc::copy(const MonoFunc& source)
 	InputDim = source.InputDim;
 	order = source.order;
 
-	function.copy(source.function);
+	dims.copy(source.dims);
 	cluster.recount(source.cluster.count());
 	for (size_t i = 0; i < cluster.count(); i++)
 	{
@@ -529,6 +527,10 @@ void MonoFunc::demo(FILE* fp) const
 {
 	fprintf(fp, "MonoFunc: OutputDim = %zu, InputDim = %zu, ", OutputDim, InputDim);
 	fprintf(fp, "Order = %zu, OutputFusion = %s\n", order, OutputFusion ? "true" : "false");
+	for (size_t i = 0; i < dims.count(); i++)
+	{
+
+	}
 	if (InputDim == 1 || order == 0)
 	{
 		for (size_t i = 0; i < cluster.count(); i++)
@@ -621,7 +623,7 @@ void DiFunc::diffX(void)
 			}
 		}
 		for (size_t i = 0; i < oldDim; i++) delete primitive[i];
-		function.append(InputDim);
+		dims.append(InputDim);
 	}
 }
 void DiFunc::differential(bool X)
@@ -630,11 +632,70 @@ void DiFunc::differential(bool X)
 	diffInfor.append(X);
 	if (X)
 	{
-		if (InputDim != 1) function.append(InputDim);
+		if (InputDim == 1)
+		{
+			for (size_t i = 0; i < cluster.count(); i++)
+			{
+				cluster[i]->differetial(0, 0, true);
+			}
+		}
+		else
+		{
+			vector<Expres*>primitive;
+			Expres* temp;
+			size_t oldDim = cluster.count();
+			primitive.recount(oldDim);
+			for (size_t i = 0; i < oldDim; i++) primitive[i] = cluster[i];
+			cluster.recount(oldDim * InputDim);
+			for (size_t i = 0; i < oldDim; i++)
+			{
+				for (size_t j = 0; j < InputDim; j++)
+				{
+					temp = new Expres;
+					temp->copy(*primitive[i]);
+					temp->differetial(0, j, true);
+					temp->Simplify();
+					cluster[i * InputDim + j] = temp;
+				}
+			}
+			for (size_t i = 0; i < oldDim; i++) delete primitive[i];
+			dims.append(InputDim);
+		} 
+		
 	}
 	else
 	{
-		if (ParameterDim != 1) function.append(ParameterDim);
+		if (ParameterDim == 1)
+		{
+			for (size_t i = 0; i < cluster.count(); i++)
+			{
+				cluster[i]->differetial(0, 0, true);
+			}
+		}
+		else
+		{
+			vector<Expres*>primitive;
+			Expres* temp;
+			size_t oldDim = cluster.count();
+			primitive.recount(oldDim);
+			for (size_t i = 0; i < oldDim; i++) primitive[i] = cluster[i];
+			cluster.recount(oldDim * ParameterDim);
+			for (size_t i = 0; i < oldDim; i++)
+			{
+				for (size_t j = 0; j < ParameterDim; j++)
+				{
+					temp = new Expres;
+					temp->copy(*primitive[i]);
+					temp->differetial(0, j, false);
+					//
+					temp->Simplify();
+					cluster[i * ParameterDim + j] = temp;
+				}
+			}
+			for (size_t i = 0; i < oldDim; i++) delete primitive[i];
+			dims.append(ParameterDim);
+		}
+	
 	}
 }
 void DiFunc::copy(const DiFunc& source)
@@ -646,7 +707,7 @@ void DiFunc::copy(const DiFunc& source)
 	order = source.order;
 
 	diffInfor.copy(source.diffInfor);
-	function.copy(source.function);
+	dims.copy(source.dims);
 	cluster.recount(source.cluster.count());
 	for (size_t i = 0; i < cluster.count(); i++)
 	{
@@ -666,7 +727,7 @@ void DiFunc::clear(void)
 		delete cluster[i];
 	}
 	cluster.clear();
-	function.clear();
+	dims.clear();
 	InputDim = 0;
 	OutputDim = 0;
 	ParameterDim = 0;
@@ -718,35 +779,39 @@ void DiFunc::demo(FILE* fp) const
 }
 void DiFunc::build(Expres* source)
 {
+	configurations Config;
 	OutputDim = source->OutputAmount();
 	InputDim = source->InputCount();
 	ParameterDim = source->ParameterAmount();
-	OutputFusion = true;
+	OutputFusion = Config.OutputFusion(source->NodeCount()) || OutputDim == 1;
+
+	dims.recount(1);
+	dims[0] = OutputDim;
+
 	if (OutputFusion)
 	{
 		Expres* dst = new Expres;
 		dst->copy(*source);
-		cluster.recount(1);
-		cluster[0] = dst;
+		original.recount(1);
+		original[0] = dst;
 	}
 	else
 	{
-		cluster.recount(OutputDim);
+		original.recount(OutputDim);
 		for (size_t i = 0; i < OutputDim; i++)
 		{
-			cluster[i] = new Expres;
-			cluster[i]->copy(*source);
-			cluster[i]->differetial(0, i, true);
-			cluster[i]->Simplify();
+			original[i] = new Expres;
+			original[i]->copy(*source);
+			original[i]->differetial(0, i, true);
+			original[i]->Simplify();
 		}
 	}
-	for (size_t i = 0; i < InputDim; i++)
+	cluster.recount(original.count());
+	for (size_t i = 0; i < original.count(); i++)
 	{
 		Expres* dst = new Expres;
-		dst->copy(*source);
-		dst->differetial(0, i, true);
-		dst->Simplify();
-		original.append(dst);
+		dst->copy(*(original[i]));
+		cluster[i] = dst;
 	}
 }
 

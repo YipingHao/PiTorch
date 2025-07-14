@@ -1629,17 +1629,17 @@ int BuildInfor::buildTENSORsingleF(Node*& newNode, const vector<size_t>& dims, T
 	if (error != 0) return error;
 
 	TENSORID = TENSORVALUE->child(3);
-	TensorID idL;
-	error = idL.build(eme, TENSORID, this, dst);
+	TensorID idSrcL;
+	error = idSrcL.build(eme, TENSORID, this, dst);
 	if (error != 0) return error;
-	Node* srcL = (Node*)idL.GetLocalTensorR(error, this, dst);
+	Node* srcL = (Node*)idSrcL.GetLocalTensorR(error, this, dst);
 	if (error != 0) return error;
 
 	indiceIS IS;
 	IS.appendS(id.GetSIndex());
 	IS.appendS(funR.GetSIndex());
 	IS.appendS(listFunc.GetSIndex());
-	IS.appendS(idL.GetSIndex());
+	IS.appendS(idSrcL.GetSIndex());
 	IS.StoI();
 
 
@@ -1687,26 +1687,26 @@ int BuildInfor::buildTENSORmultiF(Node*& newNode, const vector<size_t>& dims, Te
 	error = listFunc.buildSQ_INDEXUNITS(eme, SQ_INDEXUNITS, this, dst);
 	if (error != 0) return error;
 
-	TensorID idL, idR;
+	TensorID idSrcL, idSrcR;
 
 	TENSORID = TENSORVALUE->child(3);
-	error = idL.build(eme, TENSORID, this, dst);
+	error = idSrcL.build(eme, TENSORID, this, dst);
 	if (error != 0) return error;
-	Node* srcL = (Node*)idL.GetLocalTensorR(error, this, dst);
+	Node* srcL = (Node*)idSrcL.GetLocalTensorR(error, this, dst);
 	if (error != 0) return error;
 
 	TENSORID = TENSORVALUE->child(5);
-	error = idR.build(eme, TENSORID, this, dst);
+	error = idSrcR.build(eme, TENSORID, this, dst);
 	if (error != 0) return error;
-	Node* srcR = (Node*)idR.GetLocalTensorR(error, this, dst);
+	Node* srcR = (Node*)idSrcR.GetLocalTensorR(error, this, dst);
 	if (error != 0) return error;
 
 	indiceIS IS;
 	IS.appendS(id.GetSIndex());
 	IS.appendS(funR.GetSIndex());
 	IS.appendS(listFunc.GetSIndex());
-	IS.appendS(idL.GetSIndex());
-	IS.appendS(idR.GetSIndex());
+	IS.appendS(idSrcL.GetSIndex());
+	IS.appendS(idSrcR.GetSIndex());
 	IS.StoI();
 
 

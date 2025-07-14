@@ -274,7 +274,44 @@ namespace Pikachu
 	};
 	class MonoNonlinear : public Node
 	{
+	protected:
+		Tensor funcTensor;
+		bool ScalarInput;
+		sint x;
+		vector<sint> function;
+
+		vector<sint> indexDst;
+		vector<sint> indexSrc;
+
+		MonoFunc formula;
+
+
+
+		MonoNonlinear* gradient;
+
+		sint MaxIndex(void) const;
+		MonoNonlinear* differential(Affiliation AA);
+		void inforPrint(hyperlex::dictionary& dict)const;
+		hyperlex::dictionary* ErrorGive(void) const;
 	public:
+		enum ErrorInfor
+		{
+			NoError = 0,
+			//indexSrc内部的重复
+			IndexRedundancy,
+			//indexDst内部的重复
+			IndexDstRedundancy,
+			//function内部的重复
+			FunctionRedundancy,
+			//X的值不在indexSrc中
+			XNotInIndexSrc,
+			//X的值在indexDst中
+			XInIndexDst,
+			//indexDst中的指标不在indexSrc 或 function 中
+			IndexDstNotInIndexSrcOrFunction,
+			// 检查 indexSrc或function中的指标，如果不是x，那么必须在indexDst中
+			IndexSrcOrFunctionNotInIndexDst,
+		};
 		MonoNonlinear();
 		MonoNonlinear(Affiliation AA);
 		~MonoNonlinear();
@@ -290,26 +327,8 @@ namespace Pikachu
 		void demo(FILE* fp = stdout) const;
 
 		int build(const dims_t& dims, Node* srcL, Expres* func, indiceIS& indice);
-	protected:
-		Tensor funcTensor;
-		bool ScalarInput;
-		sint x;
-		vector<sint> function;
-
-		vector<sint> indexDst;
-		vector<sint> indexSrc;
-
-		MonoFunc formula;
+		ErrorInfor CheckIndice(void) const;
 	
-
-		
-		
-		MonoNonlinear* gradient;
-
-		sint MaxIndex(void) const;
-		MonoNonlinear* differential(Affiliation AA);
-		void inforPrint(hyperlex::dictionary& dict)const;
-		hyperlex::dictionary * ErrorGive(void) const;
 	};
 	class DiNonlinear : public Node
 	{
@@ -349,6 +368,27 @@ namespace Pikachu
 		DiNonlinear* differential(bool X, Affiliation AA);
 		void inforPrint(hyperlex::dictionary& dict)const;
 		hyperlex::dictionary* ErrorGive(void) const;
+	public:
+		enum ErrorInfor
+		{
+			NoError = 0,
+			
+			IndexRedundancy,//indexSrc内部的重复
+			IndexDstRedundancy,//indexDst内部的重复
+			FunctionRedundancy,//function内部的重复
+			IndexParaRedundancy,//indexPara内部的重复
+			XNotInIndexSrc,//X的值不在indexSrc中
+			XInIndexDst,//X的值在indexDst中
+			OmegaNotInIndexPara,//
+			OmegaInIndexDst,//
+			//indexDst中的指标不在indexSrc 或 function 中
+			IndexDstNotInIndexSrcOrFunction,
+			// 检查 indexSrc或function中的指标，如果不是x，那么必须在indexDst中
+			IndexSrcOrFunctionNotInIndexDst,
+			XEqualOmega,//
+		};
+		int build(const dims_t& dims, Node* srcL, Node* srcR, Expres* func, indiceIS& indice);
+		ErrorInfor CheckIndice(void) const;
 	};
 	
 	

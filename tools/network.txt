@@ -24,7 +24,7 @@
 	ID2:
 	{
 		yes: id;
-		no: void;
+		no: sub;
 	}
 	TENSORVALUE:
 	{

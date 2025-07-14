@@ -538,7 +538,7 @@ namespace Pikachu
 		bool OutputFusion;
 		size_t OutputDim;
 		size_t InputDim;
-		vector<size_t> function;
+		vector<size_t> dims;
 		vector<Expres*> cluster;
 		size_t order;
 	public:
@@ -549,7 +549,7 @@ namespace Pikachu
 		void clear(void);
 		void copy(const MonoFunc& source);
 		void demo(FILE* fp = stdout) const;
-		inline size_t GetOutputDim(void) const
+		inline size_t GetOutputOrder(void) const
 		{
 			return OutputDim;
 		}
@@ -569,7 +569,14 @@ namespace Pikachu
 		{
 			return cluster[No];
 		}
-
+		inline bool ScalarInput(void) const
+		{
+			return (InputDim == 1);
+		}
+		inline const vector<size_t> const& GetDims(void) const
+		{
+			return dims;
+		}
 	};
 	class DiFunc
 	{
@@ -579,7 +586,7 @@ namespace Pikachu
 		size_t InputDim;
 		size_t ParameterDim;
 		size_t order;
-		vector<size_t> function;
+		vector<size_t> dims;
 		vector<Expres*> original;
 		vector<bool> diffInfor;
 		vector<Expres*> cluster;
@@ -592,7 +599,7 @@ namespace Pikachu
 		void clear(void);
 		void demo(FILE* fp = stdout) const;
 		void build(Expres* source);
-		inline size_t GetOutputDim(void) const
+		inline size_t GetOutputOrder(void) const
 		{
 			return OutputDim;
 		}
@@ -613,7 +620,18 @@ namespace Pikachu
 			return cluster[No];
 		}
 	
-
+		inline bool ScalarInput(void) const
+		{
+			return (InputDim == 1);
+		}
+		inline bool ScalarPara(void) const
+		{
+			return (ParameterDim == 1);
+		}
+		inline const vector<size_t> const& GetDims(void) const
+		{
+			return dims;
+		}
 	};
 
 
