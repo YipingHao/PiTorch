@@ -5,10 +5,7 @@
 using namespace Pikachu;
 static bool compare(const char* str1, const char* str2);
 
-inline bool var::compareAttri(const char* srcR)const
-{
-	return compare(srcR, attribute);
-}
+
 
 
 
@@ -592,7 +589,10 @@ void var::SetAttri(const char* NewName)
 		attribute[i] = NewName[i];
 	}
 }
-
+bool var::compareAttri(const char* srcR)const
+{
+	return compare(srcR, attribute);
+}
 
 func::func()
 {
