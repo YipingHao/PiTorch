@@ -1252,7 +1252,7 @@ int ValueList::buildSA(const lex& eme, GTNode* VALUE, BuildInfor* infor, context
 		return 0;
 	}
 	else
-		return build(eme, VALUE, infor, dst); // 调用build函数处理多值列表
+		return build(eme, VALUE->child(1), infor, dst); // 调用build函数处理多值列表
 }
 int ValueList::build(const lex& eme, GTNode* VALUELIST, BuildInfor* infor, context* dst)
 {
