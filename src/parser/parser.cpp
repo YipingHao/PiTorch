@@ -805,8 +805,8 @@ int BuildInfor::GetAExpres(Expres::node*& output, const lex& eme, GTNode* EXP_RI
 		printf("GTNode* GT = iterator.target();\n");
 		if (iterator.state() == 0)
 		{
-			printf("..");
-			printf("[%zu]: %zu, %d", GT->root().label, GT->root().site, iterator.state());
+			printf("..\n");
+			printf("[%zu]: %zu, %d\n", GT->root().label, GT->root().site, iterator.state());
 			NetG::rules RR = (NetG::rules)GT->root().site;
 			switch (RR) {
 			case Pikachu::NetG::ID_single_:
@@ -855,7 +855,7 @@ int BuildInfor::GetAExpres(Expres::node*& output, const lex& eme, GTNode* EXP_RI
 			default:
 				break;
 			}
-			printf("++");
+			printf("++\n");
 		}
 		else // (iterator.state() == 1) 
 		{
