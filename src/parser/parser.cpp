@@ -527,19 +527,19 @@ int BuildInfor::GetIDindex(size_t& index, const lex& eme, GTNode* ID, context* d
 }
 
 
-int BuildInfor::GetAConst(ConstObj*& output, const lex& eme, GTNode* GTarget, context* dst) 
+int BuildInfor::GetAConst(ConstObj*& output, const lex& eme, GTNode* EXP_RIGHT, context* dst)
 {
 	GTiterator iterator;
 	int error = 0;
 	output = NULL;
-	iterator.initial(GTarget);
+	iterator.initial(EXP_RIGHT);
 
-	NetG::nonterminal RRR = (NetG::nonterminal)NetG::RulesToSymbol[GTarget->root().site];
+	NetG::nonterminal RRR = (NetG::nonterminal)NetG::RulesToSymbol[EXP_RIGHT->root().site];
 	if (RRR != NetG::nonterminal::_EXP_RIGHT_)
 	{
-		errorInfor1 = GTarget->root().site;
+		errorInfor1 = EXP_RIGHT->root().site;
 		errorCode = WrongEntrance;
-		ErrorNode = GTarget;
+		ErrorNode = EXP_RIGHT;
 		return 12321;
 	}
 	while (iterator.still())
@@ -548,6 +548,7 @@ int BuildInfor::GetAConst(ConstObj*& output, const lex& eme, GTNode* GTarget, co
 		if (iterator.state() == 1)
 		{
 			NetG::rules RR = (NetG::rules)GT->root().site;
+			printf("RR: %d\n", RR);
 			switch (RR)
 			{
 			case Pikachu::NetG::EXP_RIGHT_add_:
@@ -741,10 +742,10 @@ int BuildInfor::GetAConst(ConstObj*& output, const lex& eme, GTNode* GTarget, co
 		if (error != 0) break;
 		iterator.next();
 	}
-	ConstObj* target = (ConstObj*)(GTarget->root().infor);
+	ConstObj* target = (ConstObj*)(EXP_RIGHT->root().infor);
 	output = target;
-	GTarget->root().infor = NULL;
-	iterator.initial(GTarget);
+	EXP_RIGHT->root().infor = NULL;
+	iterator.initial(EXP_RIGHT);
 	while (iterator.still())
 	{
 		GTNode* GT = iterator.target();
