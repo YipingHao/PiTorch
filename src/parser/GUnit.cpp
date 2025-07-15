@@ -604,7 +604,7 @@ void var::demo(FILE* fp, size_t tabs) const
 	else
 		fprintf(fp, "(???) ");
 	if (name)
-		fprintf(fp, "%s ", name);
+		fprintf(fp, "%s = [", name);
 	else
 		fprintf(fp, "??? = [");
 	if (infors.count() != 0)
