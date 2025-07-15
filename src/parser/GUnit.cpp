@@ -847,7 +847,9 @@ var* IDinfor::SetVarL(int& error, BuildInfor* infor, context* dst, const char* a
 {
 	size_t dim = GetDim();
 	const char* name = GetName();
+	printf("\t??????\n");
 	if (CheckType(error, infor)) return NULL;
+	printf("\t??????\n");
 	var* old = dst->search(name);
 	ConstObj* oldC = dst->searchConst(name);
 	if (old != NULL || oldC != NULL)
@@ -857,15 +859,17 @@ var* IDinfor::SetVarL(int& error, BuildInfor* infor, context* dst, const char* a
 		error = 234789433;
 		return NULL;
 	}
+	printf("\t??????\n");
 	var* newVar = new var;
 	newVar->SetName(name);
 	if (attri != NULL)newVar->SetAttri(attri);
-
+	printf("\t??????\n");
 	if (!scalar)
 	{
 		newVar->SetCount(dim);
 	}
 	dst->global.append(newVar);
+	printf("\t????sdf??\n");
 	return newVar;
 }
 ConstObj* IDinfor::SetConstL(int& error, BuildInfor* infor, context* dst, ConstObj::type TTT)
