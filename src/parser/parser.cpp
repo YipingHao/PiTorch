@@ -812,7 +812,7 @@ int BuildInfor::GetAExpres(Expres::node*& output, const lex& eme, GTNode* EXP_RI
 			case Pikachu::NetG::ID_single_:
 			case Pikachu::NetG::ID_array_:
 			{
-				GTNode* ID = GT->child(0);
+				GTNode* ID = GT;
 				IDinfor id;
 				error = id.build(eme, ID, this, dst);
 				if (error != 0) return error;
