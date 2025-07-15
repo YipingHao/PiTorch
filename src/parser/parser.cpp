@@ -800,9 +800,9 @@ int BuildInfor::GetAExpres(Expres::node*& output, const lex& eme, GTNode* EXP_RI
 
 	while (iterator.still()) 
 	{
-		printf("--");
+		printf("--\n");
 		GTNode* GT = iterator.target();
-		printf("??");
+		printf("GTNode* GT = iterator.target();\n");
 		if (iterator.state() == 0)
 		{
 			printf("..");
@@ -994,7 +994,7 @@ int BuildInfor::GetAExpres(Expres::node*& output, const lex& eme, GTNode* EXP_RI
 		if (error != 0) break;
 		printf("++\n");
 		iterator.next();
-		printf("++\n");
+		printf("iterator.next();\n");
 	}
 	output = (Expres::node*)(EXP_RIGHT->root().infor);
 	if (output == NULL)
