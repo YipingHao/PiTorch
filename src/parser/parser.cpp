@@ -801,7 +801,7 @@ int BuildInfor::GetAExpres(Expres::node*& output, const lex& eme, GTNode* EXP_RI
 	while (iterator.still()) 
 	{
 		GTNode* GT = iterator.target();
-		printf("RR1: %zu, %d\n", GT->root().site, iterator.state());
+		printf("RR1: %zu, %d", GT->root().site, iterator.state());
 		if (iterator.state() == 0)
 		{
 			NetG::rules RR = (NetG::rules)GT->root().site;
@@ -983,6 +983,7 @@ int BuildInfor::GetAExpres(Expres::node*& output, const lex& eme, GTNode* EXP_RI
 				break;
 			}
 		}
+		printf(", error: %d\n", error);
 		if (error != 0) break;
 		iterator.next();
 	}
