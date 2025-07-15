@@ -34,6 +34,4 @@ net test(input x, output y, para w[depth + 1])
 	//=====================
 	tensor[dims[3], dims[2]] w[2];
 	tensor[dims[3]] y<i> = \sum_{k} w[2]<i, k> * hidden[2]<k>;
-
-
-})
+}
