@@ -57,7 +57,7 @@ ConstObj::ConstObj(size_t dim, bool Scalar, ConstObj::type TTT, const char* Name
 {
 	T = TTT;
 	scalar = Scalar;
-	SetName(name); // 基类设置名称[1](@ref)
+	SetName(Name); // 基类设置名称[1](@ref)
 	S.recount(dim); // 预分配状态数组
 	V.recount(dim); // 预分配值数组
 	printf("================ %d, %d \n", (int)T, (int)TTT);
