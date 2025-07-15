@@ -800,13 +800,9 @@ int BuildInfor::GetAExpres(Expres::node*& output, const lex& eme, GTNode* EXP_RI
 
 	while (iterator.still()) 
 	{
-		printf("--\n");
 		GTNode* GT = iterator.target();
-		printf("GTNode* GT = iterator.target();\n");
 		if (iterator.state() == 0)
 		{
-			printf("..\n");
-			printf("[%zu]: %zu, %d\n", GT->root().label, GT->root().site, iterator.state());
 			NetG::rules RR = (NetG::rules)GT->root().site;
 			switch (RR) {
 			case Pikachu::NetG::ID_single_:
@@ -816,22 +812,22 @@ int BuildInfor::GetAExpres(Expres::node*& output, const lex& eme, GTNode* EXP_RI
 				IDinfor id;
 				error = id.build(eme, ID, this, dst);
 				if (error != 0) return error;
-				printf("**\n");
+
 				var* v = id.GetLocalVarR(error, this, dst);
 				if (error != 0) return error;
-				printf("**\n");
+
 				ID->root().infor = (void*)v->Getnode();
-				printf("**\n");
+
 				ConstObj* obj = id.GetAllConstR(error, this, dst);
 				if (error != 0) return error;
-				printf("**\n");
+
 				if (obj != NULL && v != NULL)
 				{
 					errorCode = ErrorRepeatVarDef;
 					ErrorNode = ID;
 					return 18649845;
 				}
-				printf("**\n");
+
 				if (obj != NULL)
 				{
 					Expres::node* Node = NULL;
@@ -871,7 +867,6 @@ int BuildInfor::GetAExpres(Expres::node*& output, const lex& eme, GTNode* EXP_RI
 			default:
 				break;
 			}
-			printf("++\n");
 		}
 		else // (iterator.state() == 1) 
 		{
@@ -1005,12 +1000,8 @@ int BuildInfor::GetAExpres(Expres::node*& output, const lex& eme, GTNode* EXP_RI
 				break;
 			}
 		}
-		printf(", error: %d.\n", error);
-		printf("++\n");
 		if (error != 0) break;
-		printf("++\n");
 		iterator.next();
-		printf("iterator.next();\n");
 	}
 	output = (Expres::node*)(EXP_RIGHT->root().infor);
 	if (output == NULL)
