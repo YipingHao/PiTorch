@@ -1021,6 +1021,11 @@ int BuildInfor::buildConstObj(const lex& eme, GTNode* CONSTVAR, context * dst)
 		errorCode = WrongEntrance;
 		return 123897822;
 	}
+	if(PrintScreen)
+	{
+		fprintf(screen, "\t\tbuildConstObj: %s, type: %s, dim: %d, is scalar: %d\n",
+			obj->GetName(), ConstObj::TypeName(TT), obj->GetDim(), obj->GetScalar());
+	}
 	if (RR == Pikachu::NetG::CONSTVAR_def1_) return error;
 
 	ValueList valueList;

@@ -533,6 +533,24 @@ void ConstObj::assign(size_t No, const ConstObj* srcR)
 	}
 }
 
+const char* ConstObj::TypeName(type T)
+{
+	switch (T)
+	{
+	case _sint_:
+		return "sint";
+	case _uint_:
+		return "uint";
+	case _bool_:
+		return "bool";
+	case _complex_:
+		return "complex";
+	case _real_:
+		return "real";
+	default:
+		return "unknown";
+	}
+}
 
 var::var(Expres::node* srcR)
 {

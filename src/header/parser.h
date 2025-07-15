@@ -169,6 +169,7 @@ namespace Pikachu
 		{
 			return T == _real_;
 		}
+		static const char* TypeName(type T);
 	};
 	class var : public CompilerObj
 	{
