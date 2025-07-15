@@ -1291,7 +1291,7 @@ int BuildInfor::buildSymbolicBody(const lex& eme, GTNode* SYMBOLICBODY, context*
 			IDinfor id;
 			error = id.build(eme, ID, this, dst);
 			if (error != 0) return error;
-			const char* name = getIDname(eme, ID);
+			const char* name = id.GetName();
 			var* target = id.GetLocalVarL(error, this, dst);
 			if (error != 0) return error;
 			ConstObj* local = dst->SearchConstLocal(name);
@@ -1375,6 +1375,12 @@ int BuildInfor::buildSymbolicCheck(const lex& eme, GTNode* SYMBOLIC, context* ds
 			}
 			for (size_t j = 0; j < temp->count(); j++)
 			{
+				if (temp->Getnode(j) == NULL)
+				{
+					ErrorNode = SYMBOLIC;
+					errorCode = UndefineOutput;
+					return 8935346;
+				}
 				Exp->OutputAppend(temp->Getnode(j));
 			}
 			if (Exp->OutputAmount() != temp->count())
