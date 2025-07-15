@@ -242,6 +242,7 @@ int BuildInfor::build(const char* FileName, context* dst)
 	if (PrintScreen)
 	{
 		fprintf(screen, "BuildInfor::build: buildGanalysis end.\n");
+
 	}
 	if (error != 0)
 	{
@@ -302,16 +303,17 @@ int BuildInfor::buildGanalysis(const lex& eme, context* dst)
 	int error;
 	ASTree = new AST;
 	error = ASTree->build<NetG>(eme);
+	if (PrintScreen)
+	{
+		fprintf(screen, "ErrorinputGrammar: %d\n", error);
+		ASTree->Demo(screen, eme, NetG::RulesName);
+	}
 	if (error != 0)
 	{
 		errorCode = ErrorinputGrammar;
 		errorInfor1 = ASTree->error_record01;
 		errorInfor2 = ASTree->error_record02;
-		if (PrintScreen)
-		{
-			fprintf(screen, "ErrorinputGrammar: %d\n", error);
-			ASTree->Demo(screen, eme, NetG::RulesName);
-		}
+		
 		return error;
 	}
 	if (PrintScreen)
