@@ -986,6 +986,14 @@ int BuildInfor::GetAExpres(Expres::node*& output, const lex& eme, GTNode* EXP_RI
 		if (error != 0) break;
 		iterator.next();
 	}
+	output = (Expres::node*)(EXP_RIGHT->root().infor);
+	if (output == NULL)
+	{
+		errorCode = ErrorUnKnowEXP;
+		errorInfor1 = EXP_RIGHT->root().site;
+		ErrorNode = EXP_RIGHT;
+		return 12312312;
+	}
 	return error;
 }
 int BuildInfor::buildConstObj(const lex& eme, GTNode* CONSTVAR, context * dst)
