@@ -846,10 +846,11 @@ int BuildInfor::GetAExpres(Expres::node*& output, const lex& eme, GTNode* EXP_RI
 					ErrorNode = ID;
 					return 45354654;
 				}
+				iterator.state() = 1;
 				break;
 			}
 			}
-			iterator.state() = 1;
+			
 		}
 		else // (iterator.state() == 1) 
 		{
