@@ -35,6 +35,9 @@ int BuildInfor::pretreatment(const char* input, lex& output)
 	if (fp == NULL)
 	{
 		errorCode = PretreatOpenfail;
+		if (PrintScreen)
+			fprintf(screen, "Error PretreatOpenfail: \n");
+			
 		return 445624;
 	}
 	int error = output.Build<NetPreL>(fp);
@@ -43,6 +46,8 @@ int BuildInfor::pretreatment(const char* input, lex& output)
 	{
 		errorInfor1 = output.FileCount();
 		errorCode = PretreatLEXICAL;
+		if (PrintScreen)
+			fprintf(screen, "Error in pretreatment: %d\n", error);
 		return error;
 	}
 	bool include;
@@ -199,6 +204,19 @@ int BuildInfor::build(const char* FileName, context* dst)
 	{
 		fprintf(screen, "BuildInfor::build: begin: %s\n", FileName);
 	}
+	
+	error = pretreatment(FileName, MorphemePre);
+	
+	if (PrintScreen)
+	{
+		fprintf(screen, "BuildInfor::build: pretreatment end.\n");
+		if (error != 0)
+		{
+			fprintf(screen, "pretreatment error: %d\n", error);
+			MorphemePre.Demo(screen);
+			return error;
+		}
+	}
 	error = LexicalSource.Build<NetL>(MorphemePre);
 	if (error != 0)
 	{
@@ -211,19 +229,6 @@ int BuildInfor::build(const char* FileName, context* dst)
 		return error;
 	}
 	if (PrintScreen) fprintf(screen, "BuildInfor::build: lexical end.\n");
-	error = pretreatment(FileName, MorphemePre);
-	
-	if (PrintScreen)
-	{
-		fprintf(screen, "BuildInfor::build: pretreatment end.\n");
-		if (error != 0)
-		{
-			fprintf(screen, "pretreatment error.\n");
-			MorphemePre.Demo(screen);
-			return error;
-		}
-	}
-	
 	if (PrintScreen)
 	{
 		fprintf(screen, "BuildInfor::build: lexical end.\n");
