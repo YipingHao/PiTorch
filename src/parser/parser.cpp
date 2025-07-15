@@ -1022,7 +1022,7 @@ int BuildInfor::buildConstObj(const lex& eme, GTNode* CONSTVAR, context * dst)
 
 	ValueList valueList;
 	GTNode* VALUE = CONSTVAR->child(3);
-	error = valueList.build(eme, VALUE, this, dst);
+	error = valueList.buildSA(eme, VALUE, this, dst);
 	if (error != 0) return error;
 	if (TT != valueList.GetType())
 	{
