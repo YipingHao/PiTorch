@@ -199,12 +199,6 @@ int BuildInfor::build(const char* FileName, context* dst)
 	{
 		fprintf(screen, "BuildInfor::build: begin: %s\n", FileName);
 	}
-	error = pretreatment(FileName, MorphemePre);
-	if (error != 0) return error;
-	if (PrintScreen)
-	{
-		fprintf(screen, "BuildInfor::build: pretreatment end.\n");
-	}
 	error = LexicalSource.Build<NetL>(MorphemePre);
 	if (error != 0)
 	{
@@ -216,6 +210,20 @@ int BuildInfor::build(const char* FileName, context* dst)
 		}
 		return error;
 	}
+	if (PrintScreen) fprintf(screen, "BuildInfor::build: lexical end.\n");
+	error = pretreatment(FileName, MorphemePre);
+	
+	if (PrintScreen)
+	{
+		fprintf(screen, "BuildInfor::build: pretreatment end.\n");
+		if (error != 0)
+		{
+			fprintf(screen, "pretreatment error.\n");
+			MorphemePre.Demo(screen);
+			return error;
+		}
+	}
+	
 	if (PrintScreen)
 	{
 		fprintf(screen, "BuildInfor::build: lexical end.\n");
