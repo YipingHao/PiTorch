@@ -692,9 +692,9 @@ int IDinfor::build(const lex& eme, GTNode* ID, BuildInfor* infor, context* dst)
 	if (!scalar)
 	{
 		ConstObj* Const_ = NULL;
-		printf("IDinfor::build %s\n", temp);
+		//printf("IDinfor::build %s\n", temp);
 		int error = infor->GetAConst(Const_, eme, ID->child(1)->child(1), dst);
-		printf("IDinfor::build %s\n", temp);
+		//printf("IDinfor::build %s\n", temp);
 		if (error != 0) return error;
 		if (!Const_->SorUint())
 		{
@@ -713,7 +713,7 @@ int IDinfor::build(const lex& eme, GTNode* ID, BuildInfor* infor, context* dst)
 			infor->errorCode = BuildInfor::ErrorMinusIndex;
 			return 1234267;
 		}
-		printf("IDinfor::build %s\n", temp);
+		//printf("IDinfor::build %s\n", temp);
 		delete Const_;
 		index = tempInt;
 	}
