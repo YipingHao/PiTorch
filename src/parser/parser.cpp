@@ -1426,6 +1426,7 @@ int BuildInfor::buildSymbolic(const lex& eme, GTNode* SYMBOLIC, context * dst)
 		{
 			var* TempP = subcontext->global[i];
 			TempP->demo(screen, 3);
+			fprintf(screen, "\n");
 		}
 	}
 	GTNode* SYMBOLICBODY = SYMBOLIC->child(6);
