@@ -575,11 +575,7 @@ namespace Pikachu
 		bool SearchRoutine(const char* name) const;
 		bool SearchRoutineLocal(const char* name) const;
 
-		void demo(FILE* fp = stdout) const;
-		void append(context* child);
-
-		int build(const char* FileName);
-		void clear(void);
+		
 
 		enum state
 		{
@@ -599,7 +595,13 @@ namespace Pikachu
 		context* parent;
 		vector<context*> childs;
 		void initial(void);
+	public:
+		void demo(FILE* fp = stdout) const;
+		void append(context* child);
 
+		int build(const char* FileName);
+		int build(const char* FileName, FILE*fp);
+		void clear(void);
 	};
 }
 

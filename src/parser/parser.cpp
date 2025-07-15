@@ -2197,7 +2197,22 @@ int context::build(const char* FileName)
 	}
 	S = NoError;
 }
-
+int context::build(const char* FileName, FILE* fp)
+{
+	BuildInfor builder;
+	clear();
+	initial();
+	builder.build(FileName, this);
+	builder.PrintScreen = true;
+	builder.screen = fp;
+	if (builder.errorCode != BuildInfor::NoError)
+	{
+		builder.ErrorDemo();
+		clear();
+		initial();
+	}
+	S = NoError;
+}
 
 
 void context::clear(void)
