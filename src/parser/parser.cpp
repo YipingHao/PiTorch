@@ -390,7 +390,7 @@ int BuildInfor::buildAll(const lex& eme, AST& Tree, context* dst)
 						fprintf(screen, "\t buildConstObj end: %d, obj:", error);
 						ConstObj* obj = dst->Cobj.top();
 						obj->demo(screen);
-						fprintf(screen, "\n");
+						fprintf(screen, "\n\n");
 					}
 					break;
 				}
@@ -1058,7 +1058,7 @@ int BuildInfor::buildConstObj(const lex& eme, GTNode* CONSTVAR, context * dst)
 		ErrorNode = VALUE;
 		return 48975645;
 	}
-	valueList.demo();
+	//valueList.demo();
 	for (size_t i = 0; i < valueList.GetCount(); i++)
 	{
 		ConstObj* srcR = valueList.GetValue(i);
