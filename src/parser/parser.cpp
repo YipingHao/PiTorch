@@ -10,6 +10,8 @@ static bool compare(const char* str1, const char* str2);
 
 BuildInfor::BuildInfor()
 {
+	PrintScreen = false;
+	screen = stdout;
 	initial();
 }
 BuildInfor::~BuildInfor()
@@ -191,8 +193,8 @@ int BuildInfor::build(const char* FileName, context* dst)
 	dst->clear();
 	dst->initial();
 
-	clear();
-	initial();
+	//clear();
+	//initial();
 	if (PrintScreen)
 	{
 		fprintf(screen, "BuildInfor::build: begin: %s\n", FileName);
@@ -258,8 +260,7 @@ void BuildInfor::clear(void)
 }
 void BuildInfor::initial(void)
 {
-	PrintScreen = false; 
-	screen = stdout;
+	
 
 	errorCode = buildUndone;
 	errorInfor1 = 0;
@@ -2200,11 +2201,12 @@ int context::build(const char* FileName)
 int context::build(const char* FileName, FILE* fp)
 {
 	BuildInfor builder;
-	clear();
-	initial();
-	builder.build(FileName, this);
+	//clear();
+	//initial();
 	builder.PrintScreen = true;
 	builder.screen = fp;
+	builder.build(FileName, this);
+	
 	if (builder.errorCode != BuildInfor::NoError)
 	{
 		builder.ErrorDemo();
