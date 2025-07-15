@@ -353,7 +353,9 @@ int BuildInfor::buildAll(const lex& eme, AST& Tree, context* dst)
 					error = buildSymbolic(eme, SYMBOLIC, dst);
 					if (PrintScreen)
 					{
-						fprintf(screen, "\t buildSymbolic end: %d\n", error);
+						func* Func = dst->funcs.top();
+						fprintf(screen, "\tbuildSymbolic %s end: %d\n", Func->GetName(), error);
+						Func->Exp->demo(screen);
 					}
 					break;
 				}
@@ -413,6 +415,7 @@ int BuildInfor::buildAll(const lex& eme, AST& Tree, context* dst)
 					error = buildDiff(eme, GTarget, dst);
 					if (PrintScreen)
 					{
+						
 						fprintf(screen, "\t buildDiff end: %d\n", error);
 					}
 					break;
