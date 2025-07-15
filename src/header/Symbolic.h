@@ -559,7 +559,7 @@ namespace Pikachu
 		}
 		inline size_t GetFuncDim(size_t No) const
 		{
-			return function[No];
+			return dims[No];
 		}
 		inline Expres* & operator[](size_t No)
 		{
@@ -573,7 +573,7 @@ namespace Pikachu
 		{
 			return (InputDim == 1);
 		}
-		inline const vector<size_t> const& GetDims(void) const
+		inline vector<size_t> const& GetDims(void) const
 		{
 			return dims;
 		}
@@ -609,7 +609,7 @@ namespace Pikachu
 		}
 		inline size_t GetFuncDim(size_t No) const
 		{
-			return function[No];
+			return dims[No];
 		}
 		inline Expres*& operator[](size_t No)
 		{
@@ -628,7 +628,7 @@ namespace Pikachu
 		{
 			return (ParameterDim == 1);
 		}
-		inline const vector<size_t> const& GetDims(void) const
+		inline vector<size_t> const& GetDims(void) const
 		{
 			return dims;
 		}
