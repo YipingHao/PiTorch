@@ -1,4 +1,4 @@
-	NETWORK: net id left SYMBOLICPARA right braceL NETBODY braceR;
+	NETWORK: net id left PARA right braceL NETBODY braceR;
 	NETBODY:
 	{
 		net: NET_STATEMENT*;
