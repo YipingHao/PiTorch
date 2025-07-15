@@ -848,11 +848,16 @@ int BuildInfor::GetAExpres(Expres::node*& output, const lex& eme, GTNode* EXP_RI
 					}
 					ID->root().infor = (void*)Node;
 				}
+				else if (v != NULL) // v != NULL && obj == NULL
+				{
+					Expres::node* Node = v->Getnode(id.GetIndex());
+					ID->root().infor = (void*)Node;
+				}
 				else
 				{
-					errorCode = ErrorMissingVarDef;
+					errorCode = ErrorMissingConstVarDef;
 					ErrorNode = ID;
-					return 45354654;
+					return 18649846;
 				}
 				iterator.state() = 1;
 				break;
