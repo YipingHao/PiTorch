@@ -1132,7 +1132,7 @@ int BuildInfor::buildRoutinePara(routine Rou, const lex& eme, GTNode* PARA, cont
 		if (Rou != routine::expression) continue;
 		NetG::rules TypePara = (NetG::rules)SYMBOLICPARA->root().site;
 
-		func* Func = dst->funcs.top();
+		func* Func = dst->parent->funcs.top();
 		Expres* Exp = Func->Exp;
 		printf("%zu, %zu\n", i, count);
 		switch (TypePara)
