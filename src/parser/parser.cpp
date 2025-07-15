@@ -1123,7 +1123,7 @@ int BuildInfor::buildRoutinePara(routine Rou, const lex& eme, GTNode* PARA, cont
 		if (error != 0) return error;
 		printf("%zu, %zu\n", i, count);
 		const char* attri = eme.GetWord(SYMBOLICPARA->child(0)->root().site);
-		printf("%zu, %zu\n", i, count);
+		printf("%zu, %s\n", i, attri);
 		var* newVar = id.SetVarL(error, this, dst, attri);
 		printf("%zu, %zu\n", i, count);
 		if (error != 0) return error;
