@@ -800,10 +800,12 @@ int BuildInfor::GetAExpres(Expres::node*& output, const lex& eme, GTNode* EXP_RI
 
 	while (iterator.still()) 
 	{
+		printf("--");
 		GTNode* GT = iterator.target();
-		
+		printf("??");
 		if (iterator.state() == 0)
 		{
+			printf("..");
 			printf("[%zu]: %zu, %d", GT->root().label, GT->root().site, iterator.state());
 			NetG::rules RR = (NetG::rules)GT->root().site;
 			switch (RR) {
