@@ -385,9 +385,10 @@ int BuildInfor::buildAll(const lex& eme, AST& Tree, context* dst)
 					error = buildConstObj(eme, CONSTVAR, dst);
 					if (PrintScreen)
 					{
-						fprintf(screen, "\t buildConstObj end: %d\n", error);
+						fprintf(screen, "\t buildConstObj end: %d, obj:", error);
 						ConstObj* obj = dst->Cobj.top();
 						obj->demo(screen);
+						fprintf(screen, "\n");
 					}
 					break;
 				}

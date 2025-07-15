@@ -60,7 +60,6 @@ ConstObj::ConstObj(size_t dim, bool Scalar, ConstObj::type TTT, const char* Name
 	SetName(Name); // 基类设置名称[1](@ref)
 	S.recount(dim); // 预分配状态数组
 	V.recount(dim); // 预分配值数组
-	printf("================ %d, %d \n", (int)T, (int)TTT);
 	// 初始化默认值
 	value initVal;
 	switch (T) {
@@ -75,8 +74,6 @@ ConstObj::ConstObj(size_t dim, bool Scalar, ConstObj::type TTT, const char* Name
 
 		V[i] = initVal;
 	}
-	printf("================ %d, %d \n", (int)T, (int)TTT);
-	demo(stdout); // 输出调试信息
 }
 ConstObj::ConstObj(ConstObj* left, const char* op, ConstObj* right)// 二元运算构造函数（left op right）
 {
