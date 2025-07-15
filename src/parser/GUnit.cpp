@@ -664,8 +664,14 @@ int IDinfor::build(const lex& eme, GTNode* ID, BuildInfor* infor, context* dst)
 	backup = ID;
 	const char* temp = NULL;
 	GTNode* Def = ID->child(0);
-	if (!Def->root().rules)
-		temp = eme.GetWord(Def->root().site);
+	if (eme[Def->root().site].accept != NetL::regular::_id_)
+	{
+		infor->errorInfor1 = ID->root().site;
+		infor->ErrorNode = ID;
+		infor->errorCode = BuildInfor::WrongEntrance;
+		return 53563456;
+	}
+	temp = eme.GetWord(Def->root().site);
 	printf("IDinfor::build %s\n", temp);
 	SetName(temp);
 
