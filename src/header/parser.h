@@ -346,6 +346,8 @@ namespace Pikachu
 		friend class Indexs;
 		friend class TensorID;
 		friend class ValueList;
+		bool PrintScreen;
+		
 	protected:
 		hyperlex::Morpheme MorphemePre;
 		hyperlex::Morpheme LexicalSource;
@@ -360,7 +362,7 @@ namespace Pikachu
 		bool errorInfor4;
 
 		GTNode* ErrorNode;
-
+		FILE* screen;
 		void initial(void);
 
 		int pretreatment(const char* input, lex& output);

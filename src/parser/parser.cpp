@@ -193,21 +193,46 @@ int BuildInfor::build(const char* FileName, context* dst)
 
 	clear();
 	initial();
+	if (PrintScreen)
+	{
+		fprintf(screen, "BuildInfor::build: begin: %s\n", FileName);
+	}
 	error = pretreatment(FileName, MorphemePre);
 	if (error != 0) return error;
-
+	if (PrintScreen)
+	{
+		fprintf(screen, "BuildInfor::build: pretreatment end.\n");
+	}
 	error = LexicalSource.Build<NetL>(MorphemePre);
 	if (error != 0)
 	{
 		errorCode = ErrorinputLEXICAL;
+		if (PrintScreen)
+		{
+			MorphemePre.Demo(screen);
+			fprintf(screen, "ErrorinputLEXICAL: % d\n", error);
+		}
 		return error;
 	}
+	if (PrintScreen)
+	{
+		fprintf(screen, "BuildInfor::build: lexical end.\n");
+	}
 	NeglectNullToken(LexicalSource);
+	if (PrintScreen)
+	{
+		fprintf(screen, "BuildInfor::build: NeglectNullToken end.\n");
+	}
 	//eme.Demo(stdout);
 	error = buildGanalysis(LexicalSource, dst);
+	if (PrintScreen)
+	{
+		fprintf(screen, "BuildInfor::build: buildGanalysis end.\n");
+	}
 	if (error != 0)
 	{
 		errorCode = ErrorinputGrammar;
+		if (PrintScreen) fprintf(screen, "ErrorinputGrammar: %d\n", error);
 		return error;
 	}
 	errorCode = NoError;
@@ -233,6 +258,9 @@ void BuildInfor::clear(void)
 }
 void BuildInfor::initial(void)
 {
+	PrintScreen = false; 
+	screen = stdout;
+
 	errorCode = buildUndone;
 	errorInfor1 = 0;
 	errorInfor2 = 0;
@@ -266,16 +294,22 @@ int BuildInfor::buildGanalysis(const lex& eme, context* dst)
 		errorCode = ErrorinputGrammar;
 		errorInfor1 = ASTree->error_record01;
 		errorInfor2 = ASTree->error_record02;
+		if (PrintScreen)
+		{
+			fprintf(screen, "ErrorinputGrammar: %d\n", error);
+			ASTree->Demo(screen, eme, NetG::RulesName);
+		}
 		return error;
 	}
-	//printf("Here?!\n");
-	//Tree.Demo(stdout, eme, Panel::RulesName);
-	//printf("Here?!\n");
+	if (PrintScreen)
+	{
+		fprintf(screen, "ASTree->build<NetG>(eme) end.\n");
+	}
 	error = buildAll(eme, *ASTree, dst);
-	//printf("Here?!:%d\n", error);
-	//if (error != 0) return error;
-	//buildLpost();
-	//printf("Here?!:%d\n", error);
+	if (PrintScreen)
+	{
+		fprintf(screen, "buildAll(eme, *ASTree, dst) end.\n");
+	}
 	return error;
 }
 
@@ -299,35 +333,75 @@ int BuildInfor::buildAll(const lex& eme, AST& Tree, context* dst)
 				{
 					GTNode* SYMBOLIC = GT->child(0);
 					iterator.state() = 1;
+					if (PrintScreen)
+					{
+						fprintf(screen, "\t buildSymbolic begin\n");
+					}
 					error = buildSymbolic(eme, SYMBOLIC, dst);
+					if (PrintScreen)
+					{
+						fprintf(screen, "\t buildSymbolic end: %d\n", error);
+					}
 					break;
 				}
 				case Pikachu::NetG::DEF_network_:
 				{
 					GTNode* NETWORK = GT->child(0);
 					iterator.state() = 1;
+					if (PrintScreen)
+					{
+						fprintf(screen, "\t buildNet begin\n");
+					}
 					error = buildNet(eme, NETWORK, dst);
+					if (PrintScreen)
+					{
+						fprintf(screen, "\t buildNet end: %d\n", error);
+					}
 					break;
 				}
 				case Pikachu::NetG::DEF_def_:
 				{
 					GTNode* CONSTVAR = GT->child(0);
 					iterator.state() = 1;
+					if (PrintScreen)
+					{
+						fprintf(screen, "\t buildConstObj begin\n");
+					}
 					error = buildConstObj(eme, CONSTVAR, dst);
+					if (PrintScreen)
+					{
+						fprintf(screen, "\t buildConstObj end: %d\n", error);
+					}
 					break;
 				}
 				case Pikachu::NetG::DEF_exp_:
 				{
 					GTNode* GTarget = GT;
 					iterator.state() = 1;
+					if (PrintScreen)
+					{
+						fprintf(screen, "\t buildExp begin\n");
+					}
 					error = buildExp(eme, GTarget, dst);
+					if (PrintScreen)
+					{
+						fprintf(screen, "\t buildExp end: %d\n", error);
+					}
 					break;
 				}
 				case Pikachu::NetG::DEF_diff_:
 				{
 					GTNode* GTarget = GT->child(0);
 					iterator.state() = 1;
+					if (PrintScreen)
+					{
+						fprintf(screen, "\t buildDiff begin\n");
+					}
 					error = buildDiff(eme, GTarget, dst);
+					if (PrintScreen)
+					{
+						fprintf(screen, "\t buildDiff end: %d\n", error);
+					}
 					break;
 				}
 				default:
@@ -1827,6 +1901,320 @@ int BuildInfor::buildNETBODY(const lex& eme, GTNode* NETBODY, NetInContext* Net)
 	return error;
 }
 
+void BuildInfor::ErrorDemo(FILE* fp) const
+{
+	switch (errorCode)
+	{
+	case BuildInfor::NoError:
+		fprintf(fp, "No Error!\n");
+		break;
+	case BuildInfor::ErrorinputLEXICAL:
+	{
+		fprintf(fp, "ErrorinputLEXICAL: \n");
+		size_t record = 0;
+		for (size_t i = 0; i < LexicalSource.GetCount(); i++)
+		{
+			if (LexicalSource[i].accept < 0)
+			{
+				record = LexicalSource[i].line;
+				break;
+			}
+		}
+		fprintf(fp, "line[%zu]: ", record + 1);
+		for (size_t i = 0; i < LexicalSource.GetCount(); i++)
+		{
+			size_t  uintTemp = LexicalSource[i].line;
+			if (record == uintTemp)
+			{
+				fprintf(fp, "%s", LexicalSource.GetWord(i));
+			}
+		}
+		break;
+	}
+	case BuildInfor::PretreatLEXICAL:
+	{
+		fprintf(fp, "PretreatLEXICAL: Error happenned during pretreatment.\n");
+		fprintf(fp, "Lexical analysis line: %zu of No.%zu ", errorInfor2, errorInfor1);
+		fprintf(fp, "source file %s made a mistake\n", MorphemePre.GetFile(errorInfor1));
+		break;
+	}
+	case BuildInfor::PretreatGRAMMAR:
+	{
+		fprintf(fp, "PretreatGRAMMAR: Error happenned during pretreatment.\n");
+		fprintf(fp, "Grammar analysis of No.%zu ", errorInfor1);
+		fprintf(fp, "source file %s made a mistake ", MorphemePre.GetFile(errorInfor1));
+
+		size_t RLine = MorphemePre[errorInfor2].line;
+		size_t RFile = MorphemePre[errorInfor2].file;
+
+		fprintf(fp, "in line %zu, file: %zu, unit: %zu\n", RLine, RFile, errorInfor2);
+
+		//fprintf(fp, "%zu\n", record);
+		for (size_t i = 0; i < MorphemePre.GetCount(); i++)
+		{
+			size_t uintTemp1 = MorphemePre[i].line;
+			size_t uintTemp2 = MorphemePre[i].file;
+			if ((RLine == uintTemp1 || uintTemp1 + 1 == RLine) && uintTemp2 == RFile)
+			{
+				if (i == errorInfor1)
+					fprintf(fp, "| %s |", MorphemePre.GetWord(i));
+				else
+					fprintf(fp, "%s", MorphemePre.GetWord(i));
+			}
+		}
+		break;
+	}
+	case BuildInfor::PretreatRepeat:
+	{
+		fprintf(fp, "PretreatRepeat: Error happenned during pretreatment.\n");
+		fprintf(fp, "No.%zu ", errorInfor1);
+		fprintf(fp, "source file %s repeats with existed ", MorphemePre.GetFile(errorInfor1));
+		fprintf(fp, "%zu file %s\n", errorInfor2, MorphemePre.GetFile(errorInfor2));
+		break;
+	}
+	case BuildInfor::PretreatOpenfail:
+	{
+		fprintf(fp, "PretreatOpenfail: Error happenned during pretreatment.\n");
+		fprintf(fp, "Open of No.%zu ", errorInfor1);
+		fprintf(fp, "source file %s made a mistake\n", MorphemePre.GetFile(errorInfor1));
+		break;
+	}
+	case BuildInfor::PretreatNone:
+	{
+		fprintf(fp, "PretreatNone: Error happenned during pretreatment.\n");
+		fprintf(fp, "%s is not a standard lib\n", errorInfor3);
+		size_t RLine = MorphemePre[errorInfor1].line;
+		size_t RFile = MorphemePre[errorInfor1].file;
+
+		fprintf(fp, "in line %zu, file: %zu, unit: %zu\n", RLine, RFile, errorInfor1);
+
+		//fprintf(fp, "%zu\n", record);
+		for (size_t i = 0; i < MorphemePre.GetCount(); i++)
+		{
+			size_t uintTemp1 = MorphemePre[i].line;
+			size_t uintTemp2 = MorphemePre[i].file;
+			if ((RLine == uintTemp1 || uintTemp1 + 1 == RLine) && uintTemp2 == RFile)
+			{
+				if (i == errorInfor1)
+					fprintf(fp, "| %s |", MorphemePre.GetWord(i));
+				else
+					fprintf(fp, "%s", MorphemePre.GetWord(i));
+			}
+		}
+		break;
+		break;
+	}
+	case BuildInfor::ErrorinputGrammar:
+	{
+		fprintf(fp, "ErrorinputGrammar: Something was wrong when parsing of line:");
+		size_t RLine = LexicalSource[errorInfor1].line;
+		size_t RFile = LexicalSource[errorInfor1].file;
+		fprintf(fp, "%zu", RLine);
+		fprintf(fp, " of No.%zu file %s\n", RFile, LexicalSource.GetFile(RFile));
+		for (size_t i = 0; i < LexicalSource.GetCount(); i++)
+		{
+			size_t uintTemp1 = LexicalSource[i].line;
+			size_t uintTemp2 = LexicalSource[i].file;
+			if ((RLine == uintTemp1 || uintTemp1 + 1 == RLine) && uintTemp2 == RFile)
+			{
+				if (i == errorInfor1)
+					fprintf(fp, "| %s |", LexicalSource.GetWord(i));
+				else
+					fprintf(fp, "%s", LexicalSource.GetWord(i));
+			}
+		}
+		break;
+	}
+	case BuildInfor::buildUndone:
+	{
+		fprintf(fp, "buildUndone: has not been built.\n");
+		fprintf(fp, "\n");
+		break;
+	}
+	default:
+	{
+		fprintf(fp, "Error Unknown: %d\n", (int)errorCode);
+		break;
+	}
+	}
+
+}
+
+
+context::context()
+{
+	//errorInfor3 = NULL;
+	initial();
+}
+context::~context()
+{
+	ruin();
+}
+void context::ruin(void)
+{
+	for (size_t i = 0; i < global.count(); i++)
+	{
+		delete global[i];
+	}
+	global.clear();
+	childs.clear();
+
+	//free(errorInfor3);
+	//errorInfor3 = NULL;
+}
+void context::demo(FILE* fp) const
+{
+
+}
+void context::append(context* child)
+{
+	childs.append(child);
+	child->parent = this;
+}
+
+
+
+var* context::search(const char* name)const
+{
+	var* value = SearchLocal(name);
+	if (value != NULL) return value;
+	context* now = parent;
+	while (now != NULL)
+	{
+		var* temp = now->SearchLocal(name);
+		if (temp != NULL) return temp;
+		now = now->parent;
+	}
+	return NULL;
+}
+var* context::SearchLocal(const char* name)const
+{
+	for (size_t i = 0; i < global.count(); i++)
+	{
+		if (global[i]->eqaul(name)) return global[i];
+	}
+	return NULL;
+}
+
+ConstObj* context::searchConst(const char* name)const
+{
+	ConstObj* value = SearchConstLocal(name);
+	if (value != NULL) return value;
+	context* now = parent;
+	while (now != NULL)
+	{
+		ConstObj* temp = now->SearchConstLocal(name);
+		if (temp != NULL) return temp;
+		now = now->parent;
+	}
+	return NULL;
+}
+ConstObj* context::SearchConstLocal(const char* name)const
+{
+	for (size_t i = 0; i < Cobj.count(); i++)
+	{
+		if (Cobj[i]->eqaul(name)) return Cobj[i];
+	}
+	return NULL;
+}
+
+func* context::searchFuncs(const char* name) const
+{
+	func* value = searchFuncsLocal(name);
+	if (value != NULL) return value;
+	context* now = parent;
+	while (now != NULL)
+	{
+		func* temp = now->searchFuncsLocal(name);
+		if (temp != NULL) return temp;
+		now = now->parent;
+	}
+	return NULL;
+}
+func* context::searchFuncsLocal(const char* name) const
+{
+	for (size_t i = 0; i < funcs.count(); i++)
+	{
+		if (funcs[i]->eqaul(name)) return funcs[i];
+	}
+	return NULL;
+}
+
+NetInContext* context::SearchNet(const char* name)const
+{
+	NetInContext* value = SearchNetLocal(name);
+	if (value != NULL) return value;
+	context* now = parent;
+	while (now != NULL)
+	{
+		NetInContext* temp = now->SearchNetLocal(name);
+		if (temp != NULL) return temp;
+		now = now->parent;  // 修正了原始参考代码中的错误(原代码写的是parent->parent)
+	}
+	return NULL;
+}
+NetInContext* context::SearchNetLocal(const char* name)const
+{
+	for (size_t i = 0; i < nets.count(); i++)
+	{
+		if (nets[i]->eqaul(name)) return nets[i];
+	}
+	return NULL;
+}
+
+bool context::SearchRoutine(const char* name) const
+{
+	NetInContext* net = SearchNet(name);
+	if (net != NULL) return true;
+
+	func* FF = searchFuncs(name);
+	if (FF != NULL) return true;
+
+	return false;
+}
+bool context::SearchRoutineLocal(const char* name) const
+{
+	NetInContext* net = SearchNetLocal(name);
+	if (net != NULL) return true;
+
+	func* FF = searchFuncsLocal(name);
+	if (FF != NULL) return true;
+
+	return false;
+}
+
+int context::build(const char* FileName)
+{
+	BuildInfor builder;
+	clear();
+	initial();
+	builder.build(FileName, this);
+	if (builder.errorCode != BuildInfor::NoError)
+	{
+		builder.ErrorDemo();
+		clear();
+		initial();
+	}
+	S = NoError;
+}
+
+
+
+void context::clear(void)
+{
+	for (size_t i = 0; i < global.count(); i++)
+	{
+		delete global[i];
+	}
+	global.clear();
+	childs.clear();
+	S = Undone;
+}
+void context::initial(void)
+{
+	S = Undone;
+	parent = NULL;
+}
 
 
 static bool compare(const char* str1, const char* str2)

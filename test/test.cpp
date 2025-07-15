@@ -1730,6 +1730,10 @@ int static Test003(const hyperlex::dictionary& para)
 int static Test004(const hyperlex::dictionary& para)
 {
 	int error = 0;
+	context ctx;
+	error = ctx.build("data/test.txt");
+	std::cout << "error: " << error << std::endl;
+	ctx.demo();
 	return error;
 }
 int static Test005(const hyperlex::dictionary& para)
