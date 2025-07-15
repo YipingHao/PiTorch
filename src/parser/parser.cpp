@@ -849,6 +849,8 @@ int BuildInfor::GetAExpres(Expres::node*& output, const lex& eme, GTNode* EXP_RI
 				iterator.state() = 1;
 				break;
 			}
+			default:
+				break;
 			}
 			
 		}
