@@ -1306,7 +1306,7 @@ int BuildInfor::buildSymbolicBody(const lex& eme, GTNode* SYMBOLICBODY, context*
 				{
 					errorCode = ErrorUndefined;
 					ErrorNode = EXP_RIGHT;
-					return 4343543;
+					return 43432543;
 				}
 				target->SetInfor(Node, id.GetIndex());
 			}
