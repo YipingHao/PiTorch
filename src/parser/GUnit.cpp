@@ -672,7 +672,7 @@ int IDinfor::build(const lex& eme, GTNode* ID, BuildInfor* infor, context* dst)
 		return 53563456;
 	}
 	temp = eme.GetWord(Def->root().site);
-	printf("IDinfor::build %s\n", temp);
+	
 	SetName(temp);
 
 	NetG::nonterminal TTTT = (NetG::nonterminal)NetG::RulesToSymbol[ID->root().site];
@@ -688,11 +688,12 @@ int IDinfor::build(const lex& eme, GTNode* ID, BuildInfor* infor, context* dst)
 	scalar = (RR == NetG::rules::ID_single_);
 	size_t line = ID->child(0)->root().site;
 
-
+	printf("IDinfor::build %s\n", temp);
 	index = 0;
 	if (!scalar)
 	{
 		ConstObj* Const_ = NULL;
+		printf("IDinfor::build %s\n", temp);
 		int error = infor->GetAConst(Const_, eme, ID->child(1)->child(1), dst);
 		if (error != 0) return error;
 		if (!Const_->SorUint())
@@ -702,6 +703,7 @@ int IDinfor::build(const lex& eme, GTNode* ID, BuildInfor* infor, context* dst)
 			infor->errorCode = BuildInfor::ErrorNeedAInt;
 			return 1234234;
 		}
+		printf("IDinfor::build %s\n", temp);
 		sint tempInt = Const_->GetSint();
 		if (tempInt < 0)
 		{
@@ -711,6 +713,7 @@ int IDinfor::build(const lex& eme, GTNode* ID, BuildInfor* infor, context* dst)
 			infor->errorCode = BuildInfor::ErrorMinusIndex;
 			return 1234267;
 		}
+		printf("IDinfor::build %s\n", temp);
 		delete Const_;
 		index = tempInt;
 	}
