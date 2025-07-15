@@ -1432,7 +1432,7 @@ int BuildInfor::buildSymbolic(const lex& eme, GTNode* SYMBOLIC, context * dst)
 		}
 	}
 	GTNode* SYMBOLICBODY = SYMBOLIC->child(6);
-	error = buildSymbolicBody(eme, PARA, subcontext, Func);
+	error = buildSymbolicBody(eme, SYMBOLICBODY, subcontext, Func);
 	fprintf(screen, "\t\t buildSymbolicBody end\n");
 	if (error != 0) return error;
 	if (PrintScreen)
@@ -1468,7 +1468,7 @@ int BuildInfor::buildNet(const lex& eme, GTNode* NETWORK, context * dst)
 	GTNode* NETBODY = NETWORK->child(6);
 	error = buildNETBODY(eme, NETBODY, Net);
 	//context* dst
-
+	if (error != 0) return error;
 	
 	return buildNETCheck(eme, NETWORK, subcontext, Net);
 }
@@ -1861,7 +1861,7 @@ int BuildInfor::buildNETBODY(const lex& eme, GTNode* NETBODY, NetInContext* Net)
 		errorInfor1 = line;
 		errorCode = WrongEntrance;
 		ErrorNode = NETBODY;
-		return 7923432;
+		return 79211432;
 	}
 	for (size_t i = 0; i < NETBODY->ChildCount(); i++)
 	{
