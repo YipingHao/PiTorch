@@ -861,8 +861,10 @@ var* IDinfor::SetVarL(int& error, BuildInfor* infor, context* dst, const char* a
 	}
 	printf("\t??????\n");
 	var* newVar = new var;
+	printf("\t??????\n");
 	newVar->SetName(name);
-	if (attri != NULL)newVar->SetAttri(attri);
+	printf("\t??????\n");
+	if (attri != NULL) newVar->SetAttri(attri);
 	printf("\t??????\n");
 	if (!scalar)
 	{
