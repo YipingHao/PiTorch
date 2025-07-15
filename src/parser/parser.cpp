@@ -1420,6 +1420,7 @@ int BuildInfor::buildSymbolic(const lex& eme, GTNode* SYMBOLIC, context * dst)
 	if (error != 0) return error;
 	if (PrintScreen)
 	{
+		fprintf(screen, "\t\t name:%s\n", Func->GetName());
 		for (size_t i = 0; i < subcontext->global.count(); i++)
 		{
 			var* TempP = subcontext->global[i];
