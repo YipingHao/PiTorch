@@ -1101,9 +1101,9 @@ int Indexs::buildSUMSYMBOL(const lex& eme, GTNode* SUMSYMBOL, BuildInfor* infor,
 		infor->errorInfor1 = SUMSYMBOL->root().site;
 		infor->ErrorNode = SUMSYMBOL;
 		infor->errorCode = BuildInfor::WrongEntrance;
-		return 245234453;
+		return 24523453;
 	}
-
+	return 0;
 }
 
 TensorID::TensorID()
@@ -1131,7 +1131,7 @@ int TensorID::build(const lex& eme, GTNode* TENSORID, BuildInfor* infor, context
 		infor->errorInfor1 = TENSORID->root().site;
 		infor->ErrorNode = TENSORID;
 		infor->errorCode = BuildInfor::WrongEntrance;
-		return 245234453;
+		return 245237853;
 	}
 	GTNode* INDEXLIST = TENSORID->child(1);
 	GTNode* INDEXUNITS = INDEXLIST->child(1);
@@ -1238,7 +1238,7 @@ int ValueList::build(const lex& eme, GTNode* VALUELIST, BuildInfor* infor, conte
 		infor->errorInfor1 = VALUELIST->root().site;
 		infor->ErrorNode = VALUELIST;
 		infor->errorCode = BuildInfor::WrongEntrance;
-		return 245234453;
+		return 24523453;
 	}
 	GTNode* EXP_RIGHT = VALUELIST->child(0);
 	ConstObj* output = NULL;

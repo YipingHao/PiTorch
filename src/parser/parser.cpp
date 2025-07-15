@@ -2204,7 +2204,7 @@ int context::build(const char* FileName)
 	BuildInfor builder;
 	clear();
 	initial();
-	builder.build(FileName, this);
+	int error = builder.build(FileName, this);
 	if (builder.errorCode != BuildInfor::NoError)
 	{
 		builder.ErrorDemo();
@@ -2212,6 +2212,7 @@ int context::build(const char* FileName)
 		initial();
 	}
 	S = NoError;
+	return error;
 }
 int context::build(const char* FileName, FILE* fp)
 {
@@ -2220,7 +2221,7 @@ int context::build(const char* FileName, FILE* fp)
 	//initial();
 	builder.PrintScreen = true;
 	builder.screen = fp;
-	builder.build(FileName, this);
+	int error = builder.build(FileName, this);
 	
 	if (builder.errorCode != BuildInfor::NoError)
 	{
@@ -2229,6 +2230,7 @@ int context::build(const char* FileName, FILE* fp)
 		initial();
 	}
 	S = NoError;
+	return error;
 }
 
 
