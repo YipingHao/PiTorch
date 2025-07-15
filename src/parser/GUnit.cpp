@@ -559,6 +559,7 @@ var::var(Expres::node* srcR)
 	//infor = NULL;
 	infors.recount(1);
 	infors[0] = (void*)srcR;
+	attribute = NULL;
 }
 var::var()
 {
@@ -584,6 +585,7 @@ void var::initial(void)
 	//infor = NULL;
 	infors.recount(1);
 	infors[0] = NULL;
+	attribute = NULL;
 }
 void var::demo(FILE* fp) const
 {
