@@ -12,9 +12,10 @@ int NetL::next(int state, const char c)
 	case 0:
 		if (c == (char)9) return 33;
 		else if (c == (char)10) return 32;
+		else if (c == (char)13) return 53;
 		else if (c == ' ') return 31;
-		else if (c == '\"') return 53;
-		else if (c == '#') return 92;
+		else if (c == '\"') return 92;
+		else if (c == '#') return 103;
 		else if (c == '(') return 40;
 		else if (c == ')') return 41;
 		else if (c == '*') return 48;
@@ -31,7 +32,7 @@ int NetL::next(int state, const char c)
 		else if (c == '>') return 45;
 		else if ('A' <= c && c <= 'Z') return 1;
 		else if (c == '[') return 42;
-		else if (c == '\\') return 110;
+		else if (c == '\\') return 116;
 		else if (c == ']') return 43;
 		else if (c == '_') return 1;
 		else if (c == 'a') return 1;
@@ -64,22 +65,22 @@ int NetL::next(int state, const char c)
 		else if ('a' <= c && c <= 'z') return 1;
 		else return 0;
 	case 2:
-		if (c == '.') return 117;
+		if (c == '.') return 123;
 		else if ('0' <= c && c <= '9') return 2;
 		else return 0;
 	case 3:
 		if ('0' <= c && c <= '9') return 3;
-		else if (c == 'E') return 104;
-		else if (c == 'e') return 104;
+		else if (c == 'E') return 110;
+		else if (c == 'e') return 110;
 		else return 0;
 	case 4:
 		return 0;
 	case 5:
-		if (c == ' ') return 111;
-		else if (c == '!') return 93;
-		else if ('#' <= c && c <= '[') return 93;
+		if (c == ' ') return 117;
+		else if (c == '!') return 104;
+		else if ('#' <= c && c <= '[') return 104;
 		else if (c == '\\') return 91;
-		else if (']' <= c && c <= (char)127) return 93;
+		else if (']' <= c && c <= (char)127) return 104;
 		else return 0;
 	case 6:
 		return 0;
@@ -230,6 +231,7 @@ int NetL::next(int state, const char c)
 		else return 0;
 	case 32:
 		if (c == (char)10) return 32;
+		else if (c == (char)13) return 53;
 		else return 0;
 	case 33:
 		return 0;
@@ -254,7 +256,7 @@ int NetL::next(int state, const char c)
 	case 43:
 		return 0;
 	case 44:
-		if (c == ' ') return 93;
+		if (c == ' ') return 104;
 		else return 0;
 	case 45:
 		return 0;
@@ -263,14 +265,14 @@ int NetL::next(int state, const char c)
 		else if ((char)11 <= c && c <= (char)127) return 46;
 		else return 0;
 	case 47:
-		if ((char)0 <= c && c <= ')') return 103;
-		else if (c == '*') return 116;
-		else if ('+' <= c && c <= (char)127) return 103;
+		if ((char)0 <= c && c <= ')') return 102;
+		else if (c == '*') return 109;
+		else if ('+' <= c && c <= (char)127) return 102;
 		else return 0;
 	case 48:
 		return 0;
 	case 49:
-		if (c == '*') return 103;
+		if (c == '*') return 102;
 		else if (c == '/') return 46;
 		else return 0;
 	case 50:
@@ -282,11 +284,7 @@ int NetL::next(int state, const char c)
 	case 52:
 		return 0;
 	case 53:
-		if (' ' <= c && c <= '!') return 53;
-		else if (c == '\"') return 4;
-		else if ('#' <= c && c <= '[') return 53;
-		else if (c == '\\') return 115;
-		else if (']' <= c && c <= (char)127) return 53;
+		if (c == (char)10) return 32;
 		else return 0;
 	case 54:
 		if ('0' <= c && c <= '9') return 1;
@@ -318,7 +316,7 @@ int NetL::next(int state, const char c)
 		else if ('a' <= c && c <= 'e') return 1;
 		else if (c == 'f') return 17;
 		else if ('g' <= c && c <= 'm') return 1;
-		else if (c == 'n') return 126;
+		else if (c == 'n') return 122;
 		else if ('o' <= c && c <= 'z') return 1;
 		else return 0;
 	case 58:
@@ -326,7 +324,7 @@ int NetL::next(int state, const char c)
 		else if ('A' <= c && c <= 'Z') return 1;
 		else if (c == '_') return 1;
 		else if ('a' <= c && c <= 'd') return 1;
-		else if (c == 'e') return 94;
+		else if (c == 'e') return 93;
 		else if ('f' <= c && c <= 'z') return 1;
 		else return 0;
 	case 59:
@@ -376,7 +374,7 @@ int NetL::next(int state, const char c)
 		else if ('A' <= c && c <= 'Z') return 1;
 		else if (c == '_') return 1;
 		else if ('a' <= c && c <= 'h') return 1;
-		else if (c == 'i') return 96;
+		else if (c == 'i') return 95;
 		else if ('j' <= c && c <= 'p') return 1;
 		else if (c == 'q') return 80;
 		else if ('r' <= c && c <= 'z') return 1;
@@ -386,7 +384,7 @@ int NetL::next(int state, const char c)
 		else if ('A' <= c && c <= 'Z') return 1;
 		else if (c == '_') return 1;
 		else if ('a' <= c && c <= 'n') return 1;
-		else if (c == 'o') return 95;
+		else if (c == 'o') return 94;
 		else if ('p' <= c && c <= 'z') return 1;
 		else return 0;
 	case 66:
@@ -417,7 +415,7 @@ int NetL::next(int state, const char c)
 		if ('0' <= c && c <= '9') return 1;
 		else if ('A' <= c && c <= 'Z') return 1;
 		else if (c == '_') return 1;
-		else if (c == 'a') return 113;
+		else if (c == 'a') return 107;
 		else if ('b' <= c && c <= 'n') return 1;
 		else if (c == 'o') return 85;
 		else if ('p' <= c && c <= 'z') return 1;
@@ -427,9 +425,9 @@ int NetL::next(int state, const char c)
 		else if ('A' <= c && c <= 'Z') return 1;
 		else if (c == '_') return 1;
 		else if ('a' <= c && c <= 'n') return 1;
-		else if (c == 'o') return 123;
+		else if (c == 'o') return 119;
 		else if ('p' <= c && c <= 't') return 1;
-		else if (c == 'u') return 122;
+		else if (c == 'u') return 118;
 		else if ('v' <= c && c <= 'z') return 1;
 		else return 0;
 	case 71:
@@ -437,7 +435,7 @@ int NetL::next(int state, const char c)
 		else if ('A' <= c && c <= 'Z') return 1;
 		else if (c == '_') return 1;
 		else if ('a' <= c && c <= 'r') return 1;
-		else if (c == 's') return 98;
+		else if (c == 's') return 97;
 		else if ('t' <= c && c <= 'z') return 1;
 		else return 0;
 	case 72:
@@ -445,7 +443,7 @@ int NetL::next(int state, const char c)
 		else if ('A' <= c && c <= 'Z') return 1;
 		else if (c == '_') return 1;
 		else if ('a' <= c && c <= 'k') return 1;
-		else if (c == 'l') return 100;
+		else if (c == 'l') return 99;
 		else if ('m' <= c && c <= 'w') return 1;
 		else if (c == 'x') return 67;
 		else if ('y' <= c && c <= 'z') return 1;
@@ -471,7 +469,7 @@ int NetL::next(int state, const char c)
 		else if ('A' <= c && c <= 'Z') return 1;
 		else if (c == '_') return 1;
 		else if ('a' <= c && c <= 'n') return 1;
-		else if (c == 'o') return 99;
+		else if (c == 'o') return 98;
 		else if ('p' <= c && c <= 'z') return 1;
 		else return 0;
 	case 76:
@@ -487,7 +485,7 @@ int NetL::next(int state, const char c)
 		else if ('A' <= c && c <= 'Z') return 1;
 		else if (c == '_') return 1;
 		else if ('a' <= c && c <= 'd') return 1;
-		else if (c == 'e') return 124;
+		else if (c == 'e') return 120;
 		else if ('f' <= c && c <= 'z') return 1;
 		else return 0;
 	case 78:
@@ -511,7 +509,7 @@ int NetL::next(int state, const char c)
 		else if ('A' <= c && c <= 'Z') return 1;
 		else if (c == '_') return 1;
 		else if ('a' <= c && c <= 'q') return 1;
-		else if (c == 'r') return 101;
+		else if (c == 'r') return 100;
 		else if ('s' <= c && c <= 'z') return 1;
 		else return 0;
 	case 81:
@@ -519,7 +517,7 @@ int NetL::next(int state, const char c)
 		else if ('A' <= c && c <= 'Z') return 1;
 		else if (c == '_') return 1;
 		else if ('a' <= c && c <= 't') return 1;
-		else if (c == 'u') return 97;
+		else if (c == 'u') return 96;
 		else if ('v' <= c && c <= 'z') return 1;
 		else return 0;
 	case 82:
@@ -527,7 +525,7 @@ int NetL::next(int state, const char c)
 		else if ('A' <= c && c <= 'Z') return 1;
 		else if (c == '_') return 1;
 		else if ('a' <= c && c <= 'o') return 1;
-		else if (c == 'p') return 102;
+		else if (c == 'p') return 101;
 		else if ('q' <= c && c <= 'z') return 1;
 		else return 0;
 	case 83:
@@ -590,32 +588,29 @@ int NetL::next(int state, const char c)
 		if ('0' <= c && c <= '9') return 90;
 		else return 0;
 	case 91:
-		if (c == (char)0) return 93;
-		else if (c == '\"') return 93;
-		else if (c == '\'') return 93;
-		else if ('0' <= c && c <= '7') return 93;
-		else if (c == '\?') return 93;
-		else if (c == 'X') return 105;
-		else if (c == '\\') return 93;
-		else if ('a' <= c && c <= 'b') return 93;
-		else if (c == 'f') return 93;
-		else if (c == 'n') return 93;
-		else if (c == 'r') return 93;
-		else if (c == 't') return 93;
-		else if (c == 'v') return 93;
-		else if (c == 'x') return 105;
+		if (c == (char)0) return 104;
+		else if (c == '\"') return 104;
+		else if (c == '\'') return 104;
+		else if ('0' <= c && c <= '7') return 104;
+		else if (c == '\?') return 104;
+		else if (c == 'X') return 111;
+		else if (c == '\\') return 104;
+		else if ('a' <= c && c <= 'b') return 104;
+		else if (c == 'f') return 104;
+		else if (c == 'n') return 104;
+		else if (c == 'r') return 104;
+		else if (c == 't') return 104;
+		else if (c == 'v') return 104;
+		else if (c == 'x') return 111;
 		else return 0;
 	case 92:
-		if (c == 'i') return 120;
+		if (' ' <= c && c <= '!') return 92;
+		else if (c == '\"') return 4;
+		else if ('#' <= c && c <= '[') return 92;
+		else if (c == '\\') return 105;
+		else if (']' <= c && c <= (char)127) return 92;
 		else return 0;
 	case 93:
-		if (c == ' ') return 111;
-		else if (c == '!') return 93;
-		else if ('#' <= c && c <= '[') return 93;
-		else if (c == '\\') return 91;
-		else if (']' <= c && c <= (char)127) return 93;
-		else return 0;
-	case 94:
 		if ('0' <= c && c <= '9') return 1;
 		else if ('A' <= c && c <= 'Z') return 1;
 		else if (c == '_') return 1;
@@ -623,7 +618,7 @@ int NetL::next(int state, const char c)
 		else if (c == 'f') return 11;
 		else if ('g' <= c && c <= 'z') return 1;
 		else return 0;
-	case 95:
+	case 94:
 		if ('0' <= c && c <= '9') return 1;
 		else if ('A' <= c && c <= 'Z') return 1;
 		else if (c == '_') return 1;
@@ -631,7 +626,7 @@ int NetL::next(int state, const char c)
 		else if (c == 'l') return 23;
 		else if ('m' <= c && c <= 'z') return 1;
 		else return 0;
-	case 96:
+	case 95:
 		if ('0' <= c && c <= '9') return 1;
 		else if ('A' <= c && c <= 'Z') return 1;
 		else if (c == '_') return 1;
@@ -639,15 +634,15 @@ int NetL::next(int state, const char c)
 		else if (c == 'n') return 24;
 		else if ('o' <= c && c <= 'z') return 1;
 		else return 0;
-	case 97:
+	case 96:
 		if ('0' <= c && c <= '9') return 1;
 		else if ('A' <= c && c <= 'Z') return 1;
 		else if (c == '_') return 1;
 		else if ('a' <= c && c <= 'q') return 1;
-		else if (c == 'r') return 112;
+		else if (c == 'r') return 106;
 		else if ('s' <= c && c <= 'z') return 1;
 		else return 0;
-	case 98:
+	case 97:
 		if ('0' <= c && c <= '9') return 1;
 		else if ('A' <= c && c <= 'Z') return 1;
 		else if (c == '_') return 1;
@@ -655,7 +650,7 @@ int NetL::next(int state, const char c)
 		else if (c == 'o') return 68;
 		else if ('p' <= c && c <= 'z') return 1;
 		else return 0;
-	case 99:
+	case 98:
 		if ('0' <= c && c <= '9') return 1;
 		else if ('A' <= c && c <= 'Z') return 1;
 		else if (c == '_') return 1;
@@ -665,7 +660,7 @@ int NetL::next(int state, const char c)
 		else if (c == 's') return 25;
 		else if ('t' <= c && c <= 'z') return 1;
 		else return 0;
-	case 100:
+	case 99:
 		if ('0' <= c && c <= '9') return 1;
 		else if ('A' <= c && c <= 'Z') return 1;
 		else if (c == '_') return 1;
@@ -673,7 +668,7 @@ int NetL::next(int state, const char c)
 		else if (c == 's') return 56;
 		else if ('t' <= c && c <= 'z') return 1;
 		else return 0;
-	case 101:
+	case 100:
 		if ('0' <= c && c <= '9') return 1;
 		else if ('A' <= c && c <= 'Z') return 1;
 		else if (c == '_') return 1;
@@ -681,54 +676,46 @@ int NetL::next(int state, const char c)
 		else if (c == 't') return 29;
 		else if ('u' <= c && c <= 'z') return 1;
 		else return 0;
-	case 102:
+	case 101:
 		if ('0' <= c && c <= '9') return 1;
 		else if ('A' <= c && c <= 'Z') return 1;
 		else if (c == '_') return 1;
 		else if ('a' <= c && c <= 't') return 1;
-		else if (c == 'u') return 114;
+		else if (c == 'u') return 108;
 		else if ('v' <= c && c <= 'z') return 1;
 		else return 0;
+	case 102:
+		if ((char)0 <= c && c <= ')') return 102;
+		else if (c == '*') return 109;
+		else if ('+' <= c && c <= (char)127) return 102;
+		else return 0;
 	case 103:
-		if ((char)0 <= c && c <= ')') return 103;
-		else if (c == '*') return 116;
-		else if ('+' <= c && c <= (char)127) return 103;
+		if (c == 'i') return 126;
 		else return 0;
 	case 104:
-		if (c == '+') return 127;
-		else if (c == '-') return 127;
-		else if ('0' <= c && c <= '9') return 90;
+		if (c == ' ') return 117;
+		else if (c == '!') return 104;
+		else if ('#' <= c && c <= '[') return 104;
+		else if (c == '\\') return 91;
+		else if (']' <= c && c <= (char)127) return 104;
 		else return 0;
 	case 105:
-		if ('0' <= c && c <= '9') return 93;
-		else if ('A' <= c && c <= 'F') return 93;
-		else if ('a' <= c && c <= 'f') return 93;
+		if (c == (char)0) return 92;
+		else if (c == '\"') return 92;
+		else if (c == '\'') return 92;
+		else if ('0' <= c && c <= '7') return 92;
+		else if (c == '\?') return 92;
+		else if (c == 'X') return 131;
+		else if (c == '\\') return 92;
+		else if ('a' <= c && c <= 'b') return 92;
+		else if (c == 'f') return 92;
+		else if (c == 'n') return 92;
+		else if (c == 'r') return 92;
+		else if (c == 't') return 92;
+		else if (c == 'v') return 92;
+		else if (c == 'x') return 131;
 		else return 0;
 	case 106:
-		if (c == '_') return 7;
-		else return 0;
-	case 107:
-		if (c == 'c') return 118;
-		else return 0;
-	case 108:
-		if (c == 'd') return 109;
-		else return 0;
-	case 109:
-		if (c == 'e') return 6;
-		else return 0;
-	case 110:
-		if (c == 's') return 121;
-		else return 0;
-	case 111:
-		if (c == ' ') return 111;
-		else if (c == '!') return 93;
-		else if ('#' <= c && c <= '=') return 93;
-		else if (c == '>') return 5;
-		else if ('\?' <= c && c <= '[') return 93;
-		else if (c == '\\') return 91;
-		else if (']' <= c && c <= (char)127) return 93;
-		else return 0;
-	case 112:
 		if ('0' <= c && c <= '9') return 1;
 		else if ('A' <= c && c <= 'Z') return 1;
 		else if (c == '_') return 1;
@@ -736,7 +723,7 @@ int NetL::next(int state, const char c)
 		else if (c == 'n') return 15;
 		else if ('o' <= c && c <= 'z') return 1;
 		else return 0;
-	case 113:
+	case 107:
 		if ('0' <= c && c <= '9') return 1;
 		else if ('A' <= c && c <= 'Z') return 1;
 		else if (c == '_') return 1;
@@ -744,7 +731,7 @@ int NetL::next(int state, const char c)
 		else if (c == 'r') return 54;
 		else if ('s' <= c && c <= 'z') return 1;
 		else return 0;
-	case 114:
+	case 108:
 		if ('0' <= c && c <= '9') return 1;
 		else if ('A' <= c && c <= 'Z') return 1;
 		else if (c == '_') return 1;
@@ -752,45 +739,48 @@ int NetL::next(int state, const char c)
 		else if (c == 't') return 13;
 		else if ('u' <= c && c <= 'z') return 1;
 		else return 0;
+	case 109:
+		if ((char)0 <= c && c <= ')') return 102;
+		else if (c == '*') return 109;
+		else if ('+' <= c && c <= '.') return 102;
+		else if (c == '/') return 47;
+		else if ('0' <= c && c <= (char)127) return 102;
+		else return 0;
+	case 110:
+		if (c == '+') return 129;
+		else if (c == '-') return 129;
+		else if ('0' <= c && c <= '9') return 90;
+		else return 0;
+	case 111:
+		if ('0' <= c && c <= '9') return 104;
+		else if ('A' <= c && c <= 'F') return 104;
+		else if ('a' <= c && c <= 'f') return 104;
+		else return 0;
+	case 112:
+		if (c == '_') return 7;
+		else return 0;
+	case 113:
+		if (c == 'c') return 124;
+		else return 0;
+	case 114:
+		if (c == 'd') return 115;
+		else return 0;
 	case 115:
-		if (c == (char)0) return 53;
-		else if (c == '\"') return 53;
-		else if (c == '\'') return 53;
-		else if ('0' <= c && c <= '7') return 53;
-		else if (c == '\?') return 53;
-		else if (c == 'X') return 130;
-		else if (c == '\\') return 53;
-		else if ('a' <= c && c <= 'b') return 53;
-		else if (c == 'f') return 53;
-		else if (c == 'n') return 53;
-		else if (c == 'r') return 53;
-		else if (c == 't') return 53;
-		else if (c == 'v') return 53;
-		else if (c == 'x') return 130;
+		if (c == 'e') return 6;
 		else return 0;
 	case 116:
-		if ((char)0 <= c && c <= ')') return 103;
-		else if (c == '*') return 116;
-		else if ('+' <= c && c <= '.') return 103;
-		else if (c == '/') return 47;
-		else if ('0' <= c && c <= (char)127) return 103;
+		if (c == 's') return 127;
 		else return 0;
 	case 117:
-		if ('0' <= c && c <= '9') return 3;
+		if (c == ' ') return 117;
+		else if (c == '!') return 104;
+		else if ('#' <= c && c <= '=') return 104;
+		else if (c == '>') return 5;
+		else if ('\?' <= c && c <= '[') return 104;
+		else if (c == '\\') return 91;
+		else if (']' <= c && c <= (char)127) return 104;
 		else return 0;
 	case 118:
-		if (c == 'l') return 128;
-		else return 0;
-	case 119:
-		if (c == 'm') return 106;
-		else return 0;
-	case 120:
-		if (c == 'n') return 107;
-		else return 0;
-	case 121:
-		if (c == 'u') return 119;
-		else return 0;
-	case 122:
 		if ('0' <= c && c <= '9') return 1;
 		else if ('A' <= c && c <= 'Z') return 1;
 		else if (c == '_') return 1;
@@ -798,7 +788,7 @@ int NetL::next(int state, const char c)
 		else if (c == 'n') return 55;
 		else if ('o' <= c && c <= 'z') return 1;
 		else return 0;
-	case 123:
+	case 119:
 		if ('0' <= c && c <= '9') return 1;
 		else if ('A' <= c && c <= 'Z') return 1;
 		else if (c == '_') return 1;
@@ -806,7 +796,7 @@ int NetL::next(int state, const char c)
 		else if (c == 'r') return 16;
 		else if ('s' <= c && c <= 'z') return 1;
 		else return 0;
-	case 124:
+	case 120:
 		if ('0' <= c && c <= '9') return 1;
 		else if ('A' <= c && c <= 'Z') return 1;
 		else if (c == '_') return 1;
@@ -814,29 +804,38 @@ int NetL::next(int state, const char c)
 		else if (c == 't') return 9;
 		else if ('u' <= c && c <= 'z') return 1;
 		else return 0;
-	case 125:
+	case 121:
 		if ('0' <= c && c <= '9') return 1;
 		else if ('A' <= c && c <= 'Z') return 1;
 		else if (c == '_') return 1;
 		else if ('a' <= c && c <= 't') return 1;
-		else if (c == 'u') return 129;
+		else if (c == 'u') return 128;
 		else if ('v' <= c && c <= 'z') return 1;
 		else return 0;
-	case 126:
+	case 122:
 		if ('0' <= c && c <= '9') return 1;
 		else if ('A' <= c && c <= 'Z') return 1;
 		else if (c == '_') return 1;
 		else if ('a' <= c && c <= 'o') return 1;
-		else if (c == 'p') return 125;
+		else if (c == 'p') return 121;
 		else if ('q' <= c && c <= 'z') return 1;
 		else return 0;
+	case 123:
+		if ('0' <= c && c <= '9') return 3;
+		else return 0;
+	case 124:
+		if (c == 'l') return 130;
+		else return 0;
+	case 125:
+		if (c == 'm') return 112;
+		else return 0;
+	case 126:
+		if (c == 'n') return 113;
+		else return 0;
 	case 127:
-		if ('0' <= c && c <= '9') return 90;
+		if (c == 'u') return 125;
 		else return 0;
 	case 128:
-		if (c == 'u') return 108;
-		else return 0;
-	case 129:
 		if ('0' <= c && c <= '9') return 1;
 		else if ('A' <= c && c <= 'Z') return 1;
 		else if (c == '_') return 1;
@@ -844,10 +843,16 @@ int NetL::next(int state, const char c)
 		else if (c == 't') return 12;
 		else if ('u' <= c && c <= 'z') return 1;
 		else return 0;
+	case 129:
+		if ('0' <= c && c <= '9') return 90;
+		else return 0;
 	case 130:
-		if ('0' <= c && c <= '9') return 53;
-		else if ('A' <= c && c <= 'F') return 53;
-		else if ('a' <= c && c <= 'f') return 53;
+		if (c == 'u') return 114;
+		else return 0;
+	case 131:
+		if ('0' <= c && c <= '9') return 92;
+		else if ('A' <= c && c <= 'F') return 92;
+		else if ('a' <= c && c <= 'f') return 92;
 		else return 0;
 	}
 	return 0;
@@ -1034,6 +1039,8 @@ int NetL::action(int state)
 		return 1;//id: id
 	case 90:
 		return 3;//number: realC
+	case 93:
+		return 1;//id: id
 	case 94:
 		return 1;//id: id
 	case 95:
@@ -1050,25 +1057,23 @@ int NetL::action(int state)
 		return 1;//id: id
 	case 101:
 		return 1;//id: id
-	case 102:
+	case 106:
 		return 1;//id: id
-	case 112:
+	case 107:
 		return 1;//id: id
-	case 113:
+	case 108:
 		return 1;//id: id
-	case 114:
+	case 118:
+		return 1;//id: id
+	case 119:
+		return 1;//id: id
+	case 120:
+		return 1;//id: id
+	case 121:
 		return 1;//id: id
 	case 122:
 		return 1;//id: id
-	case 123:
-		return 1;//id: id
-	case 124:
-		return 1;//id: id
-	case 125:
-		return 1;//id: id
-	case 126:
-		return 1;//id: id
-	case 129:
+	case 128:
 		return 1;//id: id
 	}
 	return 0;
@@ -1184,6 +1189,7 @@ int NetL::GroupGet(int accept)
 	}
 	return 0;
 }
+
 
 
 
@@ -1942,9 +1948,10 @@ int NetPreL::next(int state, const char c)
 	case 0:
 		if (c == (char)9) return 33;
 		else if (c == (char)10) return 32;
+		else if (c == (char)13) return 53;
 		else if (c == ' ') return 31;
-		else if (c == '\"') return 53;
-		else if (c == '#') return 92;
+		else if (c == '\"') return 92;
+		else if (c == '#') return 103;
 		else if (c == '(') return 40;
 		else if (c == ')') return 41;
 		else if (c == '*') return 48;
@@ -1961,7 +1968,7 @@ int NetPreL::next(int state, const char c)
 		else if (c == '>') return 45;
 		else if ('A' <= c && c <= 'Z') return 1;
 		else if (c == '[') return 42;
-		else if (c == '\\') return 110;
+		else if (c == '\\') return 116;
 		else if (c == ']') return 43;
 		else if (c == '_') return 1;
 		else if (c == 'a') return 1;
@@ -1994,22 +2001,22 @@ int NetPreL::next(int state, const char c)
 		else if ('a' <= c && c <= 'z') return 1;
 		else return 0;
 	case 2:
-		if (c == '.') return 117;
+		if (c == '.') return 123;
 		else if ('0' <= c && c <= '9') return 2;
 		else return 0;
 	case 3:
 		if ('0' <= c && c <= '9') return 3;
-		else if (c == 'E') return 104;
-		else if (c == 'e') return 104;
+		else if (c == 'E') return 110;
+		else if (c == 'e') return 110;
 		else return 0;
 	case 4:
 		return 0;
 	case 5:
-		if (c == ' ') return 111;
-		else if (c == '!') return 93;
-		else if ('#' <= c && c <= '[') return 93;
+		if (c == ' ') return 117;
+		else if (c == '!') return 104;
+		else if ('#' <= c && c <= '[') return 104;
 		else if (c == '\\') return 91;
-		else if (']' <= c && c <= (char)127) return 93;
+		else if (']' <= c && c <= (char)127) return 104;
 		else return 0;
 	case 6:
 		return 0;
@@ -2160,6 +2167,7 @@ int NetPreL::next(int state, const char c)
 		else return 0;
 	case 32:
 		if (c == (char)10) return 32;
+		else if (c == (char)13) return 53;
 		else return 0;
 	case 33:
 		return 0;
@@ -2184,7 +2192,7 @@ int NetPreL::next(int state, const char c)
 	case 43:
 		return 0;
 	case 44:
-		if (c == ' ') return 93;
+		if (c == ' ') return 104;
 		else return 0;
 	case 45:
 		return 0;
@@ -2193,14 +2201,14 @@ int NetPreL::next(int state, const char c)
 		else if ((char)11 <= c && c <= (char)127) return 46;
 		else return 0;
 	case 47:
-		if ((char)0 <= c && c <= ')') return 103;
-		else if (c == '*') return 116;
-		else if ('+' <= c && c <= (char)127) return 103;
+		if ((char)0 <= c && c <= ')') return 102;
+		else if (c == '*') return 109;
+		else if ('+' <= c && c <= (char)127) return 102;
 		else return 0;
 	case 48:
 		return 0;
 	case 49:
-		if (c == '*') return 103;
+		if (c == '*') return 102;
 		else if (c == '/') return 46;
 		else return 0;
 	case 50:
@@ -2212,11 +2220,7 @@ int NetPreL::next(int state, const char c)
 	case 52:
 		return 0;
 	case 53:
-		if (' ' <= c && c <= '!') return 53;
-		else if (c == '\"') return 4;
-		else if ('#' <= c && c <= '[') return 53;
-		else if (c == '\\') return 115;
-		else if (']' <= c && c <= (char)127) return 53;
+		if (c == (char)10) return 32;
 		else return 0;
 	case 54:
 		if ('0' <= c && c <= '9') return 1;
@@ -2248,7 +2252,7 @@ int NetPreL::next(int state, const char c)
 		else if ('a' <= c && c <= 'e') return 1;
 		else if (c == 'f') return 17;
 		else if ('g' <= c && c <= 'm') return 1;
-		else if (c == 'n') return 126;
+		else if (c == 'n') return 122;
 		else if ('o' <= c && c <= 'z') return 1;
 		else return 0;
 	case 58:
@@ -2256,7 +2260,7 @@ int NetPreL::next(int state, const char c)
 		else if ('A' <= c && c <= 'Z') return 1;
 		else if (c == '_') return 1;
 		else if ('a' <= c && c <= 'd') return 1;
-		else if (c == 'e') return 94;
+		else if (c == 'e') return 93;
 		else if ('f' <= c && c <= 'z') return 1;
 		else return 0;
 	case 59:
@@ -2306,7 +2310,7 @@ int NetPreL::next(int state, const char c)
 		else if ('A' <= c && c <= 'Z') return 1;
 		else if (c == '_') return 1;
 		else if ('a' <= c && c <= 'h') return 1;
-		else if (c == 'i') return 96;
+		else if (c == 'i') return 95;
 		else if ('j' <= c && c <= 'p') return 1;
 		else if (c == 'q') return 80;
 		else if ('r' <= c && c <= 'z') return 1;
@@ -2316,7 +2320,7 @@ int NetPreL::next(int state, const char c)
 		else if ('A' <= c && c <= 'Z') return 1;
 		else if (c == '_') return 1;
 		else if ('a' <= c && c <= 'n') return 1;
-		else if (c == 'o') return 95;
+		else if (c == 'o') return 94;
 		else if ('p' <= c && c <= 'z') return 1;
 		else return 0;
 	case 66:
@@ -2347,7 +2351,7 @@ int NetPreL::next(int state, const char c)
 		if ('0' <= c && c <= '9') return 1;
 		else if ('A' <= c && c <= 'Z') return 1;
 		else if (c == '_') return 1;
-		else if (c == 'a') return 113;
+		else if (c == 'a') return 107;
 		else if ('b' <= c && c <= 'n') return 1;
 		else if (c == 'o') return 85;
 		else if ('p' <= c && c <= 'z') return 1;
@@ -2357,9 +2361,9 @@ int NetPreL::next(int state, const char c)
 		else if ('A' <= c && c <= 'Z') return 1;
 		else if (c == '_') return 1;
 		else if ('a' <= c && c <= 'n') return 1;
-		else if (c == 'o') return 123;
+		else if (c == 'o') return 119;
 		else if ('p' <= c && c <= 't') return 1;
-		else if (c == 'u') return 122;
+		else if (c == 'u') return 118;
 		else if ('v' <= c && c <= 'z') return 1;
 		else return 0;
 	case 71:
@@ -2367,7 +2371,7 @@ int NetPreL::next(int state, const char c)
 		else if ('A' <= c && c <= 'Z') return 1;
 		else if (c == '_') return 1;
 		else if ('a' <= c && c <= 'r') return 1;
-		else if (c == 's') return 98;
+		else if (c == 's') return 97;
 		else if ('t' <= c && c <= 'z') return 1;
 		else return 0;
 	case 72:
@@ -2375,7 +2379,7 @@ int NetPreL::next(int state, const char c)
 		else if ('A' <= c && c <= 'Z') return 1;
 		else if (c == '_') return 1;
 		else if ('a' <= c && c <= 'k') return 1;
-		else if (c == 'l') return 100;
+		else if (c == 'l') return 99;
 		else if ('m' <= c && c <= 'w') return 1;
 		else if (c == 'x') return 67;
 		else if ('y' <= c && c <= 'z') return 1;
@@ -2401,7 +2405,7 @@ int NetPreL::next(int state, const char c)
 		else if ('A' <= c && c <= 'Z') return 1;
 		else if (c == '_') return 1;
 		else if ('a' <= c && c <= 'n') return 1;
-		else if (c == 'o') return 99;
+		else if (c == 'o') return 98;
 		else if ('p' <= c && c <= 'z') return 1;
 		else return 0;
 	case 76:
@@ -2417,7 +2421,7 @@ int NetPreL::next(int state, const char c)
 		else if ('A' <= c && c <= 'Z') return 1;
 		else if (c == '_') return 1;
 		else if ('a' <= c && c <= 'd') return 1;
-		else if (c == 'e') return 124;
+		else if (c == 'e') return 120;
 		else if ('f' <= c && c <= 'z') return 1;
 		else return 0;
 	case 78:
@@ -2441,7 +2445,7 @@ int NetPreL::next(int state, const char c)
 		else if ('A' <= c && c <= 'Z') return 1;
 		else if (c == '_') return 1;
 		else if ('a' <= c && c <= 'q') return 1;
-		else if (c == 'r') return 101;
+		else if (c == 'r') return 100;
 		else if ('s' <= c && c <= 'z') return 1;
 		else return 0;
 	case 81:
@@ -2449,7 +2453,7 @@ int NetPreL::next(int state, const char c)
 		else if ('A' <= c && c <= 'Z') return 1;
 		else if (c == '_') return 1;
 		else if ('a' <= c && c <= 't') return 1;
-		else if (c == 'u') return 97;
+		else if (c == 'u') return 96;
 		else if ('v' <= c && c <= 'z') return 1;
 		else return 0;
 	case 82:
@@ -2457,7 +2461,7 @@ int NetPreL::next(int state, const char c)
 		else if ('A' <= c && c <= 'Z') return 1;
 		else if (c == '_') return 1;
 		else if ('a' <= c && c <= 'o') return 1;
-		else if (c == 'p') return 102;
+		else if (c == 'p') return 101;
 		else if ('q' <= c && c <= 'z') return 1;
 		else return 0;
 	case 83:
@@ -2520,32 +2524,29 @@ int NetPreL::next(int state, const char c)
 		if ('0' <= c && c <= '9') return 90;
 		else return 0;
 	case 91:
-		if (c == (char)0) return 93;
-		else if (c == '\"') return 93;
-		else if (c == '\'') return 93;
-		else if ('0' <= c && c <= '7') return 93;
-		else if (c == '\?') return 93;
-		else if (c == 'X') return 105;
-		else if (c == '\\') return 93;
-		else if ('a' <= c && c <= 'b') return 93;
-		else if (c == 'f') return 93;
-		else if (c == 'n') return 93;
-		else if (c == 'r') return 93;
-		else if (c == 't') return 93;
-		else if (c == 'v') return 93;
-		else if (c == 'x') return 105;
+		if (c == (char)0) return 104;
+		else if (c == '\"') return 104;
+		else if (c == '\'') return 104;
+		else if ('0' <= c && c <= '7') return 104;
+		else if (c == '\?') return 104;
+		else if (c == 'X') return 111;
+		else if (c == '\\') return 104;
+		else if ('a' <= c && c <= 'b') return 104;
+		else if (c == 'f') return 104;
+		else if (c == 'n') return 104;
+		else if (c == 'r') return 104;
+		else if (c == 't') return 104;
+		else if (c == 'v') return 104;
+		else if (c == 'x') return 111;
 		else return 0;
 	case 92:
-		if (c == 'i') return 120;
+		if (' ' <= c && c <= '!') return 92;
+		else if (c == '\"') return 4;
+		else if ('#' <= c && c <= '[') return 92;
+		else if (c == '\\') return 105;
+		else if (']' <= c && c <= (char)127) return 92;
 		else return 0;
 	case 93:
-		if (c == ' ') return 111;
-		else if (c == '!') return 93;
-		else if ('#' <= c && c <= '[') return 93;
-		else if (c == '\\') return 91;
-		else if (']' <= c && c <= (char)127) return 93;
-		else return 0;
-	case 94:
 		if ('0' <= c && c <= '9') return 1;
 		else if ('A' <= c && c <= 'Z') return 1;
 		else if (c == '_') return 1;
@@ -2553,7 +2554,7 @@ int NetPreL::next(int state, const char c)
 		else if (c == 'f') return 11;
 		else if ('g' <= c && c <= 'z') return 1;
 		else return 0;
-	case 95:
+	case 94:
 		if ('0' <= c && c <= '9') return 1;
 		else if ('A' <= c && c <= 'Z') return 1;
 		else if (c == '_') return 1;
@@ -2561,7 +2562,7 @@ int NetPreL::next(int state, const char c)
 		else if (c == 'l') return 23;
 		else if ('m' <= c && c <= 'z') return 1;
 		else return 0;
-	case 96:
+	case 95:
 		if ('0' <= c && c <= '9') return 1;
 		else if ('A' <= c && c <= 'Z') return 1;
 		else if (c == '_') return 1;
@@ -2569,15 +2570,15 @@ int NetPreL::next(int state, const char c)
 		else if (c == 'n') return 24;
 		else if ('o' <= c && c <= 'z') return 1;
 		else return 0;
-	case 97:
+	case 96:
 		if ('0' <= c && c <= '9') return 1;
 		else if ('A' <= c && c <= 'Z') return 1;
 		else if (c == '_') return 1;
 		else if ('a' <= c && c <= 'q') return 1;
-		else if (c == 'r') return 112;
+		else if (c == 'r') return 106;
 		else if ('s' <= c && c <= 'z') return 1;
 		else return 0;
-	case 98:
+	case 97:
 		if ('0' <= c && c <= '9') return 1;
 		else if ('A' <= c && c <= 'Z') return 1;
 		else if (c == '_') return 1;
@@ -2585,7 +2586,7 @@ int NetPreL::next(int state, const char c)
 		else if (c == 'o') return 68;
 		else if ('p' <= c && c <= 'z') return 1;
 		else return 0;
-	case 99:
+	case 98:
 		if ('0' <= c && c <= '9') return 1;
 		else if ('A' <= c && c <= 'Z') return 1;
 		else if (c == '_') return 1;
@@ -2595,7 +2596,7 @@ int NetPreL::next(int state, const char c)
 		else if (c == 's') return 25;
 		else if ('t' <= c && c <= 'z') return 1;
 		else return 0;
-	case 100:
+	case 99:
 		if ('0' <= c && c <= '9') return 1;
 		else if ('A' <= c && c <= 'Z') return 1;
 		else if (c == '_') return 1;
@@ -2603,7 +2604,7 @@ int NetPreL::next(int state, const char c)
 		else if (c == 's') return 56;
 		else if ('t' <= c && c <= 'z') return 1;
 		else return 0;
-	case 101:
+	case 100:
 		if ('0' <= c && c <= '9') return 1;
 		else if ('A' <= c && c <= 'Z') return 1;
 		else if (c == '_') return 1;
@@ -2611,54 +2612,46 @@ int NetPreL::next(int state, const char c)
 		else if (c == 't') return 29;
 		else if ('u' <= c && c <= 'z') return 1;
 		else return 0;
-	case 102:
+	case 101:
 		if ('0' <= c && c <= '9') return 1;
 		else if ('A' <= c && c <= 'Z') return 1;
 		else if (c == '_') return 1;
 		else if ('a' <= c && c <= 't') return 1;
-		else if (c == 'u') return 114;
+		else if (c == 'u') return 108;
 		else if ('v' <= c && c <= 'z') return 1;
 		else return 0;
+	case 102:
+		if ((char)0 <= c && c <= ')') return 102;
+		else if (c == '*') return 109;
+		else if ('+' <= c && c <= (char)127) return 102;
+		else return 0;
 	case 103:
-		if ((char)0 <= c && c <= ')') return 103;
-		else if (c == '*') return 116;
-		else if ('+' <= c && c <= (char)127) return 103;
+		if (c == 'i') return 126;
 		else return 0;
 	case 104:
-		if (c == '+') return 127;
-		else if (c == '-') return 127;
-		else if ('0' <= c && c <= '9') return 90;
+		if (c == ' ') return 117;
+		else if (c == '!') return 104;
+		else if ('#' <= c && c <= '[') return 104;
+		else if (c == '\\') return 91;
+		else if (']' <= c && c <= (char)127) return 104;
 		else return 0;
 	case 105:
-		if ('0' <= c && c <= '9') return 93;
-		else if ('A' <= c && c <= 'F') return 93;
-		else if ('a' <= c && c <= 'f') return 93;
+		if (c == (char)0) return 92;
+		else if (c == '\"') return 92;
+		else if (c == '\'') return 92;
+		else if ('0' <= c && c <= '7') return 92;
+		else if (c == '\?') return 92;
+		else if (c == 'X') return 131;
+		else if (c == '\\') return 92;
+		else if ('a' <= c && c <= 'b') return 92;
+		else if (c == 'f') return 92;
+		else if (c == 'n') return 92;
+		else if (c == 'r') return 92;
+		else if (c == 't') return 92;
+		else if (c == 'v') return 92;
+		else if (c == 'x') return 131;
 		else return 0;
 	case 106:
-		if (c == '_') return 7;
-		else return 0;
-	case 107:
-		if (c == 'c') return 118;
-		else return 0;
-	case 108:
-		if (c == 'd') return 109;
-		else return 0;
-	case 109:
-		if (c == 'e') return 6;
-		else return 0;
-	case 110:
-		if (c == 's') return 121;
-		else return 0;
-	case 111:
-		if (c == ' ') return 111;
-		else if (c == '!') return 93;
-		else if ('#' <= c && c <= '=') return 93;
-		else if (c == '>') return 5;
-		else if ('\?' <= c && c <= '[') return 93;
-		else if (c == '\\') return 91;
-		else if (']' <= c && c <= (char)127) return 93;
-		else return 0;
-	case 112:
 		if ('0' <= c && c <= '9') return 1;
 		else if ('A' <= c && c <= 'Z') return 1;
 		else if (c == '_') return 1;
@@ -2666,7 +2659,7 @@ int NetPreL::next(int state, const char c)
 		else if (c == 'n') return 15;
 		else if ('o' <= c && c <= 'z') return 1;
 		else return 0;
-	case 113:
+	case 107:
 		if ('0' <= c && c <= '9') return 1;
 		else if ('A' <= c && c <= 'Z') return 1;
 		else if (c == '_') return 1;
@@ -2674,7 +2667,7 @@ int NetPreL::next(int state, const char c)
 		else if (c == 'r') return 54;
 		else if ('s' <= c && c <= 'z') return 1;
 		else return 0;
-	case 114:
+	case 108:
 		if ('0' <= c && c <= '9') return 1;
 		else if ('A' <= c && c <= 'Z') return 1;
 		else if (c == '_') return 1;
@@ -2682,45 +2675,48 @@ int NetPreL::next(int state, const char c)
 		else if (c == 't') return 13;
 		else if ('u' <= c && c <= 'z') return 1;
 		else return 0;
+	case 109:
+		if ((char)0 <= c && c <= ')') return 102;
+		else if (c == '*') return 109;
+		else if ('+' <= c && c <= '.') return 102;
+		else if (c == '/') return 47;
+		else if ('0' <= c && c <= (char)127) return 102;
+		else return 0;
+	case 110:
+		if (c == '+') return 129;
+		else if (c == '-') return 129;
+		else if ('0' <= c && c <= '9') return 90;
+		else return 0;
+	case 111:
+		if ('0' <= c && c <= '9') return 104;
+		else if ('A' <= c && c <= 'F') return 104;
+		else if ('a' <= c && c <= 'f') return 104;
+		else return 0;
+	case 112:
+		if (c == '_') return 7;
+		else return 0;
+	case 113:
+		if (c == 'c') return 124;
+		else return 0;
+	case 114:
+		if (c == 'd') return 115;
+		else return 0;
 	case 115:
-		if (c == (char)0) return 53;
-		else if (c == '\"') return 53;
-		else if (c == '\'') return 53;
-		else if ('0' <= c && c <= '7') return 53;
-		else if (c == '\?') return 53;
-		else if (c == 'X') return 130;
-		else if (c == '\\') return 53;
-		else if ('a' <= c && c <= 'b') return 53;
-		else if (c == 'f') return 53;
-		else if (c == 'n') return 53;
-		else if (c == 'r') return 53;
-		else if (c == 't') return 53;
-		else if (c == 'v') return 53;
-		else if (c == 'x') return 130;
+		if (c == 'e') return 6;
 		else return 0;
 	case 116:
-		if ((char)0 <= c && c <= ')') return 103;
-		else if (c == '*') return 116;
-		else if ('+' <= c && c <= '.') return 103;
-		else if (c == '/') return 47;
-		else if ('0' <= c && c <= (char)127) return 103;
+		if (c == 's') return 127;
 		else return 0;
 	case 117:
-		if ('0' <= c && c <= '9') return 3;
+		if (c == ' ') return 117;
+		else if (c == '!') return 104;
+		else if ('#' <= c && c <= '=') return 104;
+		else if (c == '>') return 5;
+		else if ('\?' <= c && c <= '[') return 104;
+		else if (c == '\\') return 91;
+		else if (']' <= c && c <= (char)127) return 104;
 		else return 0;
 	case 118:
-		if (c == 'l') return 128;
-		else return 0;
-	case 119:
-		if (c == 'm') return 106;
-		else return 0;
-	case 120:
-		if (c == 'n') return 107;
-		else return 0;
-	case 121:
-		if (c == 'u') return 119;
-		else return 0;
-	case 122:
 		if ('0' <= c && c <= '9') return 1;
 		else if ('A' <= c && c <= 'Z') return 1;
 		else if (c == '_') return 1;
@@ -2728,7 +2724,7 @@ int NetPreL::next(int state, const char c)
 		else if (c == 'n') return 55;
 		else if ('o' <= c && c <= 'z') return 1;
 		else return 0;
-	case 123:
+	case 119:
 		if ('0' <= c && c <= '9') return 1;
 		else if ('A' <= c && c <= 'Z') return 1;
 		else if (c == '_') return 1;
@@ -2736,7 +2732,7 @@ int NetPreL::next(int state, const char c)
 		else if (c == 'r') return 16;
 		else if ('s' <= c && c <= 'z') return 1;
 		else return 0;
-	case 124:
+	case 120:
 		if ('0' <= c && c <= '9') return 1;
 		else if ('A' <= c && c <= 'Z') return 1;
 		else if (c == '_') return 1;
@@ -2744,29 +2740,38 @@ int NetPreL::next(int state, const char c)
 		else if (c == 't') return 9;
 		else if ('u' <= c && c <= 'z') return 1;
 		else return 0;
-	case 125:
+	case 121:
 		if ('0' <= c && c <= '9') return 1;
 		else if ('A' <= c && c <= 'Z') return 1;
 		else if (c == '_') return 1;
 		else if ('a' <= c && c <= 't') return 1;
-		else if (c == 'u') return 129;
+		else if (c == 'u') return 128;
 		else if ('v' <= c && c <= 'z') return 1;
 		else return 0;
-	case 126:
+	case 122:
 		if ('0' <= c && c <= '9') return 1;
 		else if ('A' <= c && c <= 'Z') return 1;
 		else if (c == '_') return 1;
 		else if ('a' <= c && c <= 'o') return 1;
-		else if (c == 'p') return 125;
+		else if (c == 'p') return 121;
 		else if ('q' <= c && c <= 'z') return 1;
 		else return 0;
+	case 123:
+		if ('0' <= c && c <= '9') return 3;
+		else return 0;
+	case 124:
+		if (c == 'l') return 130;
+		else return 0;
+	case 125:
+		if (c == 'm') return 112;
+		else return 0;
+	case 126:
+		if (c == 'n') return 113;
+		else return 0;
 	case 127:
-		if ('0' <= c && c <= '9') return 90;
+		if (c == 'u') return 125;
 		else return 0;
 	case 128:
-		if (c == 'u') return 108;
-		else return 0;
-	case 129:
 		if ('0' <= c && c <= '9') return 1;
 		else if ('A' <= c && c <= 'Z') return 1;
 		else if (c == '_') return 1;
@@ -2774,10 +2779,16 @@ int NetPreL::next(int state, const char c)
 		else if (c == 't') return 12;
 		else if ('u' <= c && c <= 'z') return 1;
 		else return 0;
+	case 129:
+		if ('0' <= c && c <= '9') return 90;
+		else return 0;
 	case 130:
-		if ('0' <= c && c <= '9') return 53;
-		else if ('A' <= c && c <= 'F') return 53;
-		else if ('a' <= c && c <= 'f') return 53;
+		if (c == 'u') return 114;
+		else return 0;
+	case 131:
+		if ('0' <= c && c <= '9') return 92;
+		else if ('A' <= c && c <= 'F') return 92;
+		else if ('a' <= c && c <= 'f') return 92;
 		else return 0;
 	}
 	return 0;
@@ -2964,6 +2975,8 @@ int NetPreL::action(int state)
 		return 1;//id: id
 	case 90:
 		return 3;//number: realC
+	case 93:
+		return 1;//id: id
 	case 94:
 		return 1;//id: id
 	case 95:
@@ -2980,25 +2993,23 @@ int NetPreL::action(int state)
 		return 1;//id: id
 	case 101:
 		return 1;//id: id
-	case 102:
+	case 106:
 		return 1;//id: id
-	case 112:
+	case 107:
 		return 1;//id: id
-	case 113:
+	case 108:
 		return 1;//id: id
-	case 114:
+	case 118:
+		return 1;//id: id
+	case 119:
+		return 1;//id: id
+	case 120:
+		return 1;//id: id
+	case 121:
 		return 1;//id: id
 	case 122:
 		return 1;//id: id
-	case 123:
-		return 1;//id: id
-	case 124:
-		return 1;//id: id
-	case 125:
-		return 1;//id: id
-	case 126:
-		return 1;//id: id
-	case 129:
+	case 128:
 		return 1;//id: id
 	}
 	return 0;
@@ -3114,6 +3125,8 @@ int NetPreL::GroupGet(int accept)
 	}
 	return 0;
 }
+
+
 
 const size_t NetPreG::StateCount = 75;
 const size_t NetPreG::NonTerminalCount = 21;
@@ -3576,6 +3589,7 @@ const int NetPreG::Implicit[74] = { \
 1, \
 1, \
 1 };
+
 
 
 
