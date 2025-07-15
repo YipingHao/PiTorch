@@ -1111,30 +1111,24 @@ int BuildInfor::buildRoutinePara(routine Rou, const lex& eme, GTNode* PARA, cont
 		errorCode = WrongEntrance;
 		return 79858734;
 	}
-	printf("buildRoutinePara: %d, %d\n", Rou, count);
 	for (size_t i = 0; i < count; i += 2)
 	{
 		GTNode* SYMBOLICPARA = PARA->child(i);
 		GTNode* ID = SYMBOLICPARA->child(1);
 		IDinfor id;
-		printf("%zu, %zu\n", i, count);
-		error = id.build(eme, ID, this, dst);
-		printf("%zu, %zu\n", i, count);
+		error = id.build(eme, ID, this, dst); 
 		if (error != 0) return error;
-		printf("%zu, %zu\n", i, count);
 		const char* attri = eme.GetWord(SYMBOLICPARA->child(0)->root().site);
-		printf("%zu, %s\n", i, attri);
 		var* newVar = id.SetVarL(error, this, dst, attri);
-		printf("%zu, %zu\n", i, count);
+		 
 		if (error != 0) return error;
 		size_t dim = newVar->count();
-		printf("%zufgdgsdg  %zu\n", i, count);
 		if (Rou != routine::expression) continue;
 		NetG::rules TypePara = (NetG::rules)SYMBOLICPARA->root().site;
 
 		func* Func = dst->parent->funcs.top();
 		Expres* Exp = Func->Exp;
-		printf("%zu, %zu\n", i, count);
+		 
 		switch (TypePara)
 		{
 		case Pikachu::NetG::SYMBOLICPARA_input_:
