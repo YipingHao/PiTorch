@@ -666,6 +666,7 @@ int IDinfor::build(const lex& eme, GTNode* ID, BuildInfor* infor, context* dst)
 	GTNode* Def = ID->child(0);
 	if (!Def->root().rules)
 		temp = eme.GetWord(Def->root().site);
+	printf("IDinfor::build %s\n", temp);
 	SetName(temp);
 
 	NetG::nonterminal TTTT = (NetG::nonterminal)NetG::RulesToSymbol[ID->root().site];
@@ -695,17 +696,17 @@ int IDinfor::build(const lex& eme, GTNode* ID, BuildInfor* infor, context* dst)
 			infor->errorCode = BuildInfor::ErrorNeedAInt;
 			return 1234234;
 		}
-		sint temp = Const_->GetSint();
-		if (temp < 0)
+		sint tempInt = Const_->GetSint();
+		if (tempInt < 0)
 		{
 			infor->errorInfor1 = line;
-			infor->errorInfor2 = temp;
+			infor->errorInfor2 = tempInt;
 			infor->ErrorNode = ID;
 			infor->errorCode = BuildInfor::ErrorMinusIndex;
 			return 1234267;
 		}
 		delete Const_;
-		index = temp;
+		index = tempInt;
 	}
 	else index = 0;
 	return 0;
