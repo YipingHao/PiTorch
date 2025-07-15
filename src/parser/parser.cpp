@@ -816,17 +816,22 @@ int BuildInfor::GetAExpres(Expres::node*& output, const lex& eme, GTNode* EXP_RI
 				IDinfor id;
 				error = id.build(eme, ID, this, dst);
 				if (error != 0) return error;
+				printf("**\n");
 				var* v = id.GetLocalVarR(error, this, dst);
 				if (error != 0) return error;
+				printf("**\n");
 				ID->root().infor = (void*)v->Getnode();
+				printf("**\n");
 				ConstObj* obj = id.GetAllConstR(error, this, dst);
 				if (error != 0) return error;
+				printf("**\n");
 				if (obj != NULL && v != NULL)
 				{
 					errorCode = ErrorRepeatVarDef;
 					ErrorNode = ID;
 					return 18649845;
 				}
+				printf("**\n");
 				if (obj != NULL)
 				{
 					Expres::node* Node = NULL;
