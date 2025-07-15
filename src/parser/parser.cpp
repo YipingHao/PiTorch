@@ -545,10 +545,11 @@ int BuildInfor::GetAConst(ConstObj*& output, const lex& eme, GTNode* EXP_RIGHT, 
 	while (iterator.still())
 	{
 		GTNode* GT = iterator.target();
+		NetG::rules RR1 = (NetG::rules)GT->root().site;
+		printf("RR1: %d, %d\n", RR1, iterator.state());
 		if (iterator.state() == 1)
 		{
 			NetG::rules RR = (NetG::rules)GT->root().site;
-			printf("RR: %d\n", RR);
 			switch (RR)
 			{
 			case Pikachu::NetG::EXP_RIGHT_add_:
