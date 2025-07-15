@@ -801,6 +801,7 @@ int BuildInfor::GetAExpres(Expres::node*& output, const lex& eme, GTNode* EXP_RI
 	while (iterator.still()) 
 	{
 		GTNode* GT = iterator.target();
+		printf("RR1: %d, %d\n", RR1, iterator.state());
 		if (iterator.state() == 0)
 		{
 			NetG::rules RR = (NetG::rules)GT->root().site;
@@ -864,7 +865,6 @@ int BuildInfor::GetAExpres(Expres::node*& output, const lex& eme, GTNode* EXP_RI
 				Expres::node* right = (Expres::node*)(Right->root().infor);
 				Right->root().infor = NULL;
 				GT->root().infor = (void*)right;
-				output = right;
 				break;
 			}
 			case Pikachu::NetG::EXP_RIGHT_add_:
