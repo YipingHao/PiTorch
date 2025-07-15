@@ -1117,22 +1117,27 @@ int BuildInfor::buildRoutinePara(routine Rou, const lex& eme, GTNode* PARA, cont
 		GTNode* SYMBOLICPARA = PARA->child(i);
 		GTNode* ID = SYMBOLICPARA->child(1);
 		IDinfor id;
+		printf("%zu, %zu\n", i, count);
 		error = id.build(eme, ID, this, dst);
+		printf("%zu, %zu\n", i, count);
 		if (error != 0) return error;
-		var* newVar = id.SetVarL(error, this, dst, NULL);
+		printf("%zu, %zu\n", i, count);
+		const char* attri = eme.GetWord(SYMBOLICPARA->child(0)->root().site);
+		var* newVar = id.SetVarL(error, this, dst, attri);
 		if (error != 0) return error;
 		size_t dim = newVar->count();
-
+		printf("%zu, %zu\n", i, count);
 		if (Rou != routine::expression) continue;
 		NetG::rules TypePara = (NetG::rules)SYMBOLICPARA->root().site;
 
 		func* Func = dst->funcs.top();
 		Expres* Exp = Func->Exp;
+		printf("%zu, %zu\n", i, count);
 		switch (TypePara)
 		{
 		case Pikachu::NetG::SYMBOLICPARA_input_:
 		{
-			newVar->SetAttri("input");
+			//newVar->SetAttri("input");
 			for (size_t j = 0; j < dim; j++)
 			{
 				Expres::node* Node = Exp->NewNode(Pikachu::_LeafX_, Func->InputCount, j);
@@ -1143,7 +1148,7 @@ int BuildInfor::buildRoutinePara(routine Rou, const lex& eme, GTNode* PARA, cont
 		}
 		case Pikachu::NetG::SYMBOLICPARA_para_:
 		{
-			newVar->SetAttri("para");
+			//newVar->SetAttri("para");
 			for (size_t j = 0; j < dim; j++)
 			{
 				Expres::node* Node = Exp->NewNode(Pikachu::_LeafPara_, Func->ParaCount, j);
@@ -1154,7 +1159,7 @@ int BuildInfor::buildRoutinePara(routine Rou, const lex& eme, GTNode* PARA, cont
 		}
 		case Pikachu::NetG::SYMBOLICPARA_output_:
 		{
-			newVar->SetAttri("output");
+			//newVar->SetAttri("output");
 			Func->OutputCount += 1;
 			break;
 		}
