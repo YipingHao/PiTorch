@@ -1111,7 +1111,7 @@ int BuildInfor::buildRoutinePara(routine Rou, const lex& eme, GTNode* PARA, cont
 		errorCode = WrongEntrance;
 		return 79858734;
 	}
-	
+	printf("buildRoutinePara: %d, %d\n", Rou, count);
 	for (size_t i = 0; i < count; i += 2)
 	{
 		GTNode* SYMBOLICPARA = PARA->child(i);
