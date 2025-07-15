@@ -634,7 +634,7 @@ bool var::compareAttri(const char* srcR)const
 
 func::func()
 {
-	Exp = NULL;
+	Exp = new Expres;
 	realm = NULL;
 	InputCount = 0;
 	OutputCount = 0;
