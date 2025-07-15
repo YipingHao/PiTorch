@@ -1128,7 +1128,7 @@ int BuildInfor::buildRoutinePara(routine Rou, const lex& eme, GTNode* PARA, cont
 		printf("%zu, %zu\n", i, count);
 		if (error != 0) return error;
 		size_t dim = newVar->count();
-		printf("%zu, %zu\n", i, count);
+		printf("%zufgdgsdg  %zu\n", i, count);
 		if (Rou != routine::expression) continue;
 		NetG::rules TypePara = (NetG::rules)SYMBOLICPARA->root().site;
 
