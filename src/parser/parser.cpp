@@ -204,7 +204,6 @@ int BuildInfor::build(const char* FileName, context* dst)
 	{
 		fprintf(screen, "BuildInfor::build: begin: %s\n", FileName);
 	}
-	
 	error = pretreatment(FileName, MorphemePre);
 	
 	if (PrintScreen)
