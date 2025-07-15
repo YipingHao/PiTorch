@@ -445,7 +445,6 @@ Node* NetWork::NewNodeDiLinear(const dims_t& dims, Node* srcL, Node* srcR, Node:
 }
 Node* NetWork::NewNodeMonoNonlinear(const dims_t& dims, Node* srcL, Expres* func, indiceIS& indice)
 {
-	int error = 0;
 	if (indice.Icount() != 4) return NULL;
 	MonoNonlinear* dst = new MonoNonlinear(Node::initial);
 	int error = dst->build(dims, srcL, func, indice);
