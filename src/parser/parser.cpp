@@ -1411,15 +1411,15 @@ int BuildInfor::buildSymbolic(const lex& eme, GTNode* SYMBOLIC, context * dst)
 	context* subcontext = new context();
 	dst->append(subcontext);
 	
-	
+	fprintf(screen, "\t\t buildRoutineName begin\n");
 	error = buildRoutineName(routine::expression, eme, SYMBOLIC->child(1), subcontext);
 	if (error != 0) return error;
 	func* Func = dst->funcs.top();
-
+	fprintf(screen, "\t\t buildRoutinePara begin\n");
 	GTNode* PARA = SYMBOLIC->child(3);
 	error = buildRoutinePara(routine::expression, eme, PARA, subcontext);
 	if (error != 0) return error;
-
+	fprintf(screen, "\t\t buildSymbolicBody begin\n");
 	GTNode* SYMBOLICBODY = SYMBOLIC->child(6);
 	error = buildSymbolicBody(eme, PARA, subcontext, Func);
 
