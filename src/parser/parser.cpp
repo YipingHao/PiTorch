@@ -1422,7 +1422,7 @@ int BuildInfor::buildSymbolic(const lex& eme, GTNode* SYMBOLIC, context * dst)
 	fprintf(screen, "\t\t buildSymbolicBody begin\n");
 	GTNode* SYMBOLICBODY = SYMBOLIC->child(6);
 	error = buildSymbolicBody(eme, PARA, subcontext, Func);
-
+	fprintf(screen, "\t\t buildSymbolicBody begin\n");
 	
 	return buildSymbolicCheck(eme, SYMBOLIC, dst, Func);
 }
