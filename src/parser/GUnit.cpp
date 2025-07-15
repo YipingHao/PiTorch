@@ -1277,6 +1277,7 @@ int ValueList::build(const lex& eme, GTNode* VALUELIST, BuildInfor* infor, conte
 	values.append(output); // 将ConstObj添加到values向量中
 	GTNode* VALUES = VALUELIST->child(1);
 	if (VALUES == NULL) return 4353; // 安全检查
+	printf("VALUES->ChildCount() %zu\n", VALUES->ChildCount());
 	for (size_t i = 0; i < VALUES->ChildCount(); i++)
 	{
 		EXP_RIGHT = VALUES->child(i)->child(1);
