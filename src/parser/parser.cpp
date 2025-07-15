@@ -548,7 +548,7 @@ int BuildInfor::GetAConst(ConstObj*& output, const lex& eme, GTNode* EXP_RIGHT, 
 	{
 		GTNode* GT = iterator.target();
 		NetG::rules RR1 = (NetG::rules)GT->root().site;
-		printf("RR1: %d, %d\n", RR1, iterator.state());
+		//printf("RR1: %d, %d\n", RR1, iterator.state());
 		if (iterator.state() == 1 && GT->root().rules)
 		{
 			NetG::rules RR = (NetG::rules)GT->root().site;
@@ -729,7 +729,14 @@ int BuildInfor::GetAConst(ConstObj*& output, const lex& eme, GTNode* EXP_RIGHT, 
 				GT->root().infor = (void*)right;
 				break;
 			}
-
+			default:
+			{
+				errorCode = ErrorUnKnowEXP;
+				errorInfor1 = GT->root().site;
+				error = 12213312;
+				ErrorNode = GT;
+				break;
+			}
 			}
 		}
 		if (error != 0) break;
@@ -1003,10 +1010,10 @@ int BuildInfor::buildConstObj(const lex& eme, GTNode* CONSTVAR, context * dst)
 			}
 			GTNode* ID = GT->child(1);
 			IDinfor id;
-			printf("hsfhsdfg\n");
+			//printf("hsfhsdfg\n");
 			error = id.build(eme, ID, this, dst);
 			if (error != 0) return error;
-			printf("15646dfg\n");
+			//printf("15646dfg\n");
 			obj = id.SetConstL(error, this, dst, TT);
 			//error = SetAConstObj(eme, GT->child(1), TT, dst);
 			if (error != 0) return error;
@@ -1051,7 +1058,7 @@ int BuildInfor::buildConstObj(const lex& eme, GTNode* CONSTVAR, context * dst)
 		ErrorNode = VALUE;
 		return 48975645;
 	}
-
+	valueList.demo();
 	for (size_t i = 0; i < valueList.GetCount(); i++)
 	{
 		ConstObj* srcR = valueList.GetValue(i);
