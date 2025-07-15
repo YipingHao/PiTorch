@@ -990,8 +990,11 @@ int BuildInfor::GetAExpres(Expres::node*& output, const lex& eme, GTNode* EXP_RI
 			}
 		}
 		printf(", error: %d\n", error);
+		printf("++");
 		if (error != 0) break;
+		printf("++");
 		iterator.next();
+		printf("++");
 	}
 	output = (Expres::node*)(EXP_RIGHT->root().infor);
 	if (output == NULL)
