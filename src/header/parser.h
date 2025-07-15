@@ -187,6 +187,7 @@ namespace Pikachu
 
 		void ruin(void);
 		void demo(FILE* fp = stdout) const;
+		void demo(FILE* fp, size_t tabs) const;
 	protected:
 		char* attribute;
 		bool Scalar;

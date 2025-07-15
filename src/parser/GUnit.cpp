@@ -587,9 +587,28 @@ void var::initial(void)
 }
 void var::demo(FILE* fp) const
 {
-
+	if (attribute)
+		fprintf(fp, "var[%zu](%s) ", infors.count(), attribute);
+	else
+		fprintf(fp, "var[%zu](???) ", infors.count());
+	if (name)
+		fprintf(fp, "%s ", name);
+	else
+		fprintf(fp, "??? = ");
 }
-
+void var::demo(FILE* fp, size_t tabs) const
+{
+	for (size_t i = 0; i < tabs; ++i)
+		fprintf(fp, "\t");
+	if (attribute)
+		fprintf(fp, "var[%zu](%s) ", infors.count(), attribute);
+	else
+		fprintf(fp, "var[%zu](???) ", infors.count());
+	if (name)
+		fprintf(fp, "%s ", name);
+	else
+		fprintf(fp, "??? = ");
+}
 void var::SetAttri(const char* NewName)
 {
 	size_t i;
