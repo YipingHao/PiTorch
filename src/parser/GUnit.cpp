@@ -1265,7 +1265,7 @@ int ValueList::build(const lex& eme, GTNode* VALUELIST, BuildInfor* infor, conte
 		infor->errorInfor1 = VALUELIST->root().site;
 		infor->ErrorNode = VALUELIST;
 		infor->errorCode = BuildInfor::WrongEntrance;
-		return 24523453;
+		return 24553453;
 	}
 	GTNode* EXP_RIGHT = VALUELIST->child(0);
 	ConstObj* output = NULL;
