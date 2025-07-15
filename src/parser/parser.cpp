@@ -549,7 +549,7 @@ int BuildInfor::GetAConst(ConstObj*& output, const lex& eme, GTNode* EXP_RIGHT, 
 		GTNode* GT = iterator.target();
 		NetG::rules RR1 = (NetG::rules)GT->root().site;
 		printf("RR1: %d, %d\n", RR1, iterator.state());
-		if (iterator.state() == 1)
+		if (iterator.state() == 1 && GT->root().rules)
 		{
 			NetG::rules RR = (NetG::rules)GT->root().site;
 			switch (RR)
