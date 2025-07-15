@@ -704,7 +704,17 @@ int IDinfor::build(const lex& eme, GTNode* ID, BuildInfor* infor, context* dst)
 {
 	backup = ID;
 	const char* temp = NULL;
+	NetG::nonterminal TTTT = (NetG::nonterminal)NetG::RulesToSymbol[ID->root().site];
+	if (TTTT != NetG::nonterminal::_ID_)
+	{
+		infor->errorInfor1 = ID->root().site;
+		infor->ErrorNode = ID;
+		infor->errorCode = BuildInfor::WrongEntrance;
+		return 534663456;
+	}
+
 	GTNode* Def = ID->child(0);
+
 	if (eme[Def->root().site].accept != NetL::regular::_id_)
 	{
 		infor->errorInfor1 = ID->root().site;
@@ -716,14 +726,6 @@ int IDinfor::build(const lex& eme, GTNode* ID, BuildInfor* infor, context* dst)
 	
 	SetName(temp);
 
-	NetG::nonterminal TTTT = (NetG::nonterminal)NetG::RulesToSymbol[ID->root().site];
-	if (TTTT != NetG::nonterminal::_ID_)
-	{
-		infor->errorInfor1 = ID->root().site;
-		infor->ErrorNode = ID;
-		infor->errorCode = BuildInfor::WrongEntrance;
-		return 534663456;
-	}
 
 	NetG::rules RR = (NetG::rules)ID->root().site;
 	scalar = (RR == NetG::rules::ID_single_);
