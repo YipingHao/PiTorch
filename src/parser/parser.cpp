@@ -1367,7 +1367,7 @@ int BuildInfor::buildSymbolicCheck(const lex& eme, GTNode* SYMBOLIC, context* ds
 		var* temp = dst->global[i];
 		if (temp->compareAttri("output"))
 		{
-			if (temp->IfAlldefine())
+			if (!temp->IfAlldefine())
 			{
 				ErrorNode = SYMBOLIC;
 				errorCode = UndefineOutput;
@@ -1375,12 +1375,6 @@ int BuildInfor::buildSymbolicCheck(const lex& eme, GTNode* SYMBOLIC, context* ds
 			}
 			for (size_t j = 0; j < temp->count(); j++)
 			{
-				if (temp->Getnode(j) == NULL)
-				{
-					ErrorNode = SYMBOLIC;
-					errorCode = UndefineOutput;
-					return 8935346;
-				}
 				Exp->OutputAppend(temp->Getnode(j));
 			}
 			if (Exp->OutputAmount() != temp->count())
