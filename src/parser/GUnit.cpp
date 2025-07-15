@@ -589,27 +589,47 @@ void var::initial(void)
 }
 void var::demo(FILE* fp) const
 {
-	if (attribute)
-		fprintf(fp, "var[%zu](%s) ", infors.count(), attribute);
-	else
-		fprintf(fp, "var[%zu](???) ", infors.count());
-	if (name)
-		fprintf(fp, "%s ", name);
-	else
-		fprintf(fp, "??? = ");
+	demo(fp, 0);
 }
 void var::demo(FILE* fp, size_t tabs) const
 {
 	for (size_t i = 0; i < tabs; ++i)
 		fprintf(fp, "\t");
-	if (attribute)
-		fprintf(fp, "var[%zu](%s) ", infors.count(), attribute);
+	if (Scalar)
+		fprintf(fp, "var(1) ");
 	else
-		fprintf(fp, "var[%zu](???) ", infors.count());
+		fprintf(fp, "var[%zu] ", infors.count());
+	if (attribute)
+		fprintf(fp, "(%s) ",  attribute);
+	else
+		fprintf(fp, "(???) ");
 	if (name)
 		fprintf(fp, "%s ", name);
 	else
-		fprintf(fp, "??? = ");
+		fprintf(fp, "??? = [");
+	if (infors.count() != 0)
+	{
+		if (infors[0] == NULL)
+		{
+			fprintf(fp, "NULL");
+		}
+		else
+		{
+			fprintf(fp, "%p", infors[0]);
+		}
+	}
+	for (size_t i = 1; i < infors.count(); i++)
+	{
+		if (infors[i] == NULL)
+		{
+			fprintf(fp, ", NULL");
+		}
+		else
+		{
+			fprintf(fp, ", %p", infors[i]);
+		}
+	}
+	fprintf(fp, "]");
 }
 void var::SetAttri(const char* NewName)
 {
