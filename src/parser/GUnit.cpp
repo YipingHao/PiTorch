@@ -75,6 +75,8 @@ ConstObj::ConstObj(size_t dim, bool Scalar, ConstObj::type TTT, const char* Name
 
 		V[i] = initVal;
 	}
+	printf("================\n");
+	demo(stdout); // 输出调试信息
 }
 ConstObj::ConstObj(ConstObj* left, const char* op, ConstObj* right)// 二元运算构造函数（left op right）
 {
