@@ -999,8 +999,10 @@ int BuildInfor::buildConstObj(const lex& eme, GTNode* CONSTVAR, context * dst)
 			}
 			GTNode* ID = GT->child(1);
 			IDinfor id;
+			printf("hsfhsdfg\n");
 			error = id.build(eme, ID, this, dst);
 			if (error != 0) return error;
+			printf("15646dfg\n");
 			obj = id.SetConstL(error, this, dst, TT);
 			//error = SetAConstObj(eme, GT->child(1), TT, dst);
 			if (error != 0) return error;
