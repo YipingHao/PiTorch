@@ -1433,8 +1433,12 @@ int BuildInfor::buildSymbolic(const lex& eme, GTNode* SYMBOLIC, context * dst)
 	}
 	GTNode* SYMBOLICBODY = SYMBOLIC->child(6);
 	error = buildSymbolicBody(eme, PARA, subcontext, Func);
-	fprintf(screen, "\t\t buildSymbolicBody begin\n");
-	
+	fprintf(screen, "\t\t buildSymbolicBody end\n");
+	if (error != 0) return error;
+	if (PrintScreen)
+	{
+		fprintf(screen, "\t\t buildSymbolicCheck start\n");
+	}
 	return buildSymbolicCheck(eme, SYMBOLIC, dst, Func);
 }
 int BuildInfor::buildNet(const lex& eme, GTNode* NETWORK, context * dst)
