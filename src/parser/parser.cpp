@@ -386,6 +386,8 @@ int BuildInfor::buildAll(const lex& eme, AST& Tree, context* dst)
 					if (PrintScreen)
 					{
 						fprintf(screen, "\t buildConstObj end: %d\n", error);
+						ConstObj* obj = dst->Cobj.top();
+						obj->demo(screen);
 					}
 					break;
 				}
