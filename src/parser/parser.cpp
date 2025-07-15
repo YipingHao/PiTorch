@@ -1365,7 +1365,8 @@ int BuildInfor::buildSymbolicCheck(const lex& eme, GTNode* SYMBOLIC, context* ds
 	for (size_t i = 0; i < dst->global.count(); i++)
 	{
 		var* temp = dst->global[i];
-		//temp->demo(screen, 2);
+		temp->demo(screen, 2);
+		printf("temp->compareAttri(output): %d\n", temp->compareAttri("output"));
 		if (temp->compareAttri("output"))
 		{
 			if (!temp->IfAlldefine())
