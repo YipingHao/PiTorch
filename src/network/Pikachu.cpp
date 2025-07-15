@@ -468,7 +468,6 @@ Node* NetWork::NewNodeMonoNonlinear(const dims_t& dims, Node* srcL, Expres* func
 }
 Node* NetWork::NewNodeDiNonlinear(const dims_t& dims, Node* srcL, Node* srcR, Expres* func, indiceIS& indice)
 {
-	int error = 0;
 	if (indice.Icount() != 5) return NULL;
 	DiNonlinear* dst = new DiNonlinear(Node::initial);
 	int error = dst->build(dims, srcL, srcR, func, indice);
