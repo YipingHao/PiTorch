@@ -1780,6 +1780,7 @@ int BuildInfor::buildTENSORmulti(Node*& newNode, const vector<size_t>& dims, Ten
 		Err->append("error", "net->NewNodeDiLinear failed");
 		Err->append("location", "buildTENSORmulti::1781");
 		Err->append("src", Error);
+		return 73445543;
 	}
 	if (newNode == NULL)
 	{
