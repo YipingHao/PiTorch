@@ -2008,21 +2008,23 @@ void BuildInfor::ErrorDemo(FILE* fp) const
 	size_t unit = ASTNodeUnitGet(LexicalSource, ErrorNode);
 	if (unit != (size_t)-1)
 	{
-		size_t RLine = MorphemePre[unit].line;
-		size_t RFile = MorphemePre[unit].file;
+		size_t RLine = LexicalSource[unit].line;
+		size_t RFile = LexicalSource[unit].file;
 
-		fprintf(fp, "in line %zu, file: %s(%zu), unit: %zu\n", RLine, MorphemePre.GetFile(unit), RFile, unit);
+		fprintf(fp, "in line %zu, file: %s(%zu), unit: %zu\n", RLine, LexicalSource.GetFile(RFile), RFile, unit);
 
 		//fprintf(fp, "%zu\n", record);
-		for (size_t i = 0; i < MorphemePre.GetCount(); i++)
+		for (size_t i = 0; i < LexicalSource.GetCount(); i++)
 		{
-			size_t uintTemp1 = MorphemePre[i].line;
-			size_t uintTemp2 = MorphemePre[i].file;
+			size_t uintTemp1 = LexicalSource[i].line;
+			size_t uintTemp2 = LexicalSource[i].file;
 			if ((RLine == uintTemp1 || uintTemp1 + 1 == RLine) && uintTemp2 == RFile)
 			{
-				fprintf(fp, "%s", MorphemePre.GetWord(i));
+				fprintf(fp, "%s", LexicalSource.GetWord(i));
 			}
 		}
+		fprintf(fp, "================================\n");
+
 	}
 	else
 	{
