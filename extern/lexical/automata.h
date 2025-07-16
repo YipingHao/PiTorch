@@ -94,6 +94,8 @@ namespace hyperlex
 		inline T const & root(void) const {return content;}
 		size_t ChildCount(void) const;
 		inline tree<T>* child(size_t No) const {return childs[No];}
+		inline tree<T>* const & Parent(void) const { return parent; }
+		inline tree<T>* & Parent(void) { return parent; }
 		struct Iterator
 		{
 			tree<T>* target;

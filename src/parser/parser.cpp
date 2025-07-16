@@ -6,7 +6,24 @@ using namespace Pikachu;
 static bool compare(const char* str1, const char* str2);
 
 
-
+size_t ASTNodeUnitGet(const lex& eme, GTNode* Root)
+{
+	GTNode* Now = Root;
+	while (Now != NULL)
+	{
+		GTiterator iterator;
+		iterator.initial(Now);
+		while (iterator.still())
+		{
+			GTNode* GT = iterator.target();
+			if (!GT->root().rules)
+				return GT->root().site;
+			iterator.next();
+		}
+		Now = Now->Parent();
+	}
+	return (size_t)-1;
+}
 
 BuildInfor::BuildInfor()
 {
@@ -648,6 +665,7 @@ int BuildInfor::GetAConst(ConstObj*& output, const lex& eme, GTNode* EXP_RIGHT, 
 				if (Rvalue == NULL || Index == NULL)
 				{
 					errorInfor1 = target;
+					ErrorNode = ID;
 					errorCode = ErrorMissingConstVarDef;
 					error = 5663456;
 					break;
@@ -664,6 +682,7 @@ int BuildInfor::GetAConst(ConstObj*& output, const lex& eme, GTNode* EXP_RIGHT, 
 				{
 					errorInfor1 = target;
 					errorInfor2 = No;
+					ErrorNode = ID;
 					errorCode = ErrorIndexOutofRange;
 					error = 564584566;
 					break;
@@ -671,6 +690,7 @@ int BuildInfor::GetAConst(ConstObj*& output, const lex& eme, GTNode* EXP_RIGHT, 
 				if (Rvalue->GetState(No) != ConstObj::valued)
 				{
 					errorInfor1 = target;
+					ErrorNode = ID;
 					errorCode = ErrorMissingConstVarDef;
 					error = 5667557;
 				}
@@ -1980,11 +2000,36 @@ int BuildInfor::buildNETBODY(const lex& eme, GTNode* NETBODY, NetInContext* Net)
 
 void BuildInfor::ErrorDemo(FILE* fp) const
 {
+	if (errorCode == BuildInfor::NoError)
+	{
+		fprintf(fp, "No Error!\n");
+		return;
+	}
+	size_t unit = ASTNodeUnitGet(LexicalSource, ErrorNode);
+	if (unit != (size_t)-1)
+	{
+		size_t RLine = MorphemePre[unit].line;
+		size_t RFile = MorphemePre[unit].file;
+
+		fprintf(fp, "in line %zu, file: %zu, unit: %zu\n", RLine, RFile, unit);
+
+		//fprintf(fp, "%zu\n", record);
+		for (size_t i = 0; i < MorphemePre.GetCount(); i++)
+		{
+			size_t uintTemp1 = MorphemePre[i].line;
+			size_t uintTemp2 = MorphemePre[i].file;
+			if ((RLine == uintTemp1 || uintTemp1 + 1 == RLine) && uintTemp2 == RFile)
+			{
+				fprintf(fp, "%s", MorphemePre.GetWord(i));
+			}
+		}
+	}
+	else
+	{
+		fprintf(fp, "ErrorNode: Unknown\n");
+	}
 	switch (errorCode)
 	{
-	case BuildInfor::NoError:
-		fprintf(fp, "No Error!\n");
-		break;
 	case BuildInfor::ErrorinputLEXICAL:
 	{
 		fprintf(fp, "ErrorinputLEXICAL: \n");
