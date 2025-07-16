@@ -82,11 +82,11 @@ fi
 # ÷¥––±‡“Î
 if [[ -n "$MAKE_OPTION" ]]; then
   cd "$path_extern"
-  make -f makeL OPTION="$MAKE_OPTION"
-  make -f makeA OPTION="$MAKE_OPTION"
+  make -f makeL Option="$MAKE_OPTION"
+  make -f makeA Option="$MAKE_OPTION"
   cd "$path_tools" || { echo "Failed to enter tools directory"; exit 1; }
-  make OPTION="$MAKE_OPTION"
-  make test.exe OPTION="$MAKE_OPTION"
+  make Option="$MAKE_OPTION"
+  make test.exe Option="$MAKE_OPTION"
 else
   cd "$path_extern"
   make -f makeL
