@@ -414,7 +414,7 @@ Node* NetWork::NewNodeDiLinear(const dims_t& dims, Node* srcL, Node* srcR, Node:
 	dst->indexSrcL.copy(indice.I(0));
 	dst->indexSrcR.copy(indice.I(2));
 	dst->indexDst.copy(indice.I(3));
-
+	printf("eaffasdf\n");
 	// 检查指标合法性
 	try {
 		dst->build();
