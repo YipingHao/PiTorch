@@ -160,7 +160,7 @@ namespace Pikachu
 			return T == _sint_ || T == _uint_;
 		}
 		inline bool GetScalar(void)const { return scalar; }
-		inline size_t GetDim(void) const { return S.count(); };
+		inline size_t GetDim(void) const { return V.count(); };
 		inline bool isInt(void)	const
 		{
 			return T == _sint_ || T == _uint_;
