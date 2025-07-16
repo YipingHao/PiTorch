@@ -1195,7 +1195,7 @@ int TensorID::build(const lex& eme, GTNode* TENSORID, BuildInfor* infor, context
 		return error;
 	}
 	NetG::rules RR = (NetG::rules)TENSORID->root().site;
-	if (RR != NetG::rules::INDEXLIST_INDEXLIST_)
+	if (RR != NetG::rules::TENSORID_TENSORID_)
 	{
 
 		infor->errorInfor1 = TENSORID->root().site;
