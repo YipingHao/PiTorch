@@ -2011,7 +2011,7 @@ void BuildInfor::ErrorDemo(FILE* fp) const
 		size_t RLine = MorphemePre[unit].line;
 		size_t RFile = MorphemePre[unit].file;
 
-		fprintf(fp, "in line %zu, file: %zu, unit: %zu\n", RLine, RFile, unit);
+		fprintf(fp, "in line %zu, file: %s(%zu), unit: %zu\n", RLine, MorphemePre.GetFile(unit), RFile, unit);
 
 		//fprintf(fp, "%zu\n", record);
 		for (size_t i = 0; i < MorphemePre.GetCount(); i++)
