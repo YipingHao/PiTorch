@@ -419,8 +419,9 @@ Node* NetWork::NewNodeDiLinear(const dims_t& dims, Node* srcL, Node* srcR, Node:
 	try {
 		dst->build();
 	}
-	catch (...) {
+	catch (hyperlex::dictionary*Err) {
 		delete dst;
+		throw Err;
 		return NULL;
 	}
 
