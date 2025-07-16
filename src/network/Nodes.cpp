@@ -20,7 +20,7 @@ Node::Node()
 }
 Node::~Node()
 {
-
+	infor = (void*)this;
 }
 
 void Node::setDesc(const Tensor& desc)

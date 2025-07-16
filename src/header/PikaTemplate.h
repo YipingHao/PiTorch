@@ -1362,7 +1362,7 @@ namespace Pikachu
 		Vextern* target;
 		try
 		{
-			target = all;
+			target = (Vextern*)infor;
 			for (i = 0; i < in.count(); i++)
 			{
 				site = in[i]->SearchOutExcept(target);
