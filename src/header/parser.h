@@ -363,6 +363,8 @@ namespace Pikachu
 		char* errorInfor3;
 		bool errorInfor4;
 
+		hyperlex::dictionary* errorInfor5;
+
 		GTNode* ErrorNode;
 		FILE* screen;
 		void initial(void);
@@ -412,6 +414,8 @@ namespace Pikachu
 
 		Node::OpType ParseOpType(const lex& eme, GTNode* OPERATOR);
 		int buildNETCheck(const lex& eme, GTNode* NETBODY, context* dst, NetInContext* Net);
+
+		hyperlex::dictionary* getAdict(void);
 	};
 	class IDinfor : public CompilerObj
 	{

@@ -287,10 +287,13 @@ void BuildInfor::clear(void)
 	delete ASTree;
 	ASTree = NULL;
 	ErrorNode = NULL;
+
+	delete errorInfor5;
+	errorInfor5 = NULL;
 }
 void BuildInfor::initial(void)
 {
-	
+	errorInfor5 = NULL;
 
 	errorCode = buildUndone;
 	errorInfor1 = 0;
@@ -680,6 +683,11 @@ int BuildInfor::GetAConst(ConstObj*& output, const lex& eme, GTNode* EXP_RIGHT, 
 				sint No = Index->GetInt();
 				if (No < 0 || (size_t)No >= Index->GetDim())
 				{
+					hyperlex::dictionary* Err = getAdict();
+					Err->append("ErrorType", "Index out of range: ");
+					Err->append("Target", eme.GetWord(target));
+					Err->append("No", No);
+					Err->append("Dim", Index->GetDim());
 					errorInfor1 = target;
 					errorInfor2 = No;
 					ErrorNode = ID;
@@ -2030,6 +2038,10 @@ void BuildInfor::ErrorDemo(FILE* fp) const
 	{
 		fprintf(fp, "ErrorNode: Unknown\n");
 	}
+	if (errorInfor5 != NULL)
+	{
+		errorInfor5->print(fp);
+	}
 	switch (errorCode)
 	{
 	case BuildInfor::ErrorinputLEXICAL:
@@ -2164,6 +2176,16 @@ void BuildInfor::ErrorDemo(FILE* fp) const
 
 }
 
+hyperlex::dictionary* BuildInfor::getAdict(void)
+{
+	hyperlex::dictionary* Err = new hyperlex::dictionary();
+	if (errorInfor5 != NULL)
+	{
+		Err->append("oldError", errorInfor5);
+	}
+	errorInfor5 = Err;
+	return Err;
+}
 
 context::context()
 {
