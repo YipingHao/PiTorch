@@ -15,6 +15,8 @@ Node::Node()
 	DataExpand = true;
 	Affi = unknown;
 	network = NULL;
+
+	all = this;
 }
 Node::~Node()
 {
