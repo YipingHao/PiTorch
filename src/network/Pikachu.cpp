@@ -425,6 +425,7 @@ Node* NetWork::NewNodeDiLinear(const dims_t& dims, Node* srcL, Node* srcR, Node:
 	}
 
 	// 建立网络连接
+	NodeAppend(dst);
 	net.ArcAdd(srcL, srcR, dst);
 
 	// 计算输出张量结构
@@ -435,12 +436,12 @@ Node* NetWork::NewNodeDiLinear(const dims_t& dims, Node* srcL, Node* srcR, Node:
 
 	// 校验输出结构
 	if (Desc != dims) {
-		delete dst;
+		net.ruin(dst->site());
 		return NULL;
 	}
 
 	// 添加到网络
-	NodeAppend(dst);
+	
 	return dst;
 }
 Node* NetWork::NewNodeMonoNonlinear(const dims_t& dims, Node* srcL, Expres* func, indiceIS& indice)
