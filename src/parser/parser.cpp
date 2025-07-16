@@ -1776,6 +1776,7 @@ int BuildInfor::buildTENSORmulti(Node*& newNode, const vector<size_t>& dims, Ten
 	}
 	catch (hyperlex::dictionary* Error)
 	{
+		printf("?????\n");
 		hyperlex::dictionary* Err = getAdict();
 		Err->append("error", "net->NewNodeDiLinear failed");
 		Err->append("location", "buildTENSORmulti::1781");
