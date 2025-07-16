@@ -1586,13 +1586,17 @@ int BuildInfor::buildTENSOR(const lex& eme, GTNode* NET_STATEMENT, NetInContext*
 	GTNode* TENSOR = NET_STATEMENT->child(0);
 	GTNode* VALUELIST = TENSOR->child(2);
 
+	
+
 	ValueList VL;
-	error = VL.build(eme, VALUELIST, this, dst);
+	error = VL.c(eme, VALUELIST, this, dst);
 	if (error != 0) return error;
 	error = VL.checkDim(this);// dim[i] mast >= 1
 	if (error != 0) return error;
 	vector<size_t> dims;
 	VL.GetDim(dims);
+
+	if (PrintScreen) fprintf(screen, "\t\t\t\t ValueList ValueList\n");
 
 	GTNode* TENSOR_ID = NET_STATEMENT->child(1);
 	TensorID id;
@@ -1603,7 +1607,7 @@ int BuildInfor::buildTENSOR(const lex& eme, GTNode* NET_STATEMENT, NetInContext*
 
 	GTNode* TENSORVALUE = NET_STATEMENT->child(3);
 	NetG::rules RR = (NetG::rules)TENSORVALUE->root().site;
-	GTNode* TENSORID;
+	GTNode* TENSORID = NULL;
 	Node* newNode = NULL;
 	switch (RR)
 	{
