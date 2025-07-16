@@ -687,7 +687,7 @@ int BuildInfor::GetAConst(ConstObj*& output, const lex& eme, GTNode* EXP_RIGHT, 
 					Err->append("ErrorType", "Index out of range: ");
 					Err->append("Target", eme.GetWord(target));
 					Err->append("No", No);
-					Err->append("Dim", Index->GetDim());
+					Err->append("Dim", Rvalue->GetDim());
 					errorInfor1 = target;
 					errorInfor2 = No;
 					ErrorNode = ID;
