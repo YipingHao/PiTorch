@@ -1770,7 +1770,17 @@ int BuildInfor::buildTENSORmulti(Node*& newNode, const vector<size_t>& dims, Ten
 	IS.StoI();
 
 	//Node* newNode = net->NewNodeMonoLinear(srcL);
-	newNode = net->NewNodeDiLinear(dims, srcL, srcR, OTT, IS);
+	try
+	{
+		newNode = net->NewNodeDiLinear(dims, srcL, srcR, OTT, IS);
+	}
+	catch (hyperlex::dictionary* Error)
+	{
+		hyperlex::dictionary* Err = getAdict();
+		Err->append("error", "net->NewNodeDiLinear failed");
+		Err->append("location", "buildTENSORmulti::1781");
+		Err->append("src", Error);
+	}
 	if (newNode == NULL)
 	{
 		errorCode = ErrorUnsupportType;
