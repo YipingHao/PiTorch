@@ -1959,6 +1959,7 @@ int BuildInfor::buildNETBODY(const lex& eme, GTNode* NETBODY, NetInContext* Net)
 		}
 		case Pikachu::NetG::NET_STATEMENT_def_:
 		{
+			if (PrintScreen) fprintf(screen, "\t\t\t  TENSOR STATEMENT def vars start\n");
 			GTNode* ID = NET_STATEMENT->child(1);
 			IDinfor id;
 			error = id.build(eme, ID, this, dst);
@@ -1969,6 +1970,7 @@ int BuildInfor::buildNETBODY(const lex& eme, GTNode* NETBODY, NetInContext* Net)
 		}
 		case Pikachu::NetG::NET_STATEMENT_tensorDef1_:
 		{
+			if (PrintScreen) fprintf(screen, "\t\t\t buildTENSOR def1 start\n");
 			GTNode* TENSOR = NET_STATEMENT->child(0);
 			GTNode* VALUELIST = TENSOR->child(2);
 
@@ -1994,6 +1996,7 @@ int BuildInfor::buildNETBODY(const lex& eme, GTNode* NETBODY, NetInContext* Net)
 		}
 		case Pikachu::NetG::NET_STATEMENT_tensorDef2_:
 		{
+			if (PrintScreen) fprintf(screen, "\t\t\t TENSOR STATEMENT def2 start\n");
 			error = buildTENSOR(eme, NET_STATEMENT, Net);
 			if (error != 0) return error;
 			break;

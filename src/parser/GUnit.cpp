@@ -1197,6 +1197,7 @@ int TensorID::build(const lex& eme, GTNode* TENSORID, BuildInfor* infor, context
 	NetG::rules RR = (NetG::rules)TENSORID->root().site;
 	if (RR != NetG::rules::INDEXLIST_INDEXLIST_)
 	{
+
 		infor->errorInfor1 = TENSORID->root().site;
 		infor->ErrorNode = TENSORID;
 		infor->errorCode = BuildInfor::WrongEntrance;
