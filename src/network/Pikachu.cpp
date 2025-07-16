@@ -424,7 +424,7 @@ Node* NetWork::NewNodeDiLinear(const dims_t& dims, Node* srcL, Node* srcR, Node:
 		throw Err;
 		return NULL;
 	}
-
+	printf("eaffasdf\n");
 	// 建立网络连接
 	net.ArcAdd(srcL, srcR, dst);
 
