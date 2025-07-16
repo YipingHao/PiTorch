@@ -25,30 +25,30 @@ DEBUG=no
 # 解析命令行参数
 while getopts "gco:Ch" opt; do
   case $opt in
-    g)
-      DEBUG=yes
-      ;;
-    o)
-      if [[ "$OPTARG" =~ ^[0123]$ ]]; then
-        OPTIMIZATION="-O$OPTARG"
-      else
-        echo "Error: -o argument must be 0, 1, 2 or 3." >&2
-        exit 1
-      fi
-      ;;
-    c)
-      CLEAN=yes
-      ;;
-    C)
-      ONLY_CLEAN=yes
-      ;;
-    h)
-      usage
-      ;;
-    *)
-      echo "Invalid option." >&2
-      usage
-      ;;
+	g)
+	  DEBUG=yes
+	  ;;
+	o)
+	  if [[ "$OPTARG" =~ ^[0123]$ ]]; then
+		OPTIMIZATION="-O$OPTARG"
+	  else
+		echo "Error: -o argument must be 0, 1, 2 or 3." >&2
+		exit 1
+	  fi
+	  ;;
+	c)
+	  CLEAN=yes
+	  ;;
+	C)
+	  ONLY_CLEAN=yes
+	  ;;
+	h)
+	  usage
+	  ;;
+	*)
+	  echo "Invalid option." >&2
+	  usage
+	  ;;
   esac
 done
 
@@ -77,18 +77,21 @@ if [[ "$CLEAN" == "yes" ]]; then
 fi
 
 
-cd "$path_extern"
-make -f makeL
-make -f makeA
 
-
-cd "$path_tools" || { echo "Failed to enter tools directory"; exit 1; }
 
 # 执行编译
 if [[ -n "$MAKE_OPTION" ]]; then
+  cd "$path_extern"
+  make -f makeL OPTION="$MAKE_OPTION"
+  make -f makeA OPTION="$MAKE_OPTION"
+  cd "$path_tools" || { echo "Failed to enter tools directory"; exit 1; }
   make OPTION="$MAKE_OPTION"
   make test.exe OPTION="$MAKE_OPTION"
 else
+  cd "$path_extern"
+  make -f makeL
+  make -f makeA
+  cd "$path_tools" || { echo "Failed to enter tools directory"; exit 1; }
   make
   make test.exe
 fi

@@ -1596,7 +1596,7 @@ int BuildInfor::buildTENSOR(const lex& eme, GTNode* NET_STATEMENT, NetInContext*
 	vector<size_t> dims;
 	VL.GetDim(dims);
 
-	if (PrintScreen) fprintf(screen, "\t\t\t\t ValueList build\n");
+	//if (PrintScreen) fprintf(screen, "\t\t\t\t ValueList build\n");
 
 	GTNode* TENSOR_ID = NET_STATEMENT->child(1);
 	TensorID id;
