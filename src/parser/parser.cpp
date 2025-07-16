@@ -1610,24 +1610,28 @@ int BuildInfor::buildTENSOR(const lex& eme, GTNode* NET_STATEMENT, NetInContext*
 	case Pikachu::NetG::TENSORVALUE_single_:
 	case Pikachu::NetG::TENSORVALUE_single1_:
 	{
+		if (PrintScreen) fprintf(screen, "\t\t\t\t TENSOR mono Linear\n");
 		error = buildTENSORsingle(newNode, dims, id, eme, TENSORVALUE, Net);
 		if (error != 0) return error;
 		break;
 	}
 	case Pikachu::NetG::TENSORVALUE_multi_:
 	{
+		if (PrintScreen) fprintf(screen, "\t\t\t\t TENSOR di Linear\n");
 		error = buildTENSORmulti(newNode, dims, id, eme, TENSORVALUE, Net);
 		if (error != 0) return error;
 		break;
 	}
 	case Pikachu::NetG::TENSORVALUE_singleF_:
 	{
+		if (PrintScreen) fprintf(screen, "\t\t\t\t TENSOR mono Nonlinear\n");
 		error = buildTENSORsingleF(newNode, dims, id, eme, TENSORVALUE, Net);
 		if (error != 0) return error;
 		break;
 	}
 	case Pikachu::NetG::TENSORVALUE_multiF_:
 	{
+		if (PrintScreen) fprintf(screen, "\t\t\t\t TENSOR di Nonlinear\n");
 		error = buildTENSORmultiF(newNode, dims, id, eme, TENSORVALUE, Net);
 		if (error != 0) return error;
 		break;
