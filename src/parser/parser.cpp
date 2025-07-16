@@ -681,7 +681,7 @@ int BuildInfor::GetAConst(ConstObj*& output, const lex& eme, GTNode* EXP_RIGHT, 
 					break;
 				}
 				sint No = Index->GetInt();
-				if (No < 0 || (size_t)No >= Index->GetDim())
+				if (No < 0 || (size_t)No >= Rvalue->GetDim())
 				{
 					hyperlex::dictionary* Err = getAdict();
 					Err->append("ErrorType", "Index out of range: ");
