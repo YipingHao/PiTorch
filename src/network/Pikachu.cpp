@@ -419,7 +419,7 @@ Node* NetWork::NewNodeDiLinear(const dims_t& dims, Node* srcL, Node* srcR, Node:
 	
 	// 检查指标合法性
 	try {
-		dst->build();
+		dst->build(dummy);
 	}
 	catch (hyperlex::dictionary*Err) {
 		delete dst;
