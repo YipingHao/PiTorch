@@ -255,7 +255,6 @@ namespace Pikachu
 		void clear(void);
 		void trivial(Node* SrcL, Node* SrcR, Affiliation AA);
 		void value(const vector<sint>& SrcL, const vector<sint>& SrcR, const vector<sint>& Dst);
-		void build(void);
 		void PrintScreen(FILE* fp = stdout)const;
 		bool IsConst(const FuncConst& value) const;
 		bool IsZero(void) const;
@@ -271,6 +270,9 @@ namespace Pikachu
 		void Happend(bool L, bool R, bool D, size_t H);
 		void inforPrint(hyperlex::dictionary& dict)const;
 		hyperlex::dictionary* ErrorGive(void) const;
+	public:
+		void build(const indice_t& dummy);
+		void build(void);
 	};
 	class MonoNonlinear : public Node
 	{

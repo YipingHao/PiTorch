@@ -407,13 +407,16 @@ Node* NetWork::NewNodeDiLinear(const dims_t& dims, Node* srcL, Node* srcR, Node:
 	DiLinear* dst = new DiLinear(OT, Node::initial);
 
 	// 设置指标
-	//IS.appendS(id.GetIndex());
-	//IS.appendS(list.GetIndex());
-	//IS.appendS(idL.GetIndex());
-	//IS.appendS(idR.GetIndex());
-	dst->indexSrcL.copy(indice.I(0));
-	dst->indexSrcR.copy(indice.I(2));
-	dst->indexDst.copy(indice.I(3));
+	//IS.appendS(id.GetIndex());[0]
+	//IS.appendS(list.GetIndex());[1]
+	//IS.appendS(idL.GetIndex());[2]
+	//IS.appendS(idR.GetIndex());[3]
+	indice_t dummy;
+	dst->indexDst.copy(indice.I(0));
+	dummy.copy(indice.I(1));
+	dst->indexSrcL.copy(indice.I(2));
+	dst->indexSrcR.copy(indice.I(3));
+	
 	// 检查指标合法性
 	try {
 		dst->build();

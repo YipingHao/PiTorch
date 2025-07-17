@@ -1345,10 +1345,10 @@ void DiLinear::build(void)
 		countR = indexSrcR.Tcount(indexDst[i]);
 		count = countL + countR;
 		// 如果该指标在左、右输入各出现一次，则为“重复指标”
-	    // If the index appears once in both left and right, it's a repeated index
+		// If the index appears once in both left and right, it's a repeated index
 		if (count == 2) RepeatedIndex += 1;
 		// 如果输出指标在输入中都没有，抛出异常
-	    // If output index not found in any input, throw error
+		// If output index not found in any input, throw error
 		if (count == 0)
 		{
 			hyperlex::dictionary* error;
@@ -1380,25 +1380,58 @@ void DiLinear::build(void)
 		}
 	}
 	DummyIndex -= RepeatedIndex;
-	// 3. 统计 DummyIndex
-	// 只在输入（indexSrcL 或 indexSrcR）中出现、在输出（indexDst）中未出现的指标
-	for (size_t i = 0; i < indexSrcR.count(); i++)
+	// 4. 左右输入的张量如果不是哑标必须出现在输出中。
+	size_t DstShould = indexSrcR.count() + indexSrcL.count();
+	DstShould = DstShould - RepeatedIndex - DummyIndex * 2;
+	if (DstShould != indexDst.count())
 	{
-		countR = indexSrcL.Tcount(indexSrcR[i]);
-		if (countR == 0)
-		{
-			count = indexDst.Tcount(indexSrcR[i]);
-			if (count == 0) {
-				// 右输入中有但输出和左输入都没有，非法
-				hyperlex::dictionary* error;
-				error = new hyperlex::dictionary;
-				error->append("location", "DiLinear::build");
-				error->append("error", "count == 0");
-				throw error;
-			}
-		}
+		hyperlex::dictionary* error;
+		error = new hyperlex::dictionary;
+		error->append("location", "DiLinear::build");
+		error->append("error", "extra input");
+		throw error;
 	}
-
+}
+void DiLinear::build(const indice_t & dummy)
+{
+	try
+	{
+		build();
+	}
+	catch (hyperlex::dictionary* error)
+	{
+		throw error;
+	}
+	// 1. 检查每个dummy集内部是否有重复
+	// Check for duplicates within each index set
+	int errorCode = 0;
+	for (size_t i = 0; i < dummy.count(); ++i)
+		for (size_t j = i + 1; j < dummy.count(); ++j)
+			if (dummy[i] == dummy[j])
+				errorCode |= 1;
+	// 2. 检查 dummy 中的每个指标是否在 indexDst 中出现
+	for (size_t i = 0; i < dummy.count(); ++i)
+	{
+		size_t site = indexDst.search(dummy[i]);
+		if (site != _uintMax_) errorCode |= 2;
+	}
+	// 3. 检查 dummy 中的每个指标是否在 indexSrcL 或 indexSrcR 中出现
+	for (size_t i = 0; i < dummy.count(); ++i)
+	{
+		size_t siteL = indexSrcL.search(dummy[i]);
+		size_t siteR = indexSrcR.search(dummy[i]);
+		if (siteL == _uintMax_ || siteR == _uintMax_) errorCode |= 4;
+	}
+	if (errorCode != 0)
+	{
+		hyperlex::dictionary* error;
+		error = new hyperlex::dictionary;
+		error->append("location", "DiLinear::build(const indice_t & dummy)");
+		error->append("error", "repeat index");
+		error->append("errorCode", errorCode);
+		throw error;
+	}
+	return;
 }
 sint DiLinear::MaxIndex(void) const
 {
