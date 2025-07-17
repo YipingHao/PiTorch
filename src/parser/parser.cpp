@@ -2051,7 +2051,10 @@ void BuildInfor::ErrorDemo(FILE* fp) const
 			size_t uintTemp2 = LexicalSource[i].file;
 			if ((RLine == uintTemp1 || uintTemp1 + 1 == RLine) && uintTemp2 == RFile)
 			{
-				fprintf(fp, "%s", LexicalSource.GetWord(i));
+				if (i == unit)
+					fprintf(fp, "| %s |", LexicalSource.GetWord(i));
+				else
+					fprintf(fp, "%s", LexicalSource.GetWord(i));
 			}
 		}
 		fprintf(fp, "================================\n");
@@ -2411,98 +2414,3 @@ static bool compare(const char* str1, const char* str2)
 	return str1[i] == str2[i];
 }
 
-
-/*
-
-	{
-		size_t delta = (RR == NetG::TENSORVALUE_single1_ ? 1 : 0);
-
-		TENSORID = TENSORVALUE->child(1 + delta);
-		TensorID idL;
-		error = idL.build(eme, TENSORID, this, dst);
-		if (error != 0) return error;
-		Node* srcL = (Node*)idL.GetLocalTensorR(error, this, dst);
-		if (error != 0) return error;
-
-		GTNode* SUMSYMBOL = TENSORVALUE->child(delta);
-		Indexs list;
-		error = list.buildSUMSYMBOL(eme, SUMSYMBOL, this, dst);
-		if (error != 0) return error;
-
-		double alpha = 1.0;
-
-		if (RR == NetG::TENSORVALUE_single1_)
-		{
-			GTNode* EXP_RIGHT = TENSORVALUE->child(0);
-			ConstObj *Alpha = NULL;
-			error = GetAConst(Alpha, eme, EXP_RIGHT, dst);
-			if (error != 0) return error;
-			alpha = Alpha->GetReal();
-			delete Alpha;
-		}
-
-		indiceIS IS;
-		IS.appendS(id.GetSIndex());
-		IS.appendS(list.GetIndex());
-		IS.appendS(idL.GetSIndex());
-		IS.StoI();
-
-
-		Node* newNode = net->NewNodeMonoLinear(dims, srcL, alpha, IS);
-		if (newNode == NULL)
-		{
-			errorCode = ErrorUnsupportType;
-			errorInfor1 = line;
-			ErrorNode = TENSORID;
-			return 4245341;
-		}
-		Lvalue->SetInfor((void*)newNode, id.GetIndex());
-		break;
-	}
-*/
-/*
-
-	{
-		TensorID idL, idR;
-
-		TENSORID = TENSORVALUE->child(1);
-		error = idL.build(eme, TENSORID, this, dst);
-		if (error != 0) return error;
-		Node* srcL = (Node*)idL.GetLocalTensorR(error, this, dst);
-		if (error != 0) return error;
-
-		TENSORID = TENSORVALUE->child(3);
-		error = idR.build(eme, TENSORID, this, dst);
-		if (error != 0) return error;
-		Node* srcR = (Node*)idR.GetLocalTensorR(error, this, dst);
-		if (error != 0) return error;
-
-		GTNode* SUMSYMBOL = TENSORVALUE->child(0);
-		Indexs list;
-		error = list.buildSUMSYMBOL(eme, SUMSYMBOL, this, dst);
-		if (error != 0) return error;
-
-		GTNode* OPERATOR = TENSORVALUE->child(2);
-		Node::OpType OTT = ParseOpType(eme, OPERATOR);
-
-
-		indiceIS IS;
-		IS.appendS(id.GetSIndex());
-		IS.appendS(list.GetIndex());
-		IS.appendS(idL.GetSIndex());
-		IS.appendS(idR.GetSIndex());
-		IS.StoI();
-
-		//Node* newNode = net->NewNodeMonoLinear(srcL);
-		Node* newNode = net->NewNodeDiLinear(dims, srcL, srcR, OTT, IS);
-		if (newNode == NULL)
-		{
-			errorCode = ErrorUnsupportType;
-			errorInfor1 = line;
-			ErrorNode = TENSORID;
-			return 42423341;
-		}
-		Lvalue->SetInfor((void*)newNode, id.GetIndex());
-		break;
-	}
-*/
