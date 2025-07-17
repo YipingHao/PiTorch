@@ -1192,6 +1192,7 @@ int BuildInfor::buildRoutinePara(routine Rou, const lex& eme, GTNode* PARA, cont
 				Expres::node* Node = Exp->NewNode(Pikachu::_LeafX_, Func->InputCount, j);
 				newVar->SetInfor(Node, j);
 			}
+			Exp->InputDim.append(dim);
 			Func->InputCount += 1;
 			break;
 		}

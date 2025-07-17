@@ -266,7 +266,7 @@ namespace Pikachu
 	};
 
 	//class BuildInfor;
-
+	class BuildInfor;
 	class Expres
 	{
 	public:
@@ -390,6 +390,9 @@ namespace Pikachu
 		void ShrinkOutput(size_t victim);
 		// remove all the output node expression except the victim
 		// without Simplification
+		friend class BuildInfor;
+	protected:
+
 	};
 
 	class activation : public expression
