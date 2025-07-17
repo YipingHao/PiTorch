@@ -2215,11 +2215,12 @@ int enumL::next(int state, const char c)
 	case 0:
 		if (c == (char)9) return 6;
 		else if (c == (char)10) return 5;
+		else if (c == (char)13) return 14;
 		else if (c == ' ') return 4;
-		else if (c == '+') return 14;
+		else if (c == '+') return 19;
 		else if (c == ',') return 8;
-		else if (c == '-') return 14;
-		else if (c == '/') return 19;
+		else if (c == '-') return 19;
+		else if (c == '/') return 21;
 		else if ('0' <= c && c <= '9') return 2;
 		else if (c == ';') return 7;
 		else if (c == '=') return 13;
@@ -2251,6 +2252,7 @@ int enumL::next(int state, const char c)
 		else return 0;
 	case 5:
 		if (c == (char)10) return 5;
+		else if (c == (char)13) return 14;
 		else return 0;
 	case 6:
 		return 0;
@@ -2274,7 +2276,7 @@ int enumL::next(int state, const char c)
 	case 13:
 		return 0;
 	case 14:
-		if ('0' <= c && c <= '9') return 2;
+		if (c == (char)10) return 5;
 		else return 0;
 	case 15:
 		if ('0' <= c && c <= '9') return 1;
@@ -2306,8 +2308,7 @@ int enumL::next(int state, const char c)
 		else if ('+' <= c && c <= (char)127) return 18;
 		else return 0;
 	case 19:
-		if (c == '*') return 18;
-		else if (c == '/') return 11;
+		if ('0' <= c && c <= '9') return 2;
 		else return 0;
 	case 20:
 		if ((char)0 <= c && c <= ')') return 18;
@@ -2315,6 +2316,10 @@ int enumL::next(int state, const char c)
 		else if ('+' <= c && c <= '.') return 18;
 		else if (c == '/') return 12;
 		else if ('0' <= c && c <= (char)127) return 18;
+		else return 0;
+	case 21:
+		if (c == '*') return 18;
+		else if (c == '/') return 11;
 		else return 0;
 	}
 	return 0;
@@ -2391,6 +2396,7 @@ int enumL::GroupGet(int accept)
 	}
 	return 0;
 }
+
 
 
 	const size_t enumG::StateCount = 17;
