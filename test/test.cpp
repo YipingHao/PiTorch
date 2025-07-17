@@ -919,6 +919,7 @@ grammar: numerate:
 	}
 
 	output += "\t}\n";
+	std::cout << output << std::endl;
 	return error;
 }
 
