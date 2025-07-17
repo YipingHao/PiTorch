@@ -1092,7 +1092,7 @@ int Indexs::buildSQ_INDEXUNITS(const lex& eme, GTNode* SQ_INDEXUNITS, BuildInfor
 		infor->errorCode = BuildInfor::WrongEntrance;
 		return 245324453;
 	}
-	GTNode* INDEXUNITS = SQ_INDEXUNITS->child(2);
+	GTNode* INDEXUNITS = SQ_INDEXUNITS->child(1);
 	return buildINDEXUNITS(eme, INDEXUNITS, infor, dst);
 }
 int Indexs::buildINDEXLIST(const lex& eme, GTNode* INDEXLIST, BuildInfor* infor, context* dst)
