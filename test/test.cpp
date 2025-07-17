@@ -855,7 +855,7 @@ grammar: numerate:
 	}
 }
 	*/
-
+	tree.Demo(stdout, input, enumG::RulesName);
 	GTNode *root = tree.GT;
 	GTiterator iterator;
 	iterator.initial(root);
