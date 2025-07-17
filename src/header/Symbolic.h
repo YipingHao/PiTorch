@@ -390,7 +390,6 @@ namespace Pikachu
 		void ShrinkOutput(size_t victim);
 		// remove all the output node expression except the victim
 		// without Simplification
-		friend class BuildInfor;
 	protected:
 
 	};
