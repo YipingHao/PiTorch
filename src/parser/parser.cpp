@@ -1720,7 +1720,7 @@ int BuildInfor::buildTENSORsingle(Node*& newNode, const vector<size_t>& dims, Te
 		errorCode = ErrorUnsupportType;
 		errorInfor1 = line;
 		ErrorNode = TENSORID;
-		return 4245341;
+		return 42453414;
 	}
 	return error;
 }
@@ -1847,7 +1847,7 @@ int BuildInfor::buildTENSORsingleF(Node*& newNode, const vector<size_t>& dims, T
 		errorCode = ErrorUnsupportType;
 		errorInfor1 = line;
 		ErrorNode = TENSORID;
-		return 4245341;
+		return 42245341;
 	}
 	return 0;
 }
@@ -1914,7 +1914,7 @@ int BuildInfor::buildTENSORmultiF(Node*& newNode, const vector<size_t>& dims, Te
 		errorCode = ErrorUnsupportType;
 		errorInfor1 = line;
 		ErrorNode = TENSORID;
-		return 4245341;
+		return 42453421;
 	}
 	
 	return error;
