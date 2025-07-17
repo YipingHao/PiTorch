@@ -919,7 +919,9 @@ grammar: numerate:
 		}
 		iterator.next();
 	}
+	output += "\tdefault:\n\t\treturn \"";
 
+	output += "????\"\n";
 	output += "\t}\n";
 	std::cout << "end:" << std::endl;
 	std::cout << output << std::endl;
