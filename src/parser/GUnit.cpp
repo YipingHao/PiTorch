@@ -788,14 +788,14 @@ var* IDinfor::GetLocalVarR(int& error, BuildInfor* infor, context* dst)
 	{
 		infor->errorCode = BuildInfor::ErrorIndexOutofRange;
 		infor->ErrorNode = backup;
-		error = 123134545;
+		error = 123234545;
 		return NULL;
 	}
 	if (temp->Getnode(Index) == NULL)
 	{
 		infor->errorCode = BuildInfor::ErrorMissingVarDef;
 		infor->ErrorNode = backup;
-		error = 123134545;
+		error = 123144545;
 		return  NULL;
 	}
 	return temp;
@@ -816,14 +816,14 @@ void* IDinfor::GetLocalTensorR(int& error, BuildInfor* infor, context* dst)
 	{
 		infor->errorCode = BuildInfor::ErrorIndexOutofRange;
 		infor->ErrorNode = backup;
-		error = 123134545;
+		error = 123135545;
 		return NULL;
 	}
 	if (temp->Getnode(Index) == NULL)
 	{
 		infor->errorCode = BuildInfor::ErrorMissingVarDef;
 		infor->ErrorNode = backup;
-		error = 123134545;
+		error = 223134545;
 		return  NULL;
 	}
 	return temp->Getnode(Index);
@@ -844,14 +844,14 @@ ConstObj* IDinfor::GetAllConstR(int& error, BuildInfor* infor, context* dst)
 	{
 		infor->errorCode = BuildInfor::ErrorIndexOutofRange;
 		infor->ErrorNode = backup;
-		error = 123134545;
+		error = 323134545;
 		return NULL;
 	}
 	if (temp->GetState(Index) == ConstObj::liberal)
 	{
 		infor->errorCode = BuildInfor::ErrorMissingConstVarDef;
 		infor->ErrorNode = backup;
-		error = 123134546;
+		error = 423134546;
 		return  NULL;
 	}
 	return temp;
@@ -926,7 +926,7 @@ void IDinfor::AssignLocalVarL(int& error, BuildInfor* infor, context* dst, void*
 	{
 		infor->errorCode = BuildInfor::ErrorIndexOutofRange;
 		infor->ErrorNode = backup;
-		error = 123134545;
+		error = 562313454;
 		return;
 	}
 	if (SrcR != NULL)
@@ -962,7 +962,7 @@ var* IDinfor::GetLocalVarL(int& error, BuildInfor* infor, context* dst)
 	{
 		infor->errorCode = BuildInfor::ErrorIndexOutofRange;
 		infor->ErrorNode = backup;
-		error = 123134545;
+		error = 145134545;
 		return NULL;
 	}
 	return old;
@@ -990,7 +990,7 @@ var* IDinfor::GetLocalTensorL(int& error, BuildInfor* infor, context* dst)
 	{
 		infor->errorCode = BuildInfor::ErrorIndexOutofRange;
 		infor->ErrorNode = backup;
-		error = 123134545;
+		error = 123156545;
 		return NULL;
 	}
 	if (old->GetTensor(index) != NULL)
@@ -1037,7 +1037,7 @@ func* IDinfor::GetAllFuncR(int& error, BuildInfor* infor, context* dst)
 	{
 		infor->errorCode = BuildInfor::ErrorMissingFuncDef;
 		infor->ErrorNode = backup;
-		error = 123134545;
+		error = 128764545;
 		return NULL;
 	}
 	return temp;
