@@ -2036,6 +2036,8 @@ void BuildInfor::ErrorDemo(FILE* fp) const
 		fprintf(fp, "No Error!\n");
 		return;
 	}
+	const char* errorString = errorTypeGet(errorCode);
+	fprintf(fp, "Error Type: %s\n", errorString);
 	size_t unit = ASTNodeUnitGet(LexicalSource, ErrorNode);
 	if (unit != (size_t)-1)
 	{
@@ -2212,6 +2214,97 @@ hyperlex::dictionary* BuildInfor::getAdict(void)
 	}
 	errorInfor5 = Err;
 	return Err;
+}
+const char* BuildInfor::errorTypeGet(BuildInfor::errorType error)
+{
+	switch (error)
+	{
+	case errorType::NoError:
+		return "NoError";
+	case errorType::PretreatLEXICAL:
+		return "PretreatLEXICAL";
+	case errorType::PretreatGRAMMAR:
+		return "PretreatGRAMMAR";
+	case errorType::PretreatRepeat:
+		return "PretreatRepeat";
+	case errorType::PretreatOpenfail:
+		return "PretreatOpenfail";
+	case errorType::PretreatNone:
+		return "PretreatNone";
+	case errorType::ErrorinputLEXICAL:
+		return "ErrorinputLEXICAL";
+	case errorType::ErrorinputGrammar:
+		return "ErrorinputGrammar";
+	case errorType::ErrorUnExpectedType:
+		return "ErrorUnExpectedType";
+	case errorType::ErrorUnsupportType:
+		return "ErrorUnsupportType";
+	case errorType::ErrorRepeatVarDef:
+		return "ErrorRepeatVarDef";
+	case errorType::ErrorMissingConstVarDef:
+		return "ErrorMissingConstVarDef";
+	case errorType::ErrorMissingVarDef:
+		return "ErrorMissingVarDef";
+	case errorType::ErrorMissingFuncDef:
+		return "ErrorMissingFuncDef";
+	case errorType::ErrorMinusIndex:
+		return "ErrorMinusIndex";
+	case errorType::ErrorIndexOutofRange:
+		return "ErrorIndexOutofRange";
+	case errorType::ErrorSAmissMatch:
+		return "ErrorSAmissMatch";
+	case errorType::ErrorNeedAInt:
+		return "ErrorNeedAInt";
+	case errorType::ErrorNameNULL:
+		return "ErrorNameNULL";
+	case errorType::WrongEntrance:
+		return "WrongEntrance";
+	case errorType::ErrorInitialAorS:
+		return "ErrorInitialAorS";
+	case errorType::ErrorAssignType:
+		return "ErrorAssignType";
+	case errorType::ErrorAssignDim:
+		return "ErrorAssignDim";
+	case errorType::ErrorInvalidRvalue:
+		return "ErrorInvalidRvalue";
+	case errorType::SymbolicAlreadyDef:
+		return "SymbolicAlreadyDef";
+	case errorType::VarAlreadDef:
+		return "VarAlreadDef";
+	case errorType::TooMuchPara:
+		return "TooMuchPara";
+	case errorType::TooLessPara:
+		return "TooLessPara";
+	case errorType::TooMuchInput:
+		return "TooMuchInput";
+	case errorType::NoneOutput:
+		return "NoneOutput";
+	case errorType::UndefineOutput:
+		return "UndefineOutput";
+	case errorType::NeedAscalar:
+		return "NeedAscalar";
+	case errorType::ErrorListTypeMismatch:
+		return "ErrorListTypeMismatch";
+	case errorType::AssignAparaOrinput:
+		return "AssignAparaOrinput";
+	case errorType::ShouldNotAssignGlobalConst:
+		return "ShouldNotAssignGlobalConst";
+	case errorType::ErrorNotAConst:
+		return "ErrorNotAConst";
+	case errorType::ErrorUnsupportFunc:
+		return "ErrorUnsupportFunc";
+	case errorType::ErrorUnKnowEXP:
+		return "ErrorUnKnowEXP";
+	case errorType::ErrorSelfCheck:
+		return "ErrorSelfCheck";
+	case errorType::ErrorUndefined:
+		return "ErrorUndefined";
+	case errorType::buildUndone:
+		return "buildUndone";
+	default:
+		return "????";
+	}
+
 }
 
 context::context()

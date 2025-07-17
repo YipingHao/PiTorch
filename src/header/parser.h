@@ -416,6 +416,7 @@ namespace Pikachu
 		int buildNETCheck(const lex& eme, GTNode* NETBODY, context* dst, NetInContext* Net);
 
 		hyperlex::dictionary* getAdict(void);
+		static const char* errorTypeGet(errorType error);
 	};
 	class IDinfor : public CompilerObj
 	{
