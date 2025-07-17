@@ -2042,7 +2042,8 @@ void BuildInfor::ErrorDemo(FILE* fp) const
 		size_t RLine = LexicalSource[unit].line;
 		size_t RFile = LexicalSource[unit].file;
 
-		fprintf(fp, "in line %zu, file: %s(%zu), unit: %zu\n", RLine, LexicalSource.GetFile(RFile), RFile, unit);
+		fprintf(fp, "in line %zu, file: %s(%zu), ", RLine, LexicalSource.GetFile(RFile), RFile);
+		fprintf(fp, "unit: %zu, (%s)\n", unit, LexicalSource.GetWord(unit));
 
 		//fprintf(fp, "%zu\n", record);
 		for (size_t i = 0; i < LexicalSource.GetCount(); i++)
