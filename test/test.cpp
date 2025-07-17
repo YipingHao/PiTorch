@@ -8,6 +8,8 @@ using namespace Pikachu;
 
 typedef hyperlex::tree<hyperlex::GrammarTree::TreeInfor> GTNode;
 typedef hyperlex::tree<hyperlex::GrammarTree::TreeInfor>::PostIterator GTiterator;
+typedef hyperlex::Morpheme lex;
+typedef hyperlex::GrammarTree AST;
 
 int static Test000(const hyperlex::dictionary& para);
 int static Test001(const hyperlex::dictionary& para);
@@ -89,6 +91,7 @@ int test(hyperlex::dictionary& para)
 	case 1:
 	{
 		error = Test001(para);
+		std::cout << "enum switch " << std::endl;
 		break;
 	}
 	case 2:
@@ -783,10 +786,139 @@ struct enumG
 int static Test001(const hyperlex::dictionary& para)
 {
 	int error = 0;
+	hyperlex::FilePath Path1, Path2;
+	const char* dataPath = para.search("./data/", "DataFilePath");
+	const char* dataName = para.search("./data/", "DataFileName");
+	Path1.build(dataPath);
+	Path2.build(dataName);
+	Path1 += Path2;
+	const char* path = Path1.path();
+	FILE* fp = fopen(path, "r");
+	if (fp == NULL)
+	{
+		fprintf(stderr, "Error: Cannot open file %s\n", path);
+		return -1;
+	}
+	lex input;
+	error = input.Build<enumL>(fp);
+	fclose(fp);
+	if (error != 0)
+	{
+		fprintf(stderr, "Error: Failed to build input from file %s\n", path);
+		return error;
+	}
+	enumL::regular T;
+	enumL::group G;
+	//site = 0;
+	for (size_t i = 0; i < input.GetCount(); i++)
+	{
+		T = (enumL::regular)(input[i].accept);
+		G = (enumL::group)(input[i].category);
+		if (G == enumL::_format___ || G == enumL::_anntation___)
+			input.valid(i) = false;
+	}
 
+	AST tree;
+	error = tree.build<enumG>(input);
+	
+	if (error != 0)
+	{
+		fprintf(stderr, "Error: Failed to build AST from input\n");
+		return error;
+	}
+	/*
+	
 
+grammar: numerate:
+{
+	numerate: 
+	{
+		id: enum id braceL BODY END;
+	}
+	END:
+	{
+		single: braceR;
+		di: braceR semicolon;
+		single2: comma braceR;
+		di2: comma braceR semicolon;
+	}
+	BODY: 
+	{
+		single: FORMULA;
+		multi: BODY comma FORMULA;
+	}
+	FORMULA: 
+	{
+		name: id;
+		value: id assign integer;
+	}
+}
+	*/
 
+	GTNode *root = tree.GT;
+	GTiterator iterator;
+	iterator.initial(root);
+	size_t count = 0;
+	std::string output;
+	std::string name;
+	while (iterator.still())
+	{
+		GTNode* GT = iterator.target();
+		if (iterator.state() == 0)
+		{
+			enumG::rules RR = (enumG::rules)GT->root().site;
+			if (GT->root().rules)
+			{
+				switch (RR)
+				{
+				case enumG::numerate_id_:
+					name = input.GetWord(GT->child(1)->root().site);
+					iterator.state() = 1;
+					break;
+				default:
+					break;
+				}
+			}
+		}
+		iterator.next();
+	}
+	output += "\tswitch (type)\n\t{\n";
 
+	while (iterator.still())
+	{
+		GTNode* GT = iterator.target();
+		if (iterator.state() == 1)
+		{
+			enumG::rules RR = (enumG::rules)GT->root().site;
+			if (GT->root().rules)
+			{
+				switch (RR)
+				{	
+				case enumG::FORMULA_name_:
+				case enumG::FORMULA_value_:
+				{
+					std::string temp = input.GetWord(GT->child(0)->root().site);
+					output += "\tcase ";
+					output += name;
+					output += "::";
+
+					output += temp;
+					output += ":\n\t\treturn \"";
+					output += temp;
+
+					output += "\";\n";
+					break;
+				}
+					
+				default:
+					break;
+				}
+			}
+		}
+		iterator.next();
+	}
+
+	output += "\t}\n";
 	return error;
 }
 
