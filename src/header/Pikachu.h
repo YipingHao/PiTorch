@@ -32,6 +32,7 @@ namespace Pikachu
  * 该类用于处理字符串与整数张量索引之间的双向转换，支持批量操作和演示功能。
  * 字符串存储在动态分配的内存中，索引使用sint类型（长整型）表示。
  *
+ * 普通的字符串索引转为正数整数索引，NULL指针转换成-1
  * @class indiceIS
  * @brief Index String-Integer Conversion Class
  *

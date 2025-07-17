@@ -2038,6 +2038,10 @@ void indiceIS::appendS(const vector<char*>& S)
 	for (size_t i = 0; i < S.count(); ++i)
 	{
 		const char* str = S[i];
+		if (str == NULL) {
+			(*newS)[i] = NULL; // ´¦Àí¿Õ×Ö·û´®
+			continue;
+		}
 		size_t len = strlen(str);
 		char* newStr = (char*)malloc((len + 1) * sizeof(char));
 		strcpy(newStr, str);

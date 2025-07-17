@@ -11,7 +11,7 @@ COFILE = $(ODIR)automata.o  $(ODIR)dictionary.o
 HOFILE = $(CODE)automata.h  $(CODE)dictionary.h
 TestOFile = $(TEST)main.o
 
-#OPTION = -O0 
+#Option = -O0 
 Option ?= -O2
 #EXTRA =-Wall -Wextra -fno-strict-aliasing -fwrapv -fno-aggressive-loop-optimizations -Wconversion -ftrapv
 #CC = icc
@@ -21,16 +21,16 @@ libHyperlex.a:  $(COFILE)
 	ar -rcv $(BASE)lib/libHyperlex.a  $(COFILE)
 
 $(ODIR)automata.o:$(CODE)automata.cpp $(CODE)automata.h
-	$(CC) -o $(ODIR)automata.o -c $(OPTION) $(CODE)automata.cpp
+	$(CC) -o $(ODIR)automata.o -c $(Option) $(CODE)automata.cpp
 
 $(ODIR)dictionary.o:$(CODE)dictionary.cpp $(CODE)dictionary.h $(CODE)automata.h
-	$(CC) -o $(ODIR)dictionary.o -c  $(OPTION) $(CODE)dictionary.cpp
+	$(CC) -o $(ODIR)dictionary.o -c  $(Option) $(CODE)dictionary.cpp
 
 test.exe: $(COFILE) $(TestOFile)
 	$(CC) -o $(TEST)test.exe $(COFILE) $(TestOFile)
 
 $(TEST)main.o: $(HOFILE) $(TEST)main.cpp
-	$(CC) -o $(TEST)main.o -c $(OPTION) $(TEST)main.cpp
+	$(CC) -o $(TEST)main.o -c $(Option) $(TEST)main.cpp
 
 
 
