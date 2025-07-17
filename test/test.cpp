@@ -884,14 +884,14 @@ grammar: numerate:
 		iterator.next();
 	}
 	output += "\tswitch (type)\n\t{\n";
-
+	iterator.initial(root);
 	while (iterator.still())
 	{
 		GTNode* GT = iterator.target();
 		if (iterator.state() == 1)
 		{
 			enumG::rules RR = (enumG::rules)GT->root().site;
-			std::cout << "RR: " << RR << std::endl;
+			//std::cout << "RR: " << RR << std::endl;
 			if (GT->root().rules)
 			{
 				switch (RR)
