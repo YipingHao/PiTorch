@@ -807,6 +807,7 @@ int static Test001(const hyperlex::dictionary& para)
 		fprintf(stderr, "Error: Failed to build input from file %s\n", path);
 		return error;
 	}
+	input.Demo(stdout);
 	enumL::regular T;
 	enumL::group G;
 	//site = 0;
