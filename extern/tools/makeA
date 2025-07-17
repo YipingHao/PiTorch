@@ -12,7 +12,7 @@ COFILE = $(ODIR)linear_algebra.o $(ODIR)mutex_bar.o $(ODIR)vecmat.o $(ODIR)rando
 COOFILE = $(ODIR)HyperAlgebraCore.o $(ODIR)AlgebraMKL.o $(ODIR)HyperAlgebraRandom.o
 TestOFile = $(TEST)main.o
 
-OPTION ?= -O3
+Option ?= -O3
 
 EXTERNLIB = -lHyperAcc
 EXTERN = ../extern/lib

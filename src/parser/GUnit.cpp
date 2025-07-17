@@ -1242,10 +1242,14 @@ char* TensorID::copy(const char* src) const
 }
 void TensorID::append(const char* src)
 {
-	char* newName = copy(src);
-	if (newName != NULL)
+	if (src != NULL)
 	{
+		char* newName = copy(src);
 		Tindex.append(newName);
+	}
+	else
+	{
+		Tindex.append(NULL);
 	}
 }
 void TensorID::append(const lex& eme, GTNode* ID2, BuildInfor* infor, context* dst)
