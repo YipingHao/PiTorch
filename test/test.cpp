@@ -891,6 +891,7 @@ grammar: numerate:
 		if (iterator.state() == 1)
 		{
 			enumG::rules RR = (enumG::rules)GT->root().site;
+			std::cout << "RR: " << RR << std::endl;
 			if (GT->root().rules)
 			{
 				switch (RR)
