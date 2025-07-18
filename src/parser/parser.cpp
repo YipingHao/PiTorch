@@ -67,8 +67,8 @@ int BuildInfor::pretreatment(const char* input, lex& output)
 			fprintf(screen, "Error in pretreatment: %d\n", error);
 		return error;
 	}
-	bool include;
-	bool customized;
+	bool include = false;
+	bool customized = false;
 	do
 	{
 		customized = false;
