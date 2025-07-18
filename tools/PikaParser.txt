@@ -21,9 +21,20 @@ grammar: context:
 	}
 	DIFF_NET:
 	{
-		diff: def id INDEX_COMPUTE assign id SQ_INDEXUNITS SQ_INDEXUNITS semicolon; 
+		diff: DIFF_INSTR id dot ID assign id ID_LISTSQUARE ID_LISTSQUARE semicolon;
 	}
-	
+	DIFF_INSTR:
+	{
+		forward: forward;
+		backward: backward;
+	}
+	ID_LISTSQUARE: squareL ID_LIST squareR;
+	ID_LIST:
+	{
+		single: ID;
+		multi: ID_LIST comma ID;
+	}
+
 #include "expression.txt"
 #include "symbolic.txt"
 #include "network.txt"

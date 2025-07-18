@@ -1,5 +1,7 @@
-sint depth = 2;
-sint dims[depth + 2] = [2, 4, 8, 1];
+sint depth;
+depth = 2;
+sint dims[depth + 2] = [6, 64, 64, 1];
+
 
 func algebraic(input x, output y)
 {
@@ -23,7 +25,10 @@ net test(input x, output y, para w[depth + 1])
 	//=====================
 	tensor[dims[0]] x;
 	tensor[dims[1], dims[0]] w[0];
+
 	tensor[dims[1]] hidden[0]<i> = \sum_{k} w[0]<i, k> * x<k>;
+
+
 	tensor[dims[1]] activation[0]<i> = algebraic<->[-](hidden[0]<i>);
 
 	//=====================
