@@ -34,8 +34,8 @@ lexical:{
 	}
 	instruct:
 	{
-		forward;
-		backward;
+		forward(+5);
+		backward(+5);
 		sum: '\\' s u m '_';
 	}
 	reserved(+5):
