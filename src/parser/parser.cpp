@@ -1553,7 +1553,6 @@ int BuildInfor::buildDiff(const lex& eme, GTNode* DIFF_NET, context * dst)
 
 	GTNode* GT = NULL;
 	GTiterator iterator;
-	int error = 0;
 	iterator.initial(DIFF_NET);
 	while (iterator.still())
 	{
