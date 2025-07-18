@@ -428,6 +428,7 @@ namespace Pikachu
 		Node* NewNodeDiNonlinear(const dims_t& dims, Node* srcL, Node* srcR, Expres* func, indiceIS& indice);
 
 	protected:
+		friend class BuildInfor;
 		graph<Node> net;
 
 		vector<Node*> input;

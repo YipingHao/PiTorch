@@ -772,6 +772,16 @@ int IDinfor::build(const char* id, GTNode* Backup, BuildInfor* infor, context* d
 
 	return 0;
 }
+int IDinfor::buildScalar(const lex& eme, GTNode* Backup, BuildInfor* infor, context* dst)
+{
+	backup = Backup;
+	const char* id = eme.GetWord(Backup->root().site);
+	SetName(id);
+	scalar = true;
+	index = 0;
+
+	return 0;
+}
 var* IDinfor::GetLocalVarR(int& error, BuildInfor* infor, context* dst)
 {
 	var* temp = dst->SearchLocal(GetName());
@@ -1042,6 +1052,22 @@ func* IDinfor::GetAllFuncR(int& error, BuildInfor* infor, context* dst)
 	}
 	return temp;
 }
+void IDinfor::demo(FILE* fp) const
+{
+	if (scalar)
+		fprintf(fp, "%s", GetName());
+	else
+		fprintf(fp, "%s[%zu]", GetName(), index);
+}
+void IDinfor::demo(size_t tabs, FILE* fp) const
+{
+	for (size_t i = 0; i < tabs; ++i)
+		fprintf(fp, "\t");
+	if (scalar)
+		fprintf(fp, "%s", GetName());
+	else
+		fprintf(fp, "%s[%zu]", GetName(), index);
+}
 
 #include<string.h>
 Indexs::Indexs()
@@ -1270,6 +1296,9 @@ void TensorID::append(const lex& eme, GTNode* ID2, BuildInfor* infor, context* d
 	}
 }
 
+
+
+
 ValueList::ValueList()
 {
 	backup = NULL;
@@ -1436,7 +1465,101 @@ void ValueList::GetDim(vector<size_t>& dst) const
 }
 
 
-
+IDlist::IDlist()
+{
+}
+IDlist::~IDlist()
+{
+	for (size_t i = 0; i < infors.count(); i++)
+	{
+		delete infors[i];
+	}
+	infors.clear();
+}
+int IDlist::build(const lex& eme, GTNode* ID_LISTSQUARE, BuildInfor* infor, context* dst)
+{
+	NetG::rules RR = (NetG::rules)ID_LISTSQUARE->root().site;
+	if (RR != NetG::rules::ID_LISTSQUARE_ID_LISTSQUARE_)
+	{
+		infor->errorInfor1 = ID_LISTSQUARE->root().site;
+		infor->ErrorNode = ID_LISTSQUARE;
+		infor->errorCode = BuildInfor::WrongEntrance;
+		return 24523453;
+	}
+	GTNode* ID_LIST = ID_LISTSQUARE->child(1);
+	return buildCore(eme, ID_LIST, infor, dst);
+}
+int IDlist::buildCore(const lex& eme, GTNode* ID_LIST, BuildInfor* infor, context* dst)
+{
+	int error = 0;
+	GTiterator iterator;
+	iterator.initial(ID_LIST);
+	while (iterator.still())
+	{
+		GTNode* GT = iterator.target();
+		if (iterator.state() == 1)
+		{
+			NetG::rules Rule = (NetG::rules)GT->root().site;
+			switch (Rule)
+			{
+			case Pikachu::NetG::ID_LIST_single_:
+			case Pikachu::NetG::ID_LIST_multi_:
+			{
+				size_t site = (Rule == Pikachu::NetG::ID_LIST_single_ ? 0 : 2);
+				GTNode* ID = GT->child(site);
+				IDinfor* id = new IDinfor();
+				error = id->build(eme, ID, infor, dst);
+				if (error != 0)
+				{
+					delete id;
+					return error;
+				}
+				infors.append(id);
+				break;
+			}
+			default:
+				break;
+			}
+			
+		}
+		iterator.next();
+	}
+	return 0;
+}
+void IDlist::demo(FILE* fp) const
+{
+	demo(0, fp);
+}
+void IDlist::demo(size_t tabs, FILE* fp) const
+{
+	for (size_t i = 0; i < tabs; ++i)
+		fprintf(fp, "\t");
+	fprintf(fp, "IDlist[%zu] = [", infors.count());
+	if (infors.count() != 0)
+	{
+		if (infors[0] == NULL)
+		{
+			fprintf(fp, "NULL");
+		}
+		else
+		{
+			infors[0]->demo(fp);
+		}
+	}
+	for (size_t i = 0; i < infors.count(); i++)
+	{
+		if (infors[i])
+		{
+			fprintf(fp, ", ");
+			infors[i]->demo(fp);
+		}
+		else
+		{
+			fprintf(fp, ", NULL");
+		}
+	}
+	fprintf(fp, "]\n");
+}
 
 
 static bool compare(const char* str1, const char* str2)

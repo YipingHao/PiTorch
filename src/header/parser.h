@@ -348,6 +348,7 @@ namespace Pikachu
 		friend class Indexs;
 		friend class TensorID;
 		friend class ValueList;
+		friend class IDlist;
 		bool PrintScreen;
 		
 	protected:
@@ -425,6 +426,7 @@ namespace Pikachu
 		~IDinfor();
 		int build(const lex& eme, GTNode* ID_, BuildInfor* infor, context* dst);
 		int build(const char* id, GTNode* Backup, BuildInfor* infor, context* dst);
+		int buildScalar(const lex& eme, GTNode* Backup, BuildInfor* infor, context* dst);
 		void* GetLocalTensorR(int& error, BuildInfor* infor, context* dst);//local
 		var* GetLocalVarR(int &error, BuildInfor* infor, context* dst);//local
 		ConstObj* GetAllConstR(int& error, BuildInfor* infor, context* dst);//global and local
@@ -453,7 +455,8 @@ namespace Pikachu
 			return scalar;
 		}
 		bool CheckType(int& error, BuildInfor* infor)const;
-
+		void demo(FILE* fp = stdout) const;
+		void demo(size_t tabs, FILE* fp) const;
 	};
 	class Indexs : public CompilerObj
 	{
@@ -557,6 +560,35 @@ namespace Pikachu
 		void GetDim(vector<size_t>& dst) const;
 	};
 
+	class IDlist
+	{
+	public:
+		IDlist();
+		~IDlist();
+		int build(const lex& eme, GTNode* ID_LISTSQUARE, BuildInfor* infor, context* dst);
+		void demo(FILE* fp = stdout) const;
+		void demo(size_t tabs, FILE* fp) const;
+	protected:
+		vector<IDinfor*> infors;
+		int buildCore(const lex& eme, GTNode* ID_LIST, BuildInfor* infor, context* dst);
+	public:
+		inline size_t count(void) const
+		{
+			return infors.count();
+		}
+		inline IDinfor* const operator[](size_t No) const
+		{
+			if (No >= infors.count()) return NULL;
+			return infors[No];
+		}
+		inline IDinfor* operator[](size_t No)
+		{
+			if (No >= infors.count()) return NULL;
+			return infors[No];
+		}
+	};
+
+	
 	//context is the main class of parser, it contains all the information
 
 	class context

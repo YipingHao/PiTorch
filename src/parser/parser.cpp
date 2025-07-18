@@ -1526,12 +1526,35 @@ int BuildInfor::buildNet(const lex& eme, GTNode* NETWORK, context * dst)
 	
 	return buildNETCheck(eme, NETWORK, subcontext, Net);
 }
-int BuildInfor::buildDiff(const lex& eme, GTNode* GTarget, context * dst)
+int BuildInfor::buildDiff(const lex& eme, GTNode* DIFF_NET, context * dst)
 {
+	size_t line = DIFF_NET->child(0)->root().site;
+	NetG::rules RR = (NetG::rules)DIFF_NET->root().site;
+	if (RR != NetG::rules::DIFF_NET_diff_)
+	{
+		errorInfor1 = line;
+		ErrorNode = DIFF_NET;
+		errorCode = WrongEntrance;
+		return 797861872;
+	}
+	GTNode* DIFF_INSTR = DIFF_NET->child(0);
+	NetG::rules DIFF_INSTR_Rule = (NetG::rules)DIFF_INSTR->root().site;
+	const bool forward = DIFF_INSTR_Rule == NetG::rules::DIFF_INSTR_forward_;
+	
+	IDinfor NetDst;
+	int error = NetDst.buildScalar(eme, DIFF_INSTR->child(1), this, dst);
+	if (error != 0) return error;
+	IDinfor NetSrc;
+	error = NetSrc.buildScalar(eme, DIFF_INSTR->child(5), this, dst);
+	if (error != 0) return error;
+	IDinfor NewOutput;
+	error = NewOutput.build(eme, DIFF_INSTR->child(3), this, dst);
+	if (error != 0) return error;
+
 	GTNode* GT = NULL;
 	GTiterator iterator;
 	int error = 0;
-	iterator.initial(GTarget);
+	iterator.initial(DIFF_NET);
 	while (iterator.still())
 	{
 		GT = iterator.target();
@@ -1542,30 +1565,40 @@ int BuildInfor::buildDiff(const lex& eme, GTNode* GTarget, context * dst)
 
 int BuildInfor::buildNETCheck(const lex& eme, GTNode* NETBODY, context* dst, NetInContext* Net)
 {
+	NetWork* net = Net->net;
 	for (size_t i = 0; i < dst->global.count(); i++)
 	{
 		var* temp = dst->global[i];
 		if (temp->compareAttri("var")) continue;
-		if (temp->scalar())
+		for (size_t j = 0; j < temp->count(); j++)
 		{
-			if (temp->Getnode() == NULL)
+			if (temp->GetTensor(j) == NULL)
 			{
 				ErrorNode = NETBODY;
 				errorCode = UndefineOutput;
-				return 893434345;
+				return 893454346;
 			}
+		}
+		if (temp->compareAttri("input"))
+		{
+			for (size_t j = 0; j < temp->count(); j++)
+				net->input.append(temp->GetTensor(j));
+		}
+		else if (temp->compareAttri("para"))
+		{
+			for (size_t j = 0; j < temp->count(); j++)
+				net->parameter.append(temp->GetTensor(j));
+		}
+		else if (temp->compareAttri("output"))
+		{
+			for (size_t j = 0; j < temp->count(); j++)
+				net->output.append(temp->GetTensor(j));
 		}
 		else
 		{
-			for (size_t j = 0; j < temp->count(); j++)
-			{
-				if (temp->Getnode(j) == NULL)
-				{
-					ErrorNode = NETBODY;
-					errorCode = UndefineOutput;
-					return 893454346;
-				}
-			}
+			ErrorNode = NETBODY;
+			errorCode = ErrorUnExpectedType;
+			return 234789407;
 		}
 	}
 	return 0;
