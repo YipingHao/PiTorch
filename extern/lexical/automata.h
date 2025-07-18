@@ -1198,8 +1198,8 @@ namespace hyperlex
 			temp = T::ACTION[top][input.accept(head)];
 			information = temp / 4;
 			type = (typename T::type)(temp % 4);
-			printf( "T = %5d, top = %5d, information = %5d, type = %5d, ", input[head].accept, top, information, (int)type);
-			printf("head = %5zu, lex = %s, \n", head, input.GetWord(head));
+			//printf( "T = %5d, top = %5d, information = %5d, type = %5d, ", input[head].accept, top, information, (int)type);
+			//printf("head = %5zu, lex = %s, \n", head, input.GetWord(head));
 			switch (type)
 			{
 			case T::accept:
