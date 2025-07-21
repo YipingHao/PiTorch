@@ -174,6 +174,9 @@ namespace Pikachu
 		bool DataExpand;
 		Tensor descriptor;
 		NetWork* network;
+		
+		char* name;
+		size_t NameLabel;
 
 		void CopyCoreN(Node& dst) const;
 		
@@ -181,6 +184,12 @@ namespace Pikachu
 		void clearCore(void);
 		void PrintScreenCore(FILE* fp)const;
 		void Demo(FILE* fp) const;
+	public:
+		bool eqaul(const char* opR) const;
+		bool equal(const Node* opR) const;
+		bool equal(const Node& opR) const;
+		void SetName(const char* NewName);
+		inline const char* GetName(void) const { return name; }
 	};
 	class LeafNode : public Node
 	{

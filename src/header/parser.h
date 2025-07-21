@@ -342,6 +342,7 @@ namespace Pikachu
 			ErrorDiffForwardTooMuchInput,
 			ErrorDiffBackwardTooMuchOutput,
 			ErrorDiffBatchDim,
+			ErrorDiffRepeatNetDef,
 			
 			ErrorSelfCheck,
 			ErrorUndefined,

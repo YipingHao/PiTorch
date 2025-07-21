@@ -694,7 +694,8 @@ NetInContext::NetInContext()
 }
 NetInContext::NetInContext(NetInContext* src, context* Realm)
 {
-	realm = Realm;
+	realm = new context();
+	Realm->append(realm); 
 	net = new NetWork;
 	net->copy(*src->net); // Éî¿½±´ÍøÂç¶ÔÏó
 }

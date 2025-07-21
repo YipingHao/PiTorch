@@ -1592,26 +1592,41 @@ int BuildInfor::buildDiff(const lex& eme, GTNode* DIFF_NET, context * dst)
 		return 894153488;
 	}
 
-	NetInContext* NetDiffed = NULL;
-	if (NetDst.eqaul(NetSrc))
+	NetInContext* NetDiffDst = NULL;
+	NetInContext* NetDiffRsc = dst->nets.top();
+	if (NetDst.eqaul(NetSrc.GetName()))
 	{
-		NetDiffed = dst->nets.top();
+		NetDiffDst = NetDiffRsc;
 	}
 	else
 	{
-		NetDiffed = new NetInContext(dst->nets.top(), dst);
+		NetDiffDst = new NetInContext(dst->nets.top(), dst);
+		NetDiffDst->SetName(NetDst.GetName());
+		dst->nets.append(NetDiffDst);
 	}
-	
+	context* DstContext = NetDiffDst->realm;
+	context* SrcContext = NetDiffRsc->realm;
+	const char* NetName = NewOutput.GetName();
 
-
-	GTNode* GT = NULL;
-	GTiterator iterator;
-	iterator.initial(DIFF_NET);
-	while (iterator.still())
+	var* tensor = DstContext->SearchLocal(NetName);
+	if (tensor == NULL)
 	{
-		GT = iterator.target();
-		iterator.next();
+		tensor = NewOutput.SetVarL(error, this, DstContext, "output");
+		DstContext->global.append(tensor);
 	}
+	else
+	{
+		bool judge = tensor->compareAttri("output") || tensor->compareAttri("input");
+		judge = judge || tensor->compareAttri("para");
+		if (judge)
+		{
+			errorCode = ErrorDiffRepeatNetDef;
+			ErrorNode = DIFF_INSTR->child(3);
+			return 894148489;
+		}
+	}
+
+
 	return error;
 }
 
@@ -2408,10 +2423,27 @@ void context::ruin(void)
 		delete global[i];
 	}
 	global.clear();
+	for (size_t i = 0; i < childs.count(); i++)
+	{
+		delete childs[i];
+	}
 	childs.clear();
-
-	//free(errorInfor3);
-	//errorInfor3 = NULL;
+	for (size_t i = 0; i < funcs.count(); i++)
+	{
+		delete funcs[i];
+	}
+	funcs.clear();
+	for (size_t i = 0; i < Cobj.count(); i++)
+	{
+		delete Cobj[i];
+	}	
+	Cobj.clear();
+	for (size_t i = 0; i < nets.count(); i++)
+	{
+		delete nets[i];
+	}
+	nets.clear();
+	parent = NULL;
 }
 void context::demo(FILE* fp) const
 {

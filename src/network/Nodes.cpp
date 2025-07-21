@@ -17,11 +17,17 @@ Node::Node()
 	network = NULL;
 
 	all = this;
+
+	name = NULL;
+	NameLabel = 0;
 }
 Node::~Node()
 {
+	free(name);
+	name = NULL;
 	infor = (void*)this;
 }
+
 
 void Node::setDesc(const Tensor& desc)
 {
@@ -1881,6 +1887,37 @@ Node::OpType Node::ParseOpType(const char* input)
 	error->append("location", "Node::ParseOpType");
 	throw error;
 	return _add_; // 默认返回加法
+}
+bool Node::eqaul(const char* srcR) const
+{
+	if (name == NULL || srcR == NULL) return false;
+	return strcmp(name, srcR) == 0;
+}
+bool Node::equal(const Node* srcR) const
+{
+	if (srcR == NULL) return false;
+	if (this == srcR) return true;
+	if (name == NULL || srcR->name == NULL) return false;
+	return strcmp(name, srcR->name) == 0;
+}
+bool Node::equal(const Node& srcR) const
+{
+	if (this == &srcR) return true;
+	if (name == NULL || srcR.name == NULL) return false;
+	return strcmp(name, srcR.name) == 0;
+}
+void Node::SetName(const char* srcR)
+{
+	if (name != NULL) free(name);
+	if (srcR == NULL)
+	{
+		name = NULL;
+		return;
+	}
+	name = (char*)malloc(strlen(srcR) + 1);
+	if (name == NULL) return; // 内存分配失败
+	strcpy(name, srcR);
+	return;
 }
 
 
