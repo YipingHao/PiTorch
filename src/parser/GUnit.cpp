@@ -27,6 +27,19 @@ bool CompilerObj::eqaul(const char* opR) const
 {
 	return compare(opR, name);
 }
+bool CompilerObj::equal(const CompilerObj* opR) const
+{
+	if (!opR) return false;
+	if (this == opR) return true;
+	if (!name || !opR->name) return false;
+	return compare(name, opR->name);
+}
+bool CompilerObj::equal(const CompilerObj& opR) const
+{
+	if (this == &opR) return true;
+	if (!name || !opR.name) return false;
+	return compare(name, opR.name);
+}
 void CompilerObj::SetName(const char* NewName)
 {
 	size_t i;
@@ -678,6 +691,12 @@ NetInContext::NetInContext()
 {
 	net = new NetWork;
 	realm = NULL;
+}
+NetInContext::NetInContext(NetInContext* src, context* Realm)
+{
+	realm = Realm;
+	net = new NetWork;
+	net->copy(*src->net); // Éî¿½±´ÍøÂç¶ÔÏó
 }
 NetInContext::~NetInContext()
 {

@@ -1541,6 +1541,8 @@ int BuildInfor::buildDiff(const lex& eme, GTNode* DIFF_NET, context * dst)
 	NetG::rules DIFF_INSTR_Rule = (NetG::rules)DIFF_INSTR->root().site;
 	const bool forward = DIFF_INSTR_Rule == NetG::rules::DIFF_INSTR_forward_;
 	
+	//diff: DIFF_INSTR id dot ID assign id ID_LISTSQUARE ID_LISTSQUARE semicolon;
+	//       0          1  2  3    4    5         6            7           8
 	IDinfor NetDst;
 	int error = NetDst.buildScalar(eme, DIFF_INSTR->child(1), this, dst);
 	if (error != 0) return error;
@@ -1550,6 +1552,57 @@ int BuildInfor::buildDiff(const lex& eme, GTNode* DIFF_NET, context * dst)
 	IDinfor NewOutput;
 	error = NewOutput.build(eme, DIFF_INSTR->child(3), this, dst);
 	if (error != 0) return error;
+
+	IDlist listL, listR;
+	error = listL.build(eme, DIFF_INSTR->child(6), this, dst);
+	if (error != 0) return error;
+	error = listR.build(eme, DIFF_INSTR->child(7), this, dst);
+	if (error != 0) return error;
+
+	size_t batchDim = 0;
+	if (forward)
+	{
+		if (listR.count() != 1)
+		{
+			errorCode = ErrorDiffForwardTooMuchInput;
+			errorInfor1 = DIFF_INSTR->root().site;
+			ErrorNode = DIFF_INSTR;
+			return 894153486;
+		}
+		batchDim = listL.count();
+	}
+	else
+	{
+		if (listL.count() != 1)
+		{
+			errorCode = ErrorDiffBackwardTooMuchOutput;
+			errorInfor1 = DIFF_INSTR->root().site;
+			ErrorNode = DIFF_INSTR;
+			return 894153487;
+		}
+		batchDim = listR.count();
+	}
+	if (batchDim != NewOutput.GetDim())
+	{
+		errorCode = ErrorDiffBatchDim;
+		hyperlex::dictionary* Error = getAdict();
+		Error->append("batchDim", batchDim);
+		Error->append("outputDim", NewOutput.GetDim());
+		ErrorNode = DIFF_INSTR;
+		return 894153488;
+	}
+
+	NetInContext* NetDiffed = NULL;
+	if (NetDst.eqaul(NetSrc))
+	{
+		NetDiffed = dst->nets.top();
+	}
+	else
+	{
+		NetDiffed = new NetInContext(dst->nets.top(), dst);
+	}
+	
+
 
 	GTNode* GT = NULL;
 	GTiterator iterator;

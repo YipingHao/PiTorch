@@ -28,6 +28,8 @@ namespace Pikachu
 		CompilerObj();
 		~CompilerObj();
 		bool eqaul(const char* opR) const;
+		bool equal(const CompilerObj* opR) const;
+		bool equal(const CompilerObj& opR) const;
 		void SetName(const char* NewName);
 		inline const char* GetName(void) const { return name; }
 	protected:
@@ -273,6 +275,7 @@ namespace Pikachu
 	{
 	public:
 		NetInContext();
+		NetInContext(NetInContext* src, context* Realm);
 		~NetInContext();
 		friend class BuildInfor;
 	private:
@@ -336,6 +339,10 @@ namespace Pikachu
 			ErrorUnsupportFunc,
 			ErrorUnKnowEXP,
 
+			ErrorDiffForwardTooMuchInput,
+			ErrorDiffBackwardTooMuchOutput,
+			ErrorDiffBatchDim,
+			
 			ErrorSelfCheck,
 			ErrorUndefined,
 			buildUndone,
