@@ -260,6 +260,10 @@ void Node::CopyCoreN(Node& dst) const
 	dst.Op = Op;
 	dst.IfOutput = IfOutput;
 	dst.descriptor.Set(descriptor);
+	dst.Affi = Affi;
+	dst.network = network;
+	dst.SetName(name);
+	dst.NameLabel = NameLabel;
 	CopyToCore(dst);
 	return;
 }

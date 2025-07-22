@@ -461,6 +461,8 @@ namespace Pikachu
 		bool simplify01RedundancyCut(void);
 		bool simplify02Zerotensor(void);
 
+		void copyInfor(vector<Node*>& Dst, const vector<Node*>& Src);
+
 		void BackAcc(Node::Affiliation AA, size_t target, vector<Node*>& label, Node* source);
 	};
 

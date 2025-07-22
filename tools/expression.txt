@@ -1,24 +1,30 @@
 	EXP_RIGHT:
 	{
+	/* 默认规则：单项表达式例：3 * 4 */
 		default: EXP_MUL;
+		 /* 加法表达式	 * 递归定义，支持多项加减。例：1 + 2，3 - 4 + 5*/
 		add: EXP_RIGHT [operatas] EXP_MUL;
 	}
 	EXP_MUL:
 	{
+		/* 默认规则：单项表达式例：5*/
 		default: EXP_MINUS;
+		/* 乘法表达式* 递归定义，支持多项乘除。* 例：2 * 3，4 / 5 * 6 */
 		multi: EXP_MUL [operatmd] EXP_MINUS;
 	}
 	EXP_MINUS:
 	{
+		/* 默认规则：基本单元例：x */
 		default: UNIT;
+		/* 一元正负号表达式支持+或-前缀。 例：-x，+y */
 		plus: [operatas] UNIT;
 	}
 	UNIT:
 	{
-		id: ID;
-		call: CALL;
-		const: [number];
-		complex: left EXP_RIGHT right;
+		id: ID;// 变量或数组 例: x，y[2]
+		call: CALL;// 函数调用 例: sin(x)，max(a, b)
+		const: [number];// 常量 例: 42，3.14
+		complex: left EXP_RIGHT right; // 括号表达式 例: (x + y)
 	}
 	ID:
 	{

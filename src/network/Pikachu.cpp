@@ -16,16 +16,56 @@ NetWork::~NetWork()
 		delete OutDesc[i];
 	}
 }
+void NetWork::copyInfor(vector<Node*>& Dst, const vector<Node*>& Src)
+{
+	Dst.recount(Src.count());
+	for (size_t i = 0; i < Src.count(); i++)
+	{
+		Node* src = Src[i];
+		if (src == NULL)
+		{
+			Dst[i] = NULL;
+			continue;
+		}
+		size_t site = src->site();
+		Node* newNode = net[site];
+		if (newNode == NULL)
+		{
+			hyperlex::dictionary* error = new hyperlex::dictionary;
+			error->append("location", "NetWork::copyInfor");
+			error->append("error", "newNode == NULL");
+			throw error;
+		}
+		Dst[i] = newNode;
+	}
+}
 void NetWork::copy(NetWork& source)
 {
 	net.copy(source.net);
+	for (size_t i = 0; i < net.count(); i++)
+	{
+		Node* now = net[i];
+		if (now != NULL)
+		{
+			now->network = this;
+		}
+	}
 
-	vector<Node*> input;
-	vector<Node*> parameter;
-	vector<Node*> output;
+	copyInfor(input, source.input);
+	copyInfor(parameter, source.parameter);
+	copyInfor(output, source.output);
 
-	vector<Node*> gradient;
-	vector<Node*> Hv;
+	
+	copyInfor(BackSrc, source.BackSrc);
+	copyInfor(BackOut, source.BackOut);
+	
+	copyInfor(HvSrc, source.HvSrc);
+	copyInfor(HvOut, source.HvOut);
+
+	copyInfor(JacobiSrc, source.JacobiSrc);
+	copyInfor(JacobiOut, source.JacobiOut);
+
+	copyInfor(OutDesc, source.OutDesc);
 }
 void NetWork::forward(size_t No)
 {

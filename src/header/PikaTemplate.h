@@ -297,7 +297,7 @@ namespace Pikachu
 	template <class V> class graph;
 	//CRTP （Curiously Recurring Template Pattern）
 	// 开发者必须在派生类的析构函数中添加以下语句：infor = (void*)this;
-// Developer must add the following statement in the derived class destructor: infor = (void*)this;
+	// Developer must add the following statement in the derived class destructor: infor = (void*)this;
 	template <class V> class vortex
 	{
 	protected:
@@ -386,6 +386,91 @@ namespace Pikachu
 		void OutputCut(vector<size_t>& label, size_t target)const;
 	};
 	
+	/**
+ * @brief 通用有向图节点模板类 vortex
+ *        Generic directed graph node template class: vortex
+ *
+ * 用于构建有向图结构的节点，支持任意类型的节点（通过模板参数 V）。
+ * 该类实现了节点的入边、出边管理、基本属性、辅助操作等。
+ *
+ * This class is used to build nodes in a directed graph structure, supporting any node type via template parameter V.
+ * It implements management of incoming/outgoing edges, basic attributes, and utility operations.
+ *
+ * 主要成员变量 / Main Members:
+ * - size_t label_site;      // 节点在图中的唯一编号 Unique index in the graph
+ * - vector<V*> out;         // 出边指向的节点列表 List of outgoing neighbor nodes
+ * - vector<V*> in;          // 入边来源的节点列表 List of incoming neighbor nodes
+ * - V* all;                 // 指向自身的指针（CRTP用）Pointer to self (for CRTP)
+ * - int label_2;            // 用户自定义标签 Custom label for user
+ * - bool label_3;           // 用户自定义布尔标签 Custom boolean label
+ * - void* infor;            // 额外信息指针 Extra info pointer (for advanced use)
+ * - size_t temp;            // 临时变量 Temporary variable
+ *
+ * 主要成员函数 / Main Methods:
+ * - vortex(); ~vortex();    // 构造与析构 Constructor & Destructor
+ * - void ArcClear();        // 清除所有入/出边 Clear all in/out edges
+ * - void CopyCore(const Vextern& source); // 拷贝核心属性 Copy core attributes from another node
+ * - void CopyToCore(Vextern& dst) const;  // 拷贝核心属性到目标 Copy core attributes to another node
+ * - void demo(FILE* fp)const;             // 打印节点信息 Print node info
+ * - size_t site() const;                  // 获取节点编号 Get node index
+ * - size_t AppendIn(Vextern* II);         // 添加入边 Add an incoming edge
+ * - size_t AppendOut(Vextern* II);        // 添加出边 Add an outgoing edge
+ * - size_t SearchIn(Vextern* label) const;// 查找入边 Find incoming edge
+ * - size_t SearchOut(Vextern* label) const;// 查找出边 Find outgoing edge
+ * - void ShrinkIn(size_t site);           // 删除指定入边 Remove incoming edge at index
+ * - void ShrinkOut(size_t site);          // 删除指定出边 Remove outgoing edge at index
+ * - Vextern* In(size_t site);             // 获取第site个入边节点 Get incoming neighbor at index
+ * - Vextern* Out(size_t site);            // 获取第site个出边节点 Get outgoing neighbor at index
+ * - size_t InDegree() const;              // 入度 Get in-degree
+ * - size_t OutDegree() const;             // 出度 Get out-degree
+ *
+ * 使用要求 / Usage Requirements:
+ * - vortex 是 CRTP（Curiously Recurring Template Pattern）风格，通常作为基类被继承。
+ *   vortex is designed for CRTP, usually as a base class for user-defined node types.
+ * - 派生类的析构函数中必须加 infor = (void*)this;，以保证析构时正确清理边。
+ *   Derived class destructors must set infor = (void*)this to ensure correct edge cleanup.
+ * - 适用于需要灵活扩展节点属性和行为的有向图场景。
+ *   Suitable for directed graph scenarios requiring flexible node extension.
+ */
+
+	/**
+  * @brief 通用有向图模板类 graph
+  *        Generic directed graph template class: graph
+  *
+  * 用于管理一组 vortex 节点，支持节点的添加、删除、边的操作、拓扑排序等。
+  * This class manages a set of vortex nodes, supporting node/edge operations and topological sorting.
+  *
+  * 主要成员变量 / Main Members:
+  * - vector<VExtern*> content; // 所有节点指针数组 Array of all node pointers
+  * - vector<size_t> vain;      // 空闲节点编号列表 List of vacant node indices
+  *
+  * 主要成员函数 / Main Methods:
+  * - graph(); ~graph();        // 构造与析构 Constructor & Destructor
+  * - void copy(const graph<V>& src); // 拷贝整个图 Copy the whole graph
+  * - void clear();             // 清空所有节点 Clear all nodes
+  * - size_t count() const;     // 节点数 Get node count
+  * - VExtern*& operator[](size_t site); // 访问节点 Access node by index
+  * - void ArcDelete(VExtern* src, VExtern* dst); // 删除一条边 Delete an edge
+  * - void ArcAdd(VExtern* src, VExtern* dst);    // 添加一条边 Add an edge
+  * - void ArcAdd(VExtern* srcL, VExtern* srcR, VExtern* dst); // 添加多源边 Add multi-source edge
+  * - void lift(VExtern* target, VExtern* src);   // 提升节点（重定向边）Lift node (redirect edges)
+  * - void ruin(size_t i);        // 删除节点并回收编号 Remove node and recycle index
+  * - void append(VExtern* in);   // 添加节点 Add node
+  * - void compress();            // 压缩节点数组 Compact node array
+  * - 拓扑排序相关函数 Topological sorting functions
+  *   - void TopoSortDFS(vector<VExtern*>& sequence)const;
+  *   - void TopoSortBFS(vector<VExtern*>& sequence)const;
+  *   - void TopoSortDFSBack(vector<VExtern*>& sequence)const;
+  *   - void TopoSortBFSBack(vector<VExtern*>& sequence)const;
+  *
+  * 使用要求 / Usage Requirements:
+  * - 节点类型 V 必须继承自 vortex<V>，并实现必要的接口。
+  *   Node type V must inherit from vortex<V> and implement required interfaces.
+  * - 节点的析构函数需正确处理 infor 指针，避免内存泄漏。
+  *   Node destructors must handle the infor pointer to avoid memory leaks.
+  * - 适用于需要灵活节点类型和高效图操作的场景。
+  *   Suitable for scenarios requiring flexible node types and efficient graph operations.
+  */
 
 }
 namespace Pikachu

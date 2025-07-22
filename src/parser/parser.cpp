@@ -1627,6 +1627,7 @@ int BuildInfor::buildDiff(const lex& eme, GTNode* DIFF_NET, context * dst)
 	}
 
 
+    //hello world
 	return error;
 }
 
