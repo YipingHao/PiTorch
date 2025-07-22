@@ -1068,7 +1068,7 @@ bool NetWork::checkName(const char* name)
 	{
 		if (input[i]->CompareName(name)) return true;
 	}
-	for (size_t i = 0; i < input.count(); i++)
+	for (size_t i = 0; i < parameter.count(); i++)
 	{
 		if (parameter[i]->CompareName(name)) return true;
 	}
