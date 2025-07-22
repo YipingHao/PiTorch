@@ -1923,7 +1923,11 @@ void Node::SetName(const char* srcR)
 	strcpy(name, srcR);
 	return;
 }
-
+bool Node::CompareName(const char* NewName) const
+{
+	if (name == NULL || NewName == NULL) return false;
+	return strcmp(name, NewName) == 0;
+}
 
 indiceIS::indiceIS()
 {

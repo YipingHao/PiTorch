@@ -189,6 +189,7 @@ namespace Pikachu
 		bool equal(const Node* opR) const;
 		bool equal(const Node& opR) const;
 		void SetName(const char* NewName);
+		bool CompareName(const char* NewName) const;
 		inline const char* GetName(void) const { return name; }
 	};
 	class LeafNode : public Node
@@ -464,6 +465,15 @@ namespace Pikachu
 		void copyInfor(vector<Node*>& Dst, const vector<Node*>& Src);
 
 		void BackAcc(Node::Affiliation AA, size_t target, vector<Node*>& label, Node* source);
+
+
+		bool checkName(const char* name);//检查所有的输出与叶子节点名称是否与给定名称相同
+		Node* CheckNameOutput(const char* name, size_t Label);
+		//检查所有的输出节点名称与标签是否与给定名称与标签相同，如果相同返回对应节点
+		//否则返回NULL
+		Node* CheckNameInput(const char* name, size_t Label);
+		//检查所有的叶子Input类型节点名称与标签是否与给定名称与标签相同，如果相同返回对应节点
+		//否则返回NULL
 	};
 
 	

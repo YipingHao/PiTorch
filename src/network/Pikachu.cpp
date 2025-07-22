@@ -51,6 +51,14 @@ void NetWork::copy(NetWork& source)
 		}
 	}
 
+	OutDesc.recount(source.OutDesc.count());
+	for (size_t i = 0; i < OutDesc.count(); i++)
+	{
+		Tensor* now = new Tensor;
+		now->Set(*source.OutDesc[i]);
+		OutDesc[i] = now;
+	}
+
 	copyInfor(input, source.input);
 	copyInfor(parameter, source.parameter);
 	copyInfor(output, source.output);
@@ -1040,10 +1048,48 @@ void NeuralNetwork::TopologicalSortingBack(vector<size_t>& sequence)const
 
 
 
+/*
+		bool checkName(const char* name);//检查所有的输出与叶子节点名称是否与给定名称相同
+		Node* CheckNameOutput(const char* name, size_t Label);
+		//检查所有的输出节点名称与标签是否与给定名称与标签相同，如果相同返回对应节点
+		//否则返回NULL
+		Node* CheckNameInput(const char* name, size_t Label);
+		//检查所有的叶子Input类型节点名称与标签是否与给定名称与标签相同，如果相同返回对应节点
+		//否则返回NULL
+*/
 
-
-
-
+bool NetWork::checkName(const char* name)
+{
+	for (size_t i = 0; i < output.count(); i++)
+	{
+		if (output[i]->CompareName(name)) true;
+	}
+	for (size_t i = 0; i < input.count(); i++)
+	{
+		if (input[i]->CompareName(name)) return true;
+	}
+	for (size_t i = 0; i < input.count(); i++)
+	{
+		if (parameter[i]->CompareName(name)) return true;
+	}
+	return false;
+}
+Node* NetWork::CheckNameOutput(const char* name, size_t Label)
+{
+	for (size_t i = 0; i < output.count(); i++)
+	{
+		if (output[i]->CompareName(name) && output[i]->NameLabel == Label) return output[i];
+	}
+	return NULL;
+}
+Node* NetWork::CheckNameInput(const char* name, size_t Label)
+{
+	for (size_t i = 0; i < input.count(); i++)
+	{
+		if (input[i]->CompareName(name) && input[i]->NameLabel == Label) return input[i];
+	}
+	return NULL;
+}	
 
 
 
