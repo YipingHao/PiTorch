@@ -25,10 +25,27 @@
 
 对此感兴趣的可以直接联系作者hyper@dicp.ac.cn
 
+## 详细文档
+
+`docs`目录下有相当数目的markdown格式的文档。文档分为中文源文档和英文翻译版，
+中文文档以`*.md`结尾，英文文档以`*.en.md`结尾。
+
+一下是各个文档的名字和内容介绍:
+
+### install.md 和 install.en.md
+安装说明文档，介绍了如何从github或者gitee上克隆项目，并使用`install.sh`脚本安装。
+### run.md 和 run.en.md
+运行说明文档，介绍了如何使用`run.sh`脚本运行项目。
+### parameter.md 和 parameter.en.md
+参数说明文档，介绍了如何设置输入文件和参数。
+### network.md 和 network.en.md
 
 
 ## 安装方法
 
+从开源网站上克隆项目。
+进入根目录比如`Pikachu`或者`PiTorch`，使用`install.sh`脚本即可运行。
+此脚本的具体使用方法详见docs目录下的 `install.md` 和`install.en.md`文件。
 ### 从github网站安装
 ```bash
 git clone https://github.com/YipingHao/PiTorch.git
@@ -43,88 +60,6 @@ cd Pikachu
 bash install.sh
 ```
 
-### 安装脚本使用指南
-
-本文档介绍了如何使用本构建脚本，便于高效地进行编译、调试和清理工作。
-
-#### 基本用法
-
-在终端进入软件的根目录比如Pikachu或者PiTorch，运行：
-
-```bash
-./install.sh [选项]
-```
-
-#### 支持的选项
-
-- `-g`  
-  启用调试信息（等价于 `-g` 参数）。编译出的可执行文件将包含调试符号，便于调试。
-
-- `-o <0|1|2|3>`  
-  设定优化级别。可选参数为 0、1、2 或 3，对应 `-O0` 到 `-O3` 优化等级。例如 `-o 2` 等价于 `-O2`。
-
-- `-c`  
-  在构建前先清理（clean）一次，删除旧的编译文件，再进行编译。
-
-- `-C`  
-  仅清理（clean），不做编译。执行后直接退出。
-
-- `-h`  
-  显示帮助信息（usage），并退出。
-
-#### 参数组合说明
-
-- 可同时指定 `-g` 和 `-o`，例如 `-g -o 2`，则会以带调试信息和二级优化的方式编译。
-- 若仅需清理文件而不编译，使用 `-C`。
-- 若需在编译前清理一次，使用 `-c`。
-
-#### 示例
-
-1. **普通编译（无调试、默认优化等级 O0）**  
-   ```bash
-   ./install.sh
-   ```
-
-2. **带调试信息编译**  
-   ```bash
-   ./install.sh -g
-   ```
-
-3. **指定优化等级编译（O2）**  
-   ```bash
-   ./install.sh -o 2
-   ```
-
-4. **同时调试与优化（O3）**  
-   ```bash
-   ./install.sh -g -o 3
-   ```
-
-5. **编译前先清理**  
-   ```bash
-   bash install.sh -c
-   ```
-
-6. **只清理，不编译**  
-   ```bash
-   ./install.sh -C
-   ```
-
-7. **查看帮助**  
-   ```bash
-   ./install.sh -h
-   ```
-
-#### 注意事项
-
-- 本脚本会自动切换到 `tools` 和 `extern/tools` 目录进行编译操作。
-- 如果目录切换失败或 make 失败，会有明确错误提示。
-- 优化级别参数只接受 0、1、2、3，其他数值会报错。
-- 可根据实际项目需要完善构建逻辑与目标。
-
----
-
-如需进一步自定义脚本行为，请参考脚本内注释或联系维护者。
 
 ## 使用说明
 
@@ -132,100 +67,12 @@ bash install.sh
 ```bash
 bash run.sh
 ```
+此脚本的具体使用方法详见docs目录下的 `run.md` 和`run.en.md`文件。
 运行前需要进入parameter目录设置输入文件。
 
-### 运行和调试脚本run.sh的使用指南
 
-本脚本用于运行 `./test/test.exe` 程序，支持参数输入、输出路径指定，以及 GDB 调试。
 
----
 
-####  基本用法
-
-```bash
-bash run.sh [选项]
-```
-
-####  支持的选项
-
-- `-g [gdb参数...]`  
-  使用 GDB 调试程序 `test.exe`，可以跟随 GDB 的参数（可选）。示例见下方。
-
-- `-i <输入文件>`  
-  指定输入文件路径。默认值为 `parameter/parameter.txt`。  
-  例：`-i data/input.txt`
-
-- `-I <文件名>`  
-  指定输入文件名（会自动加上 `./parameter/` 前缀）。  
-  例：`-I myparam.txt` 会使用 `./parameter/myparam.txt` 作为输入。
-
-- `-o <输出目录>`  
-  指定输出目录。默认值为 `output/`。如果目录不存在，脚本会尝试自动创建。
-
-- `-h`  
-  显示帮助信息并退出。
-
----
-
-####  使用举例
-
-1. **正常运行，使用默认参数**
-   ```bash
-   bash run.sh
-   ```
-   等价于：
-   ```bash
-   ./test/test.exe parameter/parameter.txt output/
-   ```
-
-2. **指定输入文件和输出目录**
-   ```bash
-   bash run.sh -i myinput.txt -o myresult/
-   ```
-   运行：
-   ```bash
-   ./test/test.exe myinput.txt myresult/
-   ```
-
-3. **指定输入文件名（自动加前缀）**
-   ```bash
-   bash run.sh -I test1.txt
-   ```
-   运行：
-   ```bash
-   ./test/test.exe ./parameter/test1.txt output/
-   ```
-
-4. **GDB 调试运行**
-   ```bash
-   bash run.sh -g
-   ```
-   它等价于:
-   ```bash
-   gdb --args ./test/test.exe parameter/parameter.txt output/
-   ```
-
-5. **GDB 调试并自定义 GDB 参数**
-   ```bash
-   bash run.sh -g -q
-   ```
-   执行：
-   ```bash
-   gdb -q --args ./test/test.exe parameter/parameter.txt output/
-   ```
-
----
-
-####  注意事项
-
-- 输出目录如不存在，脚本会自动尝试创建，若失败（如无权限）会报错退出。
-- `-g` 后的参数会原样传递给 GDB。
-- 输入与输出参数均为必需项，缺失时会报错提醒。
-- `-h` 可随时查看帮助信息。
-
----
-
-如需进一步自定义或遇到问题，请参考脚本注释或与项目维护者联系。
 
 #### 参与贡献
 

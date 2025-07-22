@@ -65,7 +65,7 @@ void NetWork::copy(NetWork& source)
 	copyInfor(JacobiSrc, source.JacobiSrc);
 	copyInfor(JacobiOut, source.JacobiOut);
 
-	copyInfor(OutDesc, source.OutDesc);
+	//copyInfor(OutDesc, source.OutDesc);
 }
 void NetWork::forward(size_t No)
 {
