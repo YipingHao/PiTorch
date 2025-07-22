@@ -28,21 +28,31 @@
 
 
 ## 安装方法
+
+### 从github网站安装
 ```bash
 git clone https://github.com/YipingHao/PiTorch.git
 cd PiTorch
 bash install.sh
 ```
-### 脚本使用指南
+
+### 从Gitee网站安装
+```bash
+git clone https://gitee.com/hao-yiping/Pikachu.git
+cd Pikachu
+bash install.sh
+```
+
+### 安装脚本使用指南
 
 本文档介绍了如何使用本构建脚本，便于高效地进行编译、调试和清理工作。
 
 #### 基本用法
 
-在终端进入脚本所在目录，运行：
+在终端进入软件的根目录比如Pikachu或者PiTorch，运行：
 
 ```bash
-./your_script.sh [选项]
+./install.sh [选项]
 ```
 
 #### 支持的选项
@@ -72,37 +82,37 @@ bash install.sh
 
 1. **普通编译（无调试、默认优化等级 O0）**  
    ```bash
-   ./your_script.sh
+   ./install.sh
    ```
 
 2. **带调试信息编译**  
    ```bash
-   ./your_script.sh -g
+   ./install.sh -g
    ```
 
 3. **指定优化等级编译（O2）**  
    ```bash
-   ./your_script.sh -o 2
+   ./install.sh -o 2
    ```
 
 4. **同时调试与优化（O3）**  
    ```bash
-   ./your_script.sh -g -o 3
+   ./install.sh -g -o 3
    ```
 
 5. **编译前先清理**  
    ```bash
-   ./your_script.sh -c
+   bash install.sh -c
    ```
 
 6. **只清理，不编译**  
    ```bash
-   ./your_script.sh -C
+   ./install.sh -C
    ```
 
 7. **查看帮助**  
    ```bash
-   ./your_script.sh -h
+   ./install.sh -h
    ```
 
 #### 注意事项
@@ -118,12 +128,13 @@ bash install.sh
 
 ## 使用说明
 
-使用run.sh脚本即可运行。
+根目录比如Pikachu或者PiTorch，使用run.sh脚本即可运行。
 ```bash
 bash run.sh
 ```
+运行前需要进入parameter目录设置输入文件。
 
-### 使用指南：运行和调试脚本run.sh
+### 运行和调试脚本run.sh的使用指南
 
 本脚本用于运行 `./test/test.exe` 程序，支持参数输入、输出路径指定，以及 GDB 调试。
 
@@ -132,7 +143,7 @@ bash run.sh
 ####  基本用法
 
 ```bash
-./your_script.sh [选项]
+bash run.sh [选项]
 ```
 
 ####  支持的选项
@@ -160,7 +171,7 @@ bash run.sh
 
 1. **正常运行，使用默认参数**
    ```bash
-   ./your_script.sh
+   bash run.sh
    ```
    等价于：
    ```bash
@@ -169,7 +180,7 @@ bash run.sh
 
 2. **指定输入文件和输出目录**
    ```bash
-   ./your_script.sh -i myinput.txt -o myresult/
+   bash run.sh -i myinput.txt -o myresult/
    ```
    运行：
    ```bash
@@ -178,7 +189,7 @@ bash run.sh
 
 3. **指定输入文件名（自动加前缀）**
    ```bash
-   ./your_script.sh -I test1.txt
+   bash run.sh -I test1.txt
    ```
    运行：
    ```bash
@@ -187,16 +198,16 @@ bash run.sh
 
 4. **GDB 调试运行**
    ```bash
-   ./your_script.sh -g
+   bash run.sh -g
    ```
-   执行：
+   它等价于:
    ```bash
    gdb --args ./test/test.exe parameter/parameter.txt output/
    ```
 
 5. **GDB 调试并自定义 GDB 参数**
    ```bash
-   ./your_script.sh -g -q
+   bash run.sh -g -q
    ```
    执行：
    ```bash
