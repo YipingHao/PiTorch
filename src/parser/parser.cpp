@@ -1606,26 +1606,21 @@ int BuildInfor::buildDiff(const lex& eme, GTNode* DIFF_NET, context * dst)
 	}
 	context* DstContext = NetDiffDst->realm;
 	context* SrcContext = NetDiffRsc->realm;
-	const char* NetName = NewOutput.GetName();
+	NetWork* net = NetDiffDst->net;
+	const char* NewOutName = NewOutput.GetName();
 
-	var* tensor = DstContext->SearchLocal(NetName);
-	if (tensor == NULL)
+	bool judge = net->checkName(NewOutName);
+	if (judge)
 	{
-		tensor = NewOutput.SetVarL(error, this, DstContext, "output");
-		DstContext->global.append(tensor);
-	}
-	else
-	{
-		bool judge = tensor->compareAttri("output") || tensor->compareAttri("input");
-		judge = judge || tensor->compareAttri("para");
-		if (judge)
-		{
-			errorCode = ErrorDiffRepeatNetDef;
-			ErrorNode = DIFF_INSTR->child(3);
-			return 894148489;
-		}
+		errorCode = ErrorDiffRepeatNetDef;
+		ErrorNode = DIFF_INSTR->child(3);
+		return 894148489;
 	}
 
+	for (size_t i = 0; i < length; i++)
+	{
+
+	}
 
     //hello world
 	return error;
