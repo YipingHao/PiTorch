@@ -189,6 +189,7 @@ namespace Pikachu
 		bool equal(const Node* opR) const;
 		bool equal(const Node& opR) const;
 		void SetName(const char* NewName);
+		void SetLabel(size_t NewLabel);
 		bool CompareName(const char* NewName) const;
 		inline const char* GetName(void) const { return name; }
 	};
@@ -418,8 +419,10 @@ namespace Pikachu
 		NetWork();
 		~NetWork();
 		void copy(NetWork& source);
-		void forward(size_t No);
-		void backward(size_t No);
+		void forward(size_t No, const vector<size_t> & UpNo, const char*OutputName);
+		void backward(size_t No, const vector<size_t>& DownNo, const char* OutputName);
+
+
 		void gradient(void);
 		void jacobi(void);
 		void Hv(void);
@@ -474,6 +477,9 @@ namespace Pikachu
 		Node* CheckNameInput(const char* name, size_t Label);
 		//检查所有的叶子Input类型节点名称与标签是否与给定名称与标签相同，如果相同返回对应节点
 		//否则返回NULL
+
+		void OutputNameSearch(const vector<const char*>& name, const vector<size_t>& index, vector<size_t> & No) const;
+		void InputNameSearch(const vector<const char*>& name, const vector<size_t>& index, vector<size_t>& No) const;
 	};
 
 	

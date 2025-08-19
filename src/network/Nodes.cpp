@@ -1923,6 +1923,10 @@ void Node::SetName(const char* srcR)
 	strcpy(name, srcR);
 	return;
 }
+void Node::SetLabel(size_t NewLabel)
+{
+	NameLabel = NewLabel;
+}
 bool Node::CompareName(const char* NewName) const
 {
 	if (name == NULL || NewName == NULL) return false;

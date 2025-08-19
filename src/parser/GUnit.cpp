@@ -745,12 +745,12 @@ int IDinfor::build(const lex& eme, GTNode* ID, BuildInfor* infor, context* dst)
 	temp = eme.GetWord(Def->root().site);
 	
 	SetName(temp);
-
+	//接下来判断是否为标量 (then It will judge whether it is a scalar)
 
 	NetG::rules RR = (NetG::rules)ID->root().site;
 	scalar = (RR == NetG::rules::ID_single_);
 	size_t line = ID->child(0)->root().site;
-
+	//计算索引
 	index = 0;
 	if (!scalar)
 	{
@@ -1580,7 +1580,24 @@ void IDlist::demo(size_t tabs, FILE* fp) const
 	}
 	fprintf(fp, "]\n");
 }
-
+void IDlist::output(vector<const char*>& name, vector<size_t>& index) const
+{
+	name.recount(infors.count());
+	index.recount(infors.count());
+	for (size_t i = 0; i < infors.count(); i++)
+	{
+		if (infors[i] == NULL)
+		{
+			name[i] = NULL;
+			index[i] = 0;
+		}
+		else
+		{
+			name[i] = infors[i]->GetName();
+			index[i] = infors[i]->GetIndex();
+		}
+	}
+}
 
 static bool compare(const char* str1, const char* str2)
 {

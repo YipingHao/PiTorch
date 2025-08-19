@@ -379,6 +379,7 @@ namespace Pikachu
 		void TopoSortDFSBack(vector<VExtern*>& sequence)const;
 		void TopoSortBFSBack(vector<VExtern*>& sequence)const;
 
+		void BFTforward(vector<bool>& label, buffer<VExtern*>& queue)const;
 		void BFTbackward(vector<bool>& label, buffer<VExtern*>&queue)const;
 		void Shrink(const vector<bool>& label, vector<VExtern*>& sequence) const;
 		
@@ -1335,6 +1336,24 @@ namespace Pikachu
 		}
 	}
 
+	template <class V> void graph<V>::BFTforward(vector<bool>& label, buffer<VExtern*>& queue)const
+	{
+		VExtern* head;
+		label.recount(content.count());
+		label.value(false);
+		while (queue.dequeue(head))
+		{
+			if (label[head->site()] == false)
+			{
+				label[head->site()] = true;
+				for (size_t i = 0; i < head->OutDegree(); i++)
+				{
+					VExtern* next = head->Out(i);
+					if (label[next->site()] == false) queue.append(next);
+				}
+			}
+		}
+	}
 	template <class V> void graph<V>::BFTbackward(vector<bool> & label, buffer<VExtern*>& queue)const
 	{
 		size_t i;

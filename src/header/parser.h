@@ -427,6 +427,13 @@ namespace Pikachu
 		hyperlex::dictionary* getAdict(void);
 		static const char* errorTypeGet(errorType error);
 	};
+
+	// IDinfor 是一个标识符信息类，主要用于存储标识符的名称和索引
+	// 有两种类型的标识符，一种是标量标识符，另一种是张量标识符
+	// 标量标识符只有一个标识符，比如var,a,c,heihei
+	// 而张量标识符有一个标识符和一个索引,a[1], b[3],多个索引是不合法的
+	// 比如 a[1][2]是不合法的，索引不一定是常量，也可以是表达式。
+	// 但是表达式必须可以当场计算出一个整数值
 	class IDinfor : public CompilerObj
 	{
 	public:
@@ -450,6 +457,8 @@ namespace Pikachu
 		size_t index;
 		GTNode* backup;
 	public:
+		//GetDim与 GetIndex的区别在于 
+		//当标识符是标量时，GetDim返回1，GetIndex返回0
 		size_t GetDim(void)const
 		{
 			return (scalar ? 1 : index);
@@ -466,6 +475,10 @@ namespace Pikachu
 		void demo(FILE* fp = stdout) const;
 		void demo(size_t tabs, FILE* fp) const;
 	};
+	//Indexs 是一个索引列表，主要用于存储张量的索引，索引是一个字符数组
+	// 每一个索引可以是一个字符，也可以是一个字符串，它对应了张量的每一个指标
+	// 它用于描述张量的运算比如缩并
+	// 举个例子： A_ij = B_ik * C_kj中，A的指标是i和j，B的指标是i和k，C的指标是k和j
 	class Indexs : public CompilerObj
 	{
 	public:
@@ -498,8 +511,7 @@ namespace Pikachu
 			return Tindex;
 		}
 	};
-
-	
+	//TensorID 是一个张量标识符，主要用于存储张量的名称和索引
 	class TensorID : public IDinfor
 	{
 	public:
@@ -527,6 +539,7 @@ namespace Pikachu
 			return Tindex;
 		}
 	};
+	// ValueList 是一个值列表，主要用于存储常量对象的列表
 	class ValueList
 	{
 	public:
@@ -567,7 +580,8 @@ namespace Pikachu
 
 		void GetDim(vector<size_t>& dst) const;
 	};
-
+	// IDlist 是一个ID列表，主要用于存储ID信息
+	//列表中每一个元素都是一个IDinfor对象
 	class IDlist
 	{
 	public:
@@ -576,6 +590,7 @@ namespace Pikachu
 		int build(const lex& eme, GTNode* ID_LISTSQUARE, BuildInfor* infor, context* dst);
 		void demo(FILE* fp = stdout) const;
 		void demo(size_t tabs, FILE* fp) const;
+		void output(vector<const char*> &name, vector<size_t> & index) const;
 	protected:
 		vector<IDinfor*> infors;
 		int buildCore(const lex& eme, GTNode* ID_LIST, BuildInfor* infor, context* dst);

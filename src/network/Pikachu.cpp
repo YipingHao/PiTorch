@@ -75,7 +75,7 @@ void NetWork::copy(NetWork& source)
 
 	//copyInfor(OutDesc, source.OutDesc);
 }
-void NetWork::forward(size_t No)
+void NetWork::forward(size_t No, const vector<size_t>& UpNo, const char* OutputName)
 {
 	buffer<Node*> queue;
 	size_t length;
@@ -87,8 +87,17 @@ void NetWork::forward(size_t No)
 	vector<size_t> H;
 	Node::Affiliation AA = Node::dYdX;
 	
-	for (size_t i = 0; i < output.count(); i++)
-		queue.append(output[i]);
+	for (size_t j = 0; j < UpNo.count(); j++)
+	{
+		for (size_t i = 0; i < output.count(); i++)
+		{
+			if (output[i]->site() == UpNo[j])
+			{
+				queue.append(output[i]);
+				break;
+			}
+		}
+	}
 	net.BFTbackward(valid, queue);
 	net.TopoSortBFSBack(sequence);
 	net.Shrink(valid, sequence);
@@ -125,15 +134,35 @@ void NetWork::forward(size_t No)
 			diff->copy(*OutDesc[hereSite]);
 			diff->append(No);
 			OutDesc.append(diff);
+			size_t LabelSite = here->site();
+			for (size_t j = 0; j < UpNo.count(); j++)
+			{
+				if (LabelSite == UpNo[j])
+				{
+					if (OutputName != NULL)
+					{
+						Out->SetName(OutputName);
+						Out->SetLabel(j);
+					}
+					//else
+					//{
+					//	char name[64];
+					//	sprintf(name, "output_%zu", No);
+					//	Out->SetName(name);
+					//}
+					break;
+				}
+			}
 		}
 	}
-
+	//新输出的命名规则:传入的OutputName如果不为NULL，则使用它作为输出名称，
+	// 标号则为传入的旧的节点的UpNo[j]对应的j。 
 	//simplify();
 }
-void NetWork::backward(size_t No)
+void NetWork::backward(size_t No, const vector<size_t>& DownNo, const char* OutputName)
 {
 	buffer<Node*> queue;
-	size_t i, length;
+	size_t length;
 	Node* here, * Out;
 	LeafNode* TempLeaf;
 	vector<bool> valid;
@@ -142,11 +171,27 @@ void NetWork::backward(size_t No)
 	vector<size_t> H; 
 	Node::Affiliation AA = Node::dYdX;
 
+	net.TopoSortBFSBack(sequence);
 
 	Out = output[No];
 	queue.append(Out);
 	net.BFTbackward(valid, queue);
-	net.TopoSortBFSBack(sequence);
+	net.Shrink(valid, sequence);
+
+
+	queue.clear();
+	for (size_t i = 0; i < DownNo.count(); i++)
+	{
+		for (size_t j = 0; j < input.count(); j++)
+		{
+			if (input[j]->site() == DownNo[i])
+			{
+				queue.append(input[j]);
+				break;
+			}
+		}
+	}
+	net.BFTforward(valid, queue);
 	net.Shrink(valid, sequence);
 
 	length = net.count();
@@ -158,7 +203,7 @@ void NetWork::backward(size_t No)
 	TempLeaf->Initial(Out->descriptor, H);
 	label[output[No]->site()] = TempLeaf;
 
-	for (i = 0; i < length; i++)
+	for (size_t i = 0; i < length; i++)
 	{
 		here = sequence[i];
 		here->backward(Node::dYdX, label, H);
@@ -177,7 +222,21 @@ void NetWork::backward(size_t No)
 				throw error;
 			}
 			OutB->IfOutput = true;
-			output.append(label);
+			output.append(OutB);
+			size_t LabelSite = here->site();
+			for (size_t j = 0; j < DownNo.count(); j++)
+			{
+				if (LabelSite == DownNo[j])
+				{
+					if (OutputName != NULL)
+					{
+						Out->SetName(OutputName);
+						Out->SetLabel(j);
+					}
+					break;
+				}
+			}
+
 			diff = new Tensor;
 			diff->copy(*OutDesc[hereSite]);
 			diff->append(No);
@@ -1092,8 +1151,62 @@ Node* NetWork::CheckNameInput(const char* name, size_t Label)
 }	
 
 
-
-
+void NetWork::OutputNameSearch(const vector<const char*>& name, const vector<size_t>& index, vector<size_t>& No) const
+{
+	for (size_t i = 0; i < name.count(); i++)
+	{
+		Node* target = NULL;
+		for (size_t j = 0; j < output.count(); j++)
+		{
+			if (output[j]->CompareName(name[i]) && output[j]->NameLabel == index[i])
+			{
+				target = output[j];
+				break;
+			}
+		}
+		if (target != NULL)
+		{
+			No.append(target->site());
+		}
+		else
+		{
+			hyperlex::dictionary* error = new hyperlex::dictionary;
+			error->append("location", "NetWork::OutputNameSearch");
+			error->append("error", "target == NULL");
+			error->append("name", name[i]);
+			error->append("index", index[i]);
+			throw error;
+		}
+	}
+}
+void NetWork::InputNameSearch(const vector<const char*>& name, const vector<size_t>& index, vector<size_t>& No) const
+{
+	for (size_t i = 0; i < name.count(); i++)
+	{
+		Node* target = NULL;
+		for (size_t j = 0; j < input.count(); j++)
+		{
+			if (input[j]->CompareName(name[i]) && input[j]->NameLabel == index[i])
+			{
+				target = input[j];
+				break;
+			}
+		}
+		if (target != NULL)
+		{
+			No.append(target->site());
+		}
+		else
+		{
+			hyperlex::dictionary* error = new hyperlex::dictionary;
+			error->append("location", "NetWork::InputNameSearch");
+			error->append("error", "target == NULL");
+			error->append("name", name[i]);
+			error->append("index", index[i]);
+			throw error;
+		}
+	}
+}
 
 
 

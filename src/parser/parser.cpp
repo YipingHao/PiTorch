@@ -1540,89 +1540,143 @@ int BuildInfor::buildDiff(const lex& eme, GTNode* DIFF_NET, context * dst)
 	GTNode* DIFF_INSTR = DIFF_NET->child(0);
 	NetG::rules DIFF_INSTR_Rule = (NetG::rules)DIFF_INSTR->root().site;
 	const bool forward = DIFF_INSTR_Rule == NetG::rules::DIFF_INSTR_forward_;
-	
+	int error = 0;
 	//diff: DIFF_INSTR id dot ID assign id ID_LISTSQUARE ID_LISTSQUARE semicolon;
 	//       0          1  2  3    4    5         6            7           8
-	IDinfor NetDst;
-	int error = NetDst.buildScalar(eme, DIFF_INSTR->child(1), this, dst);
-	if (error != 0) return error;
-	IDinfor NetSrc;
-	error = NetSrc.buildScalar(eme, DIFF_INSTR->child(5), this, dst);
-	if (error != 0) return error;
+	
 	IDinfor NewOutput;
 	error = NewOutput.build(eme, DIFF_INSTR->child(3), this, dst);
 	if (error != 0) return error;
 
-	IDlist listL, listR;
-	error = listL.build(eme, DIFF_INSTR->child(6), this, dst);
-	if (error != 0) return error;
-	error = listR.build(eme, DIFF_INSTR->child(7), this, dst);
-	if (error != 0) return error;
 
-	size_t batchDim = 0;
-	if (forward)
-	{
-		if (listR.count() != 1)
-		{
-			errorCode = ErrorDiffForwardTooMuchInput;
-			errorInfor1 = DIFF_INSTR->root().site;
-			ErrorNode = DIFF_INSTR;
-			return 894153486;
-		}
-		batchDim = listL.count();
-	}
-	else
-	{
-		if (listL.count() != 1)
-		{
-			errorCode = ErrorDiffBackwardTooMuchOutput;
-			errorInfor1 = DIFF_INSTR->root().site;
-			ErrorNode = DIFF_INSTR;
-			return 894153487;
-		}
-		batchDim = listR.count();
-	}
-	if (batchDim != NewOutput.GetDim())
-	{
-		errorCode = ErrorDiffBatchDim;
-		hyperlex::dictionary* Error = getAdict();
-		Error->append("batchDim", batchDim);
-		Error->append("outputDim", NewOutput.GetDim());
-		ErrorNode = DIFF_INSTR;
-		return 894153488;
-	}
-
+	
+	NetWork* DstNet = NULL;
 	NetInContext* NetDiffDst = NULL;
-	NetInContext* NetDiffRsc = dst->nets.top();
-	if (NetDst.eqaul(NetSrc.GetName()))
+	//模块1，获得输出网络
 	{
-		NetDiffDst = NetDiffRsc;
+		IDinfor NetDst;
+		error = NetDst.buildScalar(eme, DIFF_INSTR->child(1), this, dst);
+		if (error != 0) return error;
+		IDinfor NetSrc;
+		error = NetSrc.buildScalar(eme, DIFF_INSTR->child(5), this, dst);
+		if (error != 0) return error;
+
+		NetInContext* NetDiffSrc = dst->nets.top();
+		if (NetDst.eqaul(NetSrc.GetName()))
+		{
+			NetDiffDst = NetDiffSrc;
+		}
+		else
+		{
+			NetDiffDst = new NetInContext(dst->nets.top(), dst);
+			NetDiffDst->SetName(NetDst.GetName());
+			dst->nets.append(NetDiffDst);
+		}
+		context* DstContext = NetDiffDst->realm;
+		context* SrcContext = NetDiffSrc->realm;
+		DstNet = NetDiffDst->net;
+		//检查新的输出名称是否与旧网络的输出输入与参数名称重复
+		const char* NewOutName = NewOutput.GetName();
+		bool judge = DstNet->checkName(NewOutName);
+		if (judge)
+		{
+			errorCode = ErrorDiffRepeatNetDef;
+			ErrorNode = DIFF_INSTR->child(3);
+			return 894148489;
+		}
 	}
-	else
+
+	
+	vector<size_t> UpNo, DownNo;
+	//子模块2，获得被微分变量和微分变量的唯一id
 	{
-		NetDiffDst = new NetInContext(dst->nets.top(), dst);
-		NetDiffDst->SetName(NetDst.GetName());
-		dst->nets.append(NetDiffDst);
-	}
-	context* DstContext = NetDiffDst->realm;
-	context* SrcContext = NetDiffRsc->realm;
-	NetWork* net = NetDiffDst->net;
-	const char* NewOutName = NewOutput.GetName();
+		IDlist listL, listR;
+		size_t batchDim = 0;
+		error = listL.build(eme, DIFF_INSTR->child(6), this, dst);
+		if (error != 0) return error;
+		error = listR.build(eme, DIFF_INSTR->child(7), this, dst);
+		if (error != 0) return error;
+		//检查输入的维数是否一致
+		if (forward)
+		{
+			if (listR.count() != 1)
+			{
+				errorCode = ErrorDiffForwardTooMuchInput;
+				errorInfor1 = DIFF_INSTR->root().site;
+				ErrorNode = DIFF_INSTR;
+				return 894153486;
+			}
+			batchDim = listL.count();
+		}
+		else
+		{
+			if (listL.count() != 1)
+			{
+				errorCode = ErrorDiffBackwardTooMuchOutput;
+				errorInfor1 = DIFF_INSTR->root().site;
+				ErrorNode = DIFF_INSTR;
+				return 894153487;
+			}
+			batchDim = listR.count();
+		}
+		if (batchDim != NewOutput.GetDim())
+		{
+			errorCode = ErrorDiffBatchDim;
+			hyperlex::dictionary* Error = getAdict();
+			Error->append("batchDim", batchDim);
+			Error->append("outputDim", NewOutput.GetDim());
+			ErrorNode = DIFF_INSTR;
+			return 894153488;
+		}
 
-	bool judge = net->checkName(NewOutName);
-	if (judge)
+
+		vector<const char*> nameUp, nameDown;
+		vector<size_t> indexUp, indexDown;
+		listL.output(nameUp, indexUp);
+		listR.output(nameDown, indexDown);
+
+		//NetWork* SrcNet = NetDiffSrc->net;
+		
+		try
+		{
+			DstNet->OutputNameSearch(nameUp, indexUp, UpNo);
+			DstNet->InputNameSearch(nameDown, indexDown, DownNo);
+		}
+		catch (hyperlex::dictionary* Error1)
+		{
+			hyperlex::dictionary* ErrorHere = getAdict();
+			ErrorHere->append("location", "buildDiff");
+			ErrorHere->append("Error", "Missing input or output name");
+			ErrorHere->append("ErrorInfor", Error1);
+			return 894153488;
+		}
+
+	}
+
+	
+	const char* NewOutputName = NewOutput.GetName();
+	try
 	{
-		errorCode = ErrorDiffRepeatNetDef;
-		ErrorNode = DIFF_INSTR->child(3);
-		return 894148489;
+		if (forward)
+		{
+			size_t input = DownNo[0];
+			DstNet->forward(input, UpNo, NewOutputName);
+		}
+		else
+		{
+			size_t output = UpNo[0];
+			DstNet->backward(output, DownNo, NewOutputName);
+		}
 	}
-
-	for (size_t i = 0; i < length; i++)
+	catch (hyperlex::dictionary* Error1)
 	{
-
+		hyperlex::dictionary* ErrorHere = getAdict();
+		ErrorHere->append("location", "buildDiff");
+		ErrorHere->append("Error", "Missing input or output name");
+		ErrorHere->append("ErrorInfor", Error1);
+		return 89434588;
 	}
 
-    //hello world
 	return error;
 }
 
