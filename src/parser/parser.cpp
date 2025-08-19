@@ -1689,12 +1689,15 @@ int BuildInfor::buildNETCheck(const lex& eme, GTNode* NETBODY, context* dst, Net
 		if (temp->compareAttri("var")) continue;
 		for (size_t j = 0; j < temp->count(); j++)
 		{
-			if (temp->GetTensor(j) == NULL)
+			Node* newNode = temp->GetTensor(j);
+			if (newNode == NULL)
 			{
 				ErrorNode = NETBODY;
 				errorCode = UndefineOutput;
 				return 893454346;
 			}
+			newNode->SetName(temp->GetName());
+			newNode->SetLabel(j);
 		}
 		if (temp->compareAttri("input"))
 		{
@@ -1725,7 +1728,7 @@ int BuildInfor::buildTENSOR(const lex& eme, GTNode* NET_STATEMENT, NetInContext*
 	context* dst = Net->realm;
 	int error = 0;
 	size_t line = NET_STATEMENT->root().site;
-	NetWork* net = Net->net;
+	
 	NetG::nonterminal TTTT = (NetG::nonterminal)NetG::RulesToSymbol[NET_STATEMENT->root().site];
 	if (TTTT != NetG::nonterminal::_NET_STATEMENT_)
 	{
@@ -1737,7 +1740,7 @@ int BuildInfor::buildTENSOR(const lex& eme, GTNode* NET_STATEMENT, NetInContext*
 	GTNode* TENSOR = NET_STATEMENT->child(0);
 	GTNode* VALUELIST = TENSOR->child(2);
 
-	
+	//tensorDef2: TENSOR TENSORID assign TENSORVALUE semicolon;
 
 	ValueList VL;
 	error = VL.build(eme, VALUELIST, this, dst);
@@ -1755,6 +1758,8 @@ int BuildInfor::buildTENSOR(const lex& eme, GTNode* NET_STATEMENT, NetInContext*
 	if (error != 0) return error;
 	var* Lvalue = id.GetLocalVarL(error, this, dst);
 	if (error != 0) return error;
+
+
 
 	GTNode* TENSORVALUE = NET_STATEMENT->child(3);
 	NetG::rules RR = (NetG::rules)TENSORVALUE->root().site;
@@ -1800,7 +1805,14 @@ int BuildInfor::buildTENSOR(const lex& eme, GTNode* NET_STATEMENT, NetInContext*
 	}
 		
 	}
+	NetWork* net = Net->net;
 	Lvalue->SetInfor((void*)newNode, id.GetIndex());
+	//if (Lvalue->compareAttri("output"))
+	//{
+		//newNode->SetName(id.GetName());
+		//newNode->SetLabel(id.GetIndex());
+		//net->output.append(newNode);
+	//}
 	//id.AssignLocalVarL(error, this, dst, newNode);
 	return error;
 }
