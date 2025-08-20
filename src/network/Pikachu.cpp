@@ -905,9 +905,6 @@ void NetWork::demo(size_t tabs, FILE* fp, const vector<Node*>& listT, const char
 }
 void Pikachu::NetWork::demo(size_t tabs, FILE* fp)
 {
-	// Print network basic info
-	for (size_t i = 0; i < tabs; ++i) fprintf(fp, "\t");
-	fprintf(fp, "Network Structure:\n");
 
 	// 打印输入节点
 	demo(tabs, fp, input, "Inputs");
