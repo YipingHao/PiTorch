@@ -184,7 +184,7 @@ namespace Pikachu
 		void setDesc(const Tensor& desc, const vector<size_t>& H);
 		void clearCore(void);
 		void PrintScreenCore(FILE* fp)const;
-		void Demo(FILE* fp) const;
+		void Demo(size_t tabs, FILE* fp) const;
 	public:
 		bool eqaul(const char* opR) const;
 		bool equal(const Node* opR) const;
