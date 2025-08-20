@@ -83,7 +83,7 @@ void Node::clearCore(void)
 
 
 // Node类及子类中新增的demo函数实现（使用indiceIS进行索引转换）
-void Node::demo(FILE* fp = stdout) const
+void Node::demo(FILE* fp) const
 {
 	demo(0, fp);
 }
