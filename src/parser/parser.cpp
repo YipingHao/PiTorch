@@ -2523,6 +2523,7 @@ void context::demo(size_t tabs, FILE* fp) const
 	fprintf(fp, "global variables(%zu): \n", global.count());
 	for (size_t i = 0; i < global.count(); i++) {
 		global[i]->demo(fp, tabs + 1);
+		fprintf(fp, "\n");
 	}
 
 	// 打印常量对象 / Print constant objects
@@ -2537,10 +2538,10 @@ void context::demo(size_t tabs, FILE* fp) const
 	fprintfTabs(tabs, fp);
 	fprintf(fp, "functions(%zu): \n", funcs.count());
 	for (size_t i = 0; i < funcs.count(); i++) {
-		fprintfTabs(tabs, fp);
+		fprintfTabs(tabs + 1, fp);
 		fprintf(fp, "func[%zu]:{\n", i);
-		funcs[i]->demo(tabs + 1, fp);
-		fprintfTabs(tabs, fp);
+		funcs[i]->demo(tabs + 2, fp);
+		fprintfTabs(tabs + 1, fp);
 		fprintf(fp, "}\n");
 	}
 
