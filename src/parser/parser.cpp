@@ -5,7 +5,13 @@
 using namespace Pikachu;
 static bool compare(const char* str1, const char* str2);
 
-
+// 输出指定数量的制表符到文件
+// Print specified number of tabs to the file
+static void fprintfTabs(size_t tabs, FILE* fp)
+{
+	for (size_t i = 0; i < tabs; ++i)
+		fprintf(fp, "\t");
+}
 size_t ASTNodeUnitGet(const lex& eme, GTNode* Root)
 {
 	GTNode* Now = Root;
@@ -2509,35 +2515,48 @@ void context::ruin(void)
 }
 void context::demo(size_t tabs, FILE* fp) const
 {
+	fprintfTabs(tabs, fp);
 	fprintf(fp, "context demo:\n");
 
 	// 打印全局变量 / Print global variables
+	fprintfTabs(tabs, fp);
 	fprintf(fp, "global variables(%zu): \n", global.count());
 	for (size_t i = 0; i < global.count(); i++) {
 		global[i]->demo(fp, tabs + 1);
 	}
 
 	// 打印常量对象 / Print constant objects
+	fprintfTabs(tabs, fp);
 	fprintf(fp, "const objects(%zu): \n", Cobj.count());
 	for (size_t i = 0; i < Cobj.count(); i++) {
 		Cobj[i]->demo(fp);
+		fprintf(fp, "\n");
 	}
 
 	// 打印函数 / Print functions
+	fprintfTabs(tabs, fp);
 	fprintf(fp, "functions(%zu): \n", funcs.count());
 	for (size_t i = 0; i < funcs.count(); i++) {
-		fprintf(fp, "func[%zu]:\n", i);
-		funcs[i]->demo(fp);
+		fprintfTabs(tabs, fp);
+		fprintf(fp, "func[%zu]:{\n", i);
+		funcs[i]->demo(tabs + 1, fp);
+		fprintfTabs(tabs, fp);
+		fprintf(fp, "}\n");
 	}
 
 	// 打印网络 / Print networks
+	fprintfTabs(tabs, fp);
 	fprintf(fp, "networks(%zu): \n", nets.count());
 	for (size_t i = 0; i < nets.count(); i++) {
-		fprintf(fp, "net[%zu]:\n", i);
-		nets[i]->demo(fp);
+		fprintfTabs(tabs, fp);
+		fprintf(fp, "net[%zu]:{\n", i);
+		nets[i]->demo(tabs + 1, fp);
+		fprintfTabs(tabs, fp);
+		fprintf(fp, "}\n");
 	}
 
 	// 打印子上下文 / Print child contexts
+	fprintfTabs(tabs, fp);
 	fprintf(fp, "child contexts(%zu): \n", childs.count());
 	for (size_t i = 0; i < childs.count(); i++) {
 		fprintf(fp, "child[%zu]:\n", i);
