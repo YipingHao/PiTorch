@@ -944,11 +944,24 @@ void Pikachu::NetWork::demo(size_t tabs, FILE* fp)
 	fprintf(fp, "All Nodes[%zu]:\n", net.count());
 	for (size_t i = 0; i < net.count(); ++i)
 	{
-		for (size_t j = 0; j < tabs + 2; ++j) fprintf(fp, "\t");
 		if (net[i])
-			net[i]->demo(fp);
+		{
+			size_t Tabs = tabs + 2;
+			for (size_t j = 0; j < Tabs; ++j) fprintf(fp, "\t");
+			fprintf(fp, "Nodes[%zu]:\n", i);
+			for (size_t j = 0; j < Tabs; ++j) fprintf(fp, "\t");
+			fprintf(fp, "{\n", i);
+			net[i]->demo(Tabs + 1, fp);
+			for (size_t j = 0; j < Tabs; ++j) fprintf(fp, "\t");
+			fprintf(fp, "}\n");
+		}
+			
 		else
+		{
+			for (size_t j = 0; j < tabs + 2; ++j) fprintf(fp, "\t");
 			fprintf(fp, "NULL");
+		}
+			
 		fprintf(fp, "\n");
 	}
 }
