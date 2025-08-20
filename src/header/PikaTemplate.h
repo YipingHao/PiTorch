@@ -1558,17 +1558,24 @@ namespace Pikachu
 		fprintf(fp, "InDegree: %zu, InCapacity: %zu, ", in.count(), in.capacity());
 		fprintf(fp, "OutDegree: %zu, OutCapacity: %zu\n", out.count(), out.capacity());
 
-		for (size_t t = 0; t < tabs; ++t) fprintf(fp, "\t");
-		if (in.count() != 0) fprintf(fp, "In[%zu] = %zu", (size_t)0, in[0]->site());
-		for (i = 1; i < in.count(); i++)
-			fprintf(fp, ", In[%zu] = %zu", i, in[i]->site());
-		if (in.count() != 0) fprintf(fp, "\n");
+		if (in.count() != 0) 
+		{
+			for (size_t t = 0; t < tabs; ++t) fprintf(fp, "\t");
+			fprintf(fp, "In[%zu] = %zu", (size_t)0, in[0]->site());
+			for (i = 1; i < in.count(); i++)
+				fprintf(fp, ", In[%zu] = %zu", i, in[i]->site());
+			fprintf(fp, "\n");
+		}
 
-		for (size_t t = 0; t < tabs; ++t) fprintf(fp, "\t");
-		if (out.count() != 0) fprintf(fp, "Out[%zu] = %zu", (size_t)0, out[0]->site());
-		for (i = 1; i < out.count(); i++)
-			fprintf(fp, ", Out[%zu] = %zu", i, out[i]->site());
-		if (out.count() != 0) fprintf(fp, "\n");
+		if (out.count() != 0)
+		{
+			for (size_t t = 0; t < tabs; ++t) fprintf(fp, "\t");
+			fprintf(fp, "Out[%zu] = %zu", (size_t)0, out[0]->site());
+			for (i = 1; i < out.count(); i++)
+				fprintf(fp, ", Out[%zu] = %zu", i, out[i]->site());
+			fprintf(fp, "\n");
+		}
+		
 		// »Ù”–V::demo(size_t, FILE*)£¨ø…µ›πÈ¥Ú”°
 		// static_cast<const V*>(this)->demo(tabs + 1, fp);
 	}
