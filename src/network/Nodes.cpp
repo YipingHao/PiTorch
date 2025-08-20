@@ -58,8 +58,7 @@ void Node::clearCore(void)
 // Node类实现
 void Node::Demo(FILE* fp) const 
 {
-	
-	fprintf(fp, "Node: %p\n", this);
+	fprintf(fp, "Node: %p(site: %zu)\n", this, site());
 	fprintf(fp, "\tAffiliation: ");
 	switch (Affi) {
 	case unknown: fprintf(fp, "unknown\n"); break;
@@ -80,13 +79,16 @@ void Node::Demo(FILE* fp) const
 	default: fprintf(fp, "invalid\n"); break;
 	}
 	fprintf(fp, "\tOp: %d\n", Op);
-	fprintf(fp, "\tIfOutput: %s\n", IfOutput ? "true" : "false");
-	fprintf(fp, "\tDataExpand: %s\n", DataExpand ? "true" : "false");
+	fprintf(fp, "\tIfOutput: %s, ", IfOutput ? "true" : "false");
+	fprintf(fp, "DataExpand: %s\n", DataExpand ? "true" : "false");
 	fprintf(fp, "\tDescriptor: "); descriptor.demo(fp);
 	fprintf(fp, "\tNetwork: %p\n", network);
 	vortex<Node>::demo(fp);
 }
-
+void Node::PrintConcise(FILE* fp = stdout) const
+{
+	fprintf(fp, "Node: %p(site: %zu)\n", this, site());
+}
 // 辅助函数：将整数索引向量转换为字符表示
 static void printIndices(FILE* fp, const vector<sint>& indices) {
 	indiceIS converter;

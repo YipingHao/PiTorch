@@ -890,51 +890,34 @@ void Pikachu::NetWork::demo(FILE* fp)
 {
 	demo(0, fp);
 }
-
+void NetWork::demo(size_t tabs, FILE* fp, const vector<Node*>& listT, const char* Tinfor)
+{
+	for (size_t i = 0; i < tabs + 1; ++i) fprintf(fp, "\t");
+	fprintf(fp, "%s, [%zu]:\n", Tinfor, listT.count());
+	for (size_t i = 0; i < listT.count(); ++i)
+	{
+		for (size_t j = 0; j < tabs + 2; ++j) fprintf(fp, "\t");
+		if (listT[i])
+			listT[i]->PrintConcise(fp);
+		else
+			fprintf(fp, "NULL");
+		fprintf(fp, "\n");
+	}
+}
 void Pikachu::NetWork::demo(size_t tabs, FILE* fp)
 {
 	// Print network basic info
 	for (size_t i = 0; i < tabs; ++i) fprintf(fp, "\t");
 	fprintf(fp, "Network Structure:\n");
 
-	// Print input nodes
-	for (size_t i = 0; i < tabs + 1; ++i) fprintf(fp, "\t");
-	fprintf(fp, "Inputs[%zu]:\n", input.count());
-	for (size_t i = 0; i < input.count(); ++i)
-	{
-		for (size_t j = 0; j < tabs + 2; ++j) fprintf(fp, "\t");
-		if (input[i])
-			input[i]->demo(fp);
-		else
-			fprintf(fp, "NULL");
-		fprintf(fp, "\n");
-	}
+	// 打印输入节点
+	demo(tabs, fp, input, "Inputs");
 
-	// Print parameter nodes
-	for (size_t i = 0; i < tabs + 1; ++i) fprintf(fp, "\t");
-	fprintf(fp, "Parameters[%zu]:\n", parameter.count());
-	for (size_t i = 0; i < parameter.count(); ++i)
-	{
-		for (size_t j = 0; j < tabs + 2; ++j) fprintf(fp, "\t");
-		if (parameter[i])
-			parameter[i]->demo(fp);
-		else
-			fprintf(fp, "NULL");
-		fprintf(fp, "\n");
-	}
+	// 打印参数节点
+	demo(tabs, fp, parameter, "Parameters");
 
-	// Print output nodes
-	for (size_t i = 0; i < tabs + 1; ++i) fprintf(fp, "\t");
-	fprintf(fp, "Outputs[%zu]:\n", output.count());
-	for (size_t i = 0; i < output.count(); ++i)
-	{
-		for (size_t j = 0; j < tabs + 2; ++j) fprintf(fp, "\t");
-		if (output[i])
-			output[i]->demo(fp);
-		else
-			fprintf(fp, "NULL");
-		fprintf(fp, "\n");
-	}
+	// 打印输出节点
+	demo(tabs, fp, output, "Outputs");
 
 	// Print all nodes in graph
 	for (size_t i = 0; i < tabs + 1; ++i) fprintf(fp, "\t");
