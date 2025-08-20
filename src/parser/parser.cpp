@@ -2535,7 +2535,7 @@ void context::demo(size_t tabs, FILE* fp) const
 		Cobj[i]->demo(fp);
 		fprintf(fp, "\n");
 	}
-	return;
+
 	// ´òÓ¡º¯Êý / Print functions
 	fprintfTabs(tabs, fp);
 	fprintf(fp, "functions(%zu): \n", funcs.count());

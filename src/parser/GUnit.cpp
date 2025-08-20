@@ -784,7 +784,7 @@ void Pikachu::NetInContext::demo(size_t tabs, FILE* fp)
 	if (net)
 	{
 		for (size_t i = 0; i < tabs + 1; ++i) fprintf(fp, "\t");
-		net->demo(tabs + 1, fp);
+		//net->demo(tabs + 1, fp);
 	}
 	else
 	{
