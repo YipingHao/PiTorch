@@ -327,6 +327,7 @@ namespace Pikachu
 		void CopyCore(const Vextern& source);
 		void CopyToCore(Vextern& dst) const;
 		void demo(FILE* fp)const;
+		void demo(size_t tabs, FILE* fp) const;
 		size_t site(void) const { return label_site;}
 		//void PushIn(Vextern* stack);
 		//void PushOut(Vextern* stack);
@@ -1540,13 +1541,36 @@ namespace Pikachu
 		if (in.count() != 0) fprintf(fp, "In[%zu] = %zu", (size_t)0, in[0]->label_site);
 		for (i = 1; i < in.count(); i++)
 			fprintf(fp, ", In[%zu] = %zu", i, in[i]->label_site);
-		fprintf(fp, "\n");
+		if (in.count() != 0) fprintf(fp, "\n");
 
 		if (out.count() != 0) fprintf(fp, "Out[%zu] = %zu", (size_t)0, out[0]->label_site);
 		for (i = 1; i < out.count(); i++)
 			fprintf(fp, ", Out[%zu] = %zu", i, out[i]->label_site);
-		fprintf(fp, "\n");
+		if (out.count() != 0) fprintf(fp, "\n");
 		//V::demo(fp);
+	}
+	// 支持缩进的vortex<V>::demo方法
+	template <class V>
+	void vortex<V>::demo(size_t tabs, FILE* fp) const
+	{
+		size_t i;
+		for (size_t t = 0; t < tabs; ++t) fprintf(fp, "\t");
+		fprintf(fp, "InDegree: %zu, InCapacity: %zu, ", in.count(), in.capacity());
+		fprintf(fp, "OutDegree: %zu, OutCapacity: %zu\n", out.count(), out.capacity());
+
+		for (size_t t = 0; t < tabs; ++t) fprintf(fp, "\t");
+		if (in.count() != 0) fprintf(fp, "In[%zu] = %zu", (size_t)0, in[0]->site());
+		for (i = 1; i < in.count(); i++)
+			fprintf(fp, ", In[%zu] = %zu", i, in[i]->site());
+		if (in.count() != 0) fprintf(fp, "\n");
+
+		for (size_t t = 0; t < tabs; ++t) fprintf(fp, "\t");
+		if (out.count() != 0) fprintf(fp, "Out[%zu] = %zu", (size_t)0, out[0]->site());
+		for (i = 1; i < out.count(); i++)
+			fprintf(fp, ", Out[%zu] = %zu", i, out[i]->site());
+		if (out.count() != 0) fprintf(fp, "\n");
+		// 若有V::demo(size_t, FILE*)，可递归打印
+		// static_cast<const V*>(this)->demo(tabs + 1, fp);
 	}
 
 	template<class V> size_t vortex<V>::AppendIn(Vextern* II)
