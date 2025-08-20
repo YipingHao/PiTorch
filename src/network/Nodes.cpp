@@ -117,8 +117,7 @@ void Node::PrintConcise(FILE* fp) const
 // 辅助函数：将整数索引向量转换为字符表示
 static void printIndices(FILE* fp, const vector<sint>& indices) {
 	indiceIS converter;
-	vector<sint> indicesCopy = indices;
-	converter.appendI(indicesCopy);
+	converter.appendI(indices);
 	converter.ItoS();
 
 	fprintf(fp, "[");
