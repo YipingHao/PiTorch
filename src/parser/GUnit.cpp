@@ -783,7 +783,7 @@ void Pikachu::NetInContext::demo(size_t tabs, FILE* fp)
 	fprintf(fp, "Network Structure:\n");
 	if (net)
 	{
-		net->demo(tabs + 1, fp);
+		net->demo(tabs, fp);
 	}
 	else
 	{
