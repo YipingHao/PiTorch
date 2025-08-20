@@ -1872,6 +1872,7 @@ int static Test004(const hyperlex::dictionary& para)
 	error = ctx.build("data/test.txt", stdout);
 	std::cout << "error: " << error << std::endl;
 	ctx.demo();
+	std::cout << "error: " << error << std::endl;
 	return error;
 }
 int static Test005(const hyperlex::dictionary& para)
