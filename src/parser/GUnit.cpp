@@ -4,7 +4,13 @@
 #include "../header/sheet.h"
 using namespace Pikachu;
 static bool compare(const char* str1, const char* str2);
-
+// 输出指定数量的制表符到文件
+// Print specified number of tabs to the file
+static void fprintfTabs(size_t tabs, FILE* fp)
+{
+	for (size_t i = 0; i < tabs; ++i)
+		fprintf(fp, "\t");
+}
 typedef hyperlex::BufferChar bufferC;
 
 
@@ -707,11 +713,10 @@ void Pikachu::func::demo(size_t tabs, FILE* fp)
 	for (size_t i = 0; i < tabs; ++i) fprintf(fp, "\t");
 	fprintf(fp, "ParameterCount: %zu\n", ParaCount);
 
-	for (size_t i = 0; i < tabs; ++i) fprintf(fp, "\t");
-	fprintf(fp, "Expression:\n");
 	// 打印表达式信息 / Print expression info
 	if (Exp)
 	{
+		fprintfTabs(tabs, fp);
 		fprintf(fp, "Expression:\n");
 		// 使用Expres::demo(bufferC& out, bool single, size_t No)和Expres::node::Demo
 		for (size_t i = 0; i < Exp->OutputAmount(); ++i)
@@ -724,13 +729,20 @@ void Pikachu::func::demo(size_t tabs, FILE* fp)
 	}
 	else
 	{
+		fprintfTabs(tabs, fp);
 		fprintf(fp, "Expression: NULL\n");
 	}
 
 	for (size_t i = 0; i < tabs; ++i) fprintf(fp, "\t");
 	fprintf(fp, "Realm Context:\n");
 	if (realm)
+	{
+		fprintfTabs(tabs, fp);
+		fprintf(fp, "{\n");
 		realm->demo(tabs + 1, fp);
+		fprintfTabs(tabs, fp);
+		fprintf(fp, "}\n");
+	}
 	else
 	{
 		for (size_t i = 0; i < tabs + 1; ++i) fprintf(fp, "\t");

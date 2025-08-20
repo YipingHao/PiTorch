@@ -2522,6 +2522,8 @@ void context::demo(size_t tabs, FILE* fp) const
 	fprintfTabs(tabs, fp);
 	fprintf(fp, "global variables(%zu): \n", global.count());
 	for (size_t i = 0; i < global.count(); i++) {
+		fprintfTabs(tabs + 1, fp);
+		fprintf(fp, "variables[%zu]:", i);
 		global[i]->demo(fp, tabs + 1);
 		fprintf(fp, "\n");
 	}
