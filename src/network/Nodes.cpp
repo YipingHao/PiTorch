@@ -3,7 +3,11 @@
 #define _uintMax_ 0xffffffffffffffff
 #endif
 
-
+static void fprintfTabs(size_t tabs, FILE* fp)
+{
+	for (size_t i = 0; i < tabs; ++i)
+		fprintf(fp, "\t");
+}
 using namespace Pikachu;
 
 // AffiliationÃ¶¾Ù×ª×Ö·û´®
@@ -93,18 +97,18 @@ void Node::Demo(size_t tabs, FILE* fp) const
 {
 	for (size_t i = 0; i < tabs; ++i) fprintf(fp, "\t");
 	fprintf(fp, "Node: %p(site: %zu)\n", this, site());
-	for (size_t i = 0; i < tabs + 1; ++i) fprintf(fp, "\t");
+	for (size_t i = 0; i < tabs; ++i) fprintf(fp, "\t");
 	fprintf(fp, "Affiliation: %s, ", AffiliationToString(Affi));
 	fprintf(fp, "Type: %s, ", VortexTypeToString(Type));
 	fprintf(fp, "Op: %d\n", Op);
-	for (size_t i = 0; i < tabs + 1; ++i) fprintf(fp, "\t");
+	for (size_t i = 0; i < tabs; ++i) fprintf(fp, "\t");
 	fprintf(fp, "IfOutput: %s, ", IfOutput ? "true" : "false");
 	fprintf(fp, "DataExpand: %s, ", DataExpand ? "true" : "false");
 	fprintf(fp, "Network: %p\n", network);
-	for (size_t i = 0; i < tabs + 1; ++i) fprintf(fp, "\t");
+	for (size_t i = 0; i < tabs; ++i) fprintf(fp, "\t");
 	fprintf(fp, "Descriptor: ");
 	descriptor.demo(fp);
-	vortex<Node>::demo(tabs + 1, fp);
+	vortex<Node>::demo(tabs, fp);
 }
 void Node::PrintConcise(FILE* fp) const
 {
@@ -131,67 +135,101 @@ static void printIndices(FILE* fp, const vector<sint>& indices) {
 void LeafNode::demo(size_t tabs, FILE* fp) const
 {
 	Node::Demo(tabs, fp);
-	fprintf(fp, "\tLeafType: ");
+	fprintfTabs(tabs, fp);
+	fprintf(fp, "LeafType: ");
 	switch ((LeafType)Op) {
 	case _leafIn_: fprintf(fp, "input\n"); break;
 	case _leafPara_: fprintf(fp, "parameter\n"); break;
 	case _leafConst_: fprintf(fp, "constant\n"); break;
 	default: fprintf(fp, "invalid\n"); break;
 	}
-	fprintf(fp, "\tValue count: %zu\n", value.count());
+	fprintfTabs(tabs, fp);
+	fprintf(fp, "Value count: %zu\n", value.count());
 	//if (value.count() > 0) {
 	//	fprintf(fp, "\tFirst value: "); value[0].demo(fp);
 	//}
-	fprintf(fp, "\tLabel: %zu\n", Label);
+	fprintfTabs(tabs, fp);
+	fprintf(fp, "Label: %zu\n", Label);
 }
 void MonoLinear::demo(size_t tabs, FILE* fp) const
 {
 	Node::Demo(tabs, fp);
-	fprintf(fp, "\tAlpha: %.16lf\n", alpha);
-	fprintf(fp, "\tIndexDst (char): "); printIndices(fp, indexDst);
-	fprintf(fp, "\tIndexSrc (char): "); printIndices(fp, indexSrc);
-	fprintf(fp, "\tDummyIndex: %zu\n", DummyIndex);
-	fprintf(fp, "\tNewIndex: %zu\n", NewIndex);
-	fprintf(fp, "\tRepeatedIndex: %zu\n", RepeatedIndex);
+	fprintfTabs(tabs, fp);
+	fprintf(fp, "Alpha: %.16lf\n", alpha);
+	fprintfTabs(tabs, fp);
+	fprintf(fp, "IndexDst: "); printIndices(fp, indexDst);
+	fprintfTabs(tabs, fp);
+	fprintf(fp, "IndexSrc: "); printIndices(fp, indexSrc);
+	fprintfTabs(tabs, fp);
+	fprintf(fp, "DummyIndex: %zu\n", DummyIndex);
+	fprintfTabs(tabs, fp);
+	fprintf(fp, "NewIndex: %zu\n", NewIndex);
+	fprintfTabs(tabs, fp);
+	fprintf(fp, "RepeatedIndex: %zu\n", RepeatedIndex);
 }
-void DiLinear::demo(size_t tabs, FILE* fp) const {
+void DiLinear::demo(size_t tabs, FILE* fp) const
+{
 	Node::Demo(tabs, fp);
-	fprintf(fp, "\tOpType: ");
+	fprintfTabs(tabs, fp);
+	fprintf(fp, "OpType: ");
 	switch ((OpType)Op) {
 	case _add_: fprintf(fp, "add\n"); break;
 	case _sub_: fprintf(fp, "sub\n"); break;
 	case _mul_: fprintf(fp, "mul\n"); break;
 	default: fprintf(fp, "invalid\n"); break;
 	}
-	fprintf(fp, "\tIndexDst (char): "); printIndices(fp, indexDst);
-	fprintf(fp, "\tIndexSrcL (char): "); printIndices(fp, indexSrcL);
-	fprintf(fp, "\tIndexSrcR (char): "); printIndices(fp, indexSrcR);
-	fprintf(fp, "\tDummyIndex: %zu\n", DummyIndex);
-	fprintf(fp, "\tRepeatedIndex: %zu\n", RepeatedIndex);
+	fprintfTabs(tabs, fp);
+	fprintf(fp, "IndexDst: "); printIndices(fp, indexDst);
+	fprintfTabs(tabs, fp);
+	fprintf(fp, "IndexSrcL: "); printIndices(fp, indexSrcL);
+	fprintfTabs(tabs, fp);
+	fprintf(fp, "IndexSrcR: "); printIndices(fp, indexSrcR);
+	fprintfTabs(tabs, fp);
+	fprintf(fp, "DummyIndex: %zu\n", DummyIndex);
+	fprintfTabs(tabs, fp);
+	fprintf(fp, "RepeatedIndex: %zu\n", RepeatedIndex);
 }
-void MonoNonlinear::demo(size_t tabs, FILE* fp) const {
+void MonoNonlinear::demo(size_t tabs, FILE* fp) const
+{
 	Node::Demo(tabs, fp);
-	fprintf(fp, "\tScalarInput: %s\n", ScalarInput ? "true" : "false");
-	fprintf(fp, "\tx: %lld\n", (long long)x);
-	fprintf(fp, "\tFunction (char): "); printIndices(fp, function);
-	fprintf(fp, "\tIndexDst (char): "); printIndices(fp, indexDst);
-	fprintf(fp, "\tIndexSrc (char): "); printIndices(fp, indexSrc);
-	fprintf(fp, "\tFuncTensor: "); funcTensor.demo(fp);
+	fprintfTabs(tabs, fp);
+	fprintf(fp, "ScalarInput: %s\n", ScalarInput ? "true" : "false");
+	fprintfTabs(tabs, fp);
+	fprintf(fp, "x: %lld\n", (long long)x);
+	fprintfTabs(tabs, fp);
+	fprintf(fp, "Function: "); printIndices(fp, function);
+	fprintfTabs(tabs, fp);
+	fprintf(fp, "IndexDst: "); printIndices(fp, indexDst);
+	fprintfTabs(tabs, fp);
+	fprintf(fp, "IndexSrc: "); printIndices(fp, indexSrc);
+	fprintfTabs(tabs, fp);
+	fprintf(fp, "FuncTensor: "); funcTensor.demo(fp);
 	//fprintf(fp, "\tFormula: "); formula.demo(fp);
 }
-void DiNonlinear::demo(size_t tabs, FILE* fp) const {
+void DiNonlinear::demo(size_t tabs, FILE* fp) const
+{
 	Node::Demo(tabs, fp);
-	fprintf(fp, "\tScalarInput: %s\n", ScalarInput ? "true" : "false");
-	fprintf(fp, "\tx: %lld\n", (long long)x);
-	fprintf(fp, "\tScalarPara: %s\n", ScalarPara ? "true" : "false");
-	fprintf(fp, "\tomega: %lld\n", (long long)omega);
-	fprintf(fp, "\tFunction (char): "); printIndices(fp, function);
-	fprintf(fp, "\tIndexDst (char): "); printIndices(fp, indexDst);
-	fprintf(fp, "\tIndexSrc (char): "); printIndices(fp, indexSrc);
-	fprintf(fp, "\tIndexPara (char): "); printIndices(fp, indexPara);
-	fprintf(fp, "\tFuncTensor: "); funcTensor.demo(fp);
+	fprintfTabs(tabs, fp);
+	fprintf(fp, "ScalarInput: %s\n", ScalarInput ? "true" : "false");
+	fprintfTabs(tabs, fp);
+	fprintf(fp, "x: %lld\n", (long long)x);
+	fprintfTabs(tabs, fp);
+	fprintf(fp, "ScalarPara: %s\n", ScalarPara ? "true" : "false");
+	fprintfTabs(tabs, fp);
+	fprintf(fp, "omega: %lld\n", (long long)omega);
+	fprintfTabs(tabs, fp);
+	fprintf(fp, "Function: "); printIndices(fp, function);
+	fprintfTabs(tabs, fp);
+	fprintf(fp, "IndexDst: "); printIndices(fp, indexDst);
+	fprintfTabs(tabs, fp);
+	fprintf(fp, "IndexSrc: "); printIndices(fp, indexSrc);
+	fprintfTabs(tabs, fp);
+	fprintf(fp, "IndexPara: "); printIndices(fp, indexPara);
+	fprintfTabs(tabs, fp);
+	fprintf(fp, "FuncTensor: "); funcTensor.demo(fp);
 	//fprintf(fp, "\tFormula: "); formula.demo(fp);
 }
+
 
 
 LeafNode::LeafNode()
