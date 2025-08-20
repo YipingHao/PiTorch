@@ -2565,9 +2565,11 @@ void context::demo(size_t tabs, FILE* fp) const
 		fprintf(fp, "child contexts(%zu): \n", childs.count());
 	}
 	for (size_t i = 0; i < childs.count(); i++) {
+		fprintfTabs(tabs + 1, fp); 
+		fprintf(fp, "child[%zu]:\n", i);
 		fprintfTabs(tabs + 1, fp);
 		fprintf(fp, "{\n");
-		fprintf(fp, "child[%zu]:\n", i);
+		
 		childs[i]->demo(tabs + 2, fp);
 		fprintfTabs(tabs + 1, fp);
 		fprintf(fp, "}\n");
