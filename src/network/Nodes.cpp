@@ -85,7 +85,7 @@ void Node::Demo(FILE* fp) const
 	fprintf(fp, "\tNetwork: %p\n", network);
 	vortex<Node>::demo(fp);
 }
-void Node::PrintConcise(FILE* fp = stdout) const
+void Node::PrintConcise(FILE* fp) const
 {
 	fprintf(fp, "Node: %p(site: %zu)\n", this, site());
 }
