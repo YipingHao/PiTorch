@@ -197,7 +197,7 @@ void MonoNonlinear::demo(size_t tabs, FILE* fp) const
 	fprintfTabs(tabs, fp);
 	fprintf(fp, "x: %lld\n", (long long)x);
 	fprintfTabs(tabs, fp);
-	fprintf(fp, "Function: "); printIndices(fp, function);
+	//fprintf(fp, "Function: "); printIndices(fp, function);
 	fprintfTabs(tabs, fp);
 	fprintf(fp, "IndexDst: "); printIndices(fp, indexDst);
 	fprintfTabs(tabs, fp);
