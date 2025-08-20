@@ -127,7 +127,7 @@ static void printIndices(FILE* fp, const vector<sint>& indices) {
 
 void LeafNode::demo(FILE* fp) const 
 {
-	Node::Demo(fp);
+	Node::Demo(0, fp);
 	fprintf(fp, "\tLeafType: ");
 	switch ((LeafType)Op) {
 	case _leafIn_: fprintf(fp, "input\n"); break;
@@ -143,7 +143,7 @@ void LeafNode::demo(FILE* fp) const
 }
 void MonoLinear::demo(FILE* fp) const 
 {
-	Node::Demo(fp);
+	Node::Demo(0, fp);
 	fprintf(fp, "\tAlpha: %.16lf\n", alpha);
 	fprintf(fp, "\tIndexDst (char): "); printIndices(fp, indexDst);
 	fprintf(fp, "\tIndexSrc (char): "); printIndices(fp, indexSrc);
@@ -152,7 +152,7 @@ void MonoLinear::demo(FILE* fp) const
 	fprintf(fp, "\tRepeatedIndex: %zu\n", RepeatedIndex);
 }
 void DiLinear::demo(FILE* fp) const {
-	Node::Demo(fp);
+	Node::Demo(0, fp);
 	fprintf(fp, "\tOpType: ");
 	switch ((OpType)Op) {
 	case _add_: fprintf(fp, "add\n"); break;
@@ -167,7 +167,7 @@ void DiLinear::demo(FILE* fp) const {
 	fprintf(fp, "\tRepeatedIndex: %zu\n", RepeatedIndex);
 }
 void MonoNonlinear::demo(FILE* fp) const {
-	Node::Demo(fp);
+	Node::Demo(0, fp);
 	fprintf(fp, "\tScalarInput: %s\n", ScalarInput ? "true" : "false");
 	fprintf(fp, "\tx: %lld\n", (long long)x);
 	fprintf(fp, "\tFunction (char): "); printIndices(fp, function);
@@ -177,7 +177,7 @@ void MonoNonlinear::demo(FILE* fp) const {
 	//fprintf(fp, "\tFormula: "); formula.demo(fp);
 }
 void DiNonlinear::demo(FILE* fp) const {
-	Node::Demo(fp);
+	Node::Demo(0, fp);
 	fprintf(fp, "\tScalarInput: %s\n", ScalarInput ? "true" : "false");
 	fprintf(fp, "\tx: %lld\n", (long long)x);
 	fprintf(fp, "\tScalarPara: %s\n", ScalarPara ? "true" : "false");
