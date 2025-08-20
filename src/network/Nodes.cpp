@@ -6,7 +6,36 @@
 
 using namespace Pikachu;
 
+// Affiliation枚举转字符串
+// Convert Affiliation enum to string
+const char* AffiliationToString(Node::Affiliation affi)
+{
+	switch (affi)
+	{
+	case Node::unknown:   return "unknown";
+	case Node::initial:   return "initial";
+	case Node::dYdX:      return "dYdX";
+	case Node::dLdW:      return "dLdW";
+	case Node::Jacobi_:   return "Jacobi";
+	case Node::Hdv:       return "Hdv";
+	default:              return "Affiliation_Unknown";
+	}
+}
 
+// VortexType枚举转字符串
+// Convert VortexType enum to string
+const char* VortexTypeToString(Node::VortexType type)
+{
+	switch (type)
+	{
+	case Node::_leaf_:           return "Leaf";
+	case Node::_MonoLinear_:     return "MonoLinear";
+	case Node::_DiLinear_:       return "DiLinear";
+	case Node::_MonoNonlinear_:  return "MonoNonlinear";
+	case Node::_DiNonlinear_:    return "DiNonlinear";
+	default:                     return "VortexType_Unknown";
+	}
+}
 
 
 Node::Node()
@@ -55,34 +84,23 @@ void Node::clearCore(void)
 
 // Node类及子类中新增的demo函数实现（使用indiceIS进行索引转换）
 
-// Node类实现
-void Node::Demo(FILE* fp) const 
+// Node类实现（支持缩进）
+// Implementation of Node::Demo with indentation
+void Node::Demo(size_t tabs, FILE* fp) const
 {
+	for (size_t i = 0; i < tabs; ++i) fprintf(fp, "\t");
 	fprintf(fp, "Node: %p(site: %zu)\n", this, site());
-	fprintf(fp, "\tAffiliation: ");
-	switch (Affi) {
-	case unknown: fprintf(fp, "unknown\n"); break;
-	case initial: fprintf(fp, "initial\n"); break;
-	case dYdX: fprintf(fp, "dYdX\n"); break;
-	case dLdW: fprintf(fp, "dLdW\n"); break;
-	case Jacobi_: fprintf(fp, "Jacobi_\n"); break;
-	case Hdv: fprintf(fp, "Hdv\n"); break;
-	default: fprintf(fp, "invalid\n"); break;
-	}
-	fprintf(fp, "\tType: ");
-	switch (Type) {
-	case _leaf_: fprintf(fp, "leaf\n"); break;
-	case _MonoLinear_: fprintf(fp, "MonoLinear\n"); break;
-	case _DiLinear_: fprintf(fp, "DiLinear\n"); break;
-	case _MonoNonlinear_: fprintf(fp, "MonoNonlinear\n"); break;
-	case _DiNonlinear_: fprintf(fp, "DiNonlinear\n"); break;
-	default: fprintf(fp, "invalid\n"); break;
-	}
-	fprintf(fp, "\tOp: %d\n", Op);
-	fprintf(fp, "\tIfOutput: %s, ", IfOutput ? "true" : "false");
-	fprintf(fp, "DataExpand: %s\n", DataExpand ? "true" : "false");
-	fprintf(fp, "\tDescriptor: "); descriptor.demo(fp);
-	fprintf(fp, "\tNetwork: %p\n", network);
+	for (size_t i = 0; i < tabs + 1; ++i) fprintf(fp, "\t");
+	fprintf(fp, "Affiliation: %s, ", AffiliationToString(Affi));
+	fprintf(fp, "Type: %s, ", VortexTypeToString(Type));
+	fprintf(fp, "Op: %d\n", Op);
+	for (size_t i = 0; i < tabs + 1; ++i) fprintf(fp, "\t");
+	fprintf(fp, "IfOutput: %s, ", IfOutput ? "true" : "false");
+	fprintf(fp, "DataExpand: %s, ", DataExpand ? "true" : "false");
+	fprintf(fp, "Network: %p\n", network);
+	for (size_t i = 0; i < tabs + 1; ++i) fprintf(fp, "\t");
+	fprintf(fp, "Descriptor: ");
+	descriptor.demo(fp);
 	vortex<Node>::demo(fp);
 }
 void Node::PrintConcise(FILE* fp) const
