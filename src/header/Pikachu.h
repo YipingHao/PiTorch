@@ -421,7 +421,8 @@ namespace Pikachu
 		void copy(NetWork& source);
 		void forward(size_t No, const vector<size_t> & UpNo, const char*OutputName);
 		void backward(size_t No, const vector<size_t>& DownNo, const char* OutputName);
-
+		void demo(FILE* fp = stdout);
+		void demo(size_t tabs, FILE* fp);
 
 		void gradient(void);
 		void jacobi(void);

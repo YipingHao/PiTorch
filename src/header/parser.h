@@ -263,6 +263,8 @@ namespace Pikachu
 		func();
 		~func();
 		friend class BuildInfor;
+		void demo(FILE* fp = stdout);
+		void demo(size_t tabs, FILE* fp);
 	protected:
 		Expres* Exp;
 		context* realm;
@@ -277,6 +279,8 @@ namespace Pikachu
 		NetInContext();
 		NetInContext(NetInContext* src, context* Realm);
 		~NetInContext();
+		void demo(FILE* fp = stdout);
+		void demo(size_t tabs, FILE* fp);
 		friend class BuildInfor;
 	private:
 		context* realm;
@@ -659,6 +663,7 @@ namespace Pikachu
 		void initial(void);
 	public:
 		void demo(FILE* fp = stdout) const;
+		void demo(size_t tabs, FILE* fp) const;
 		void append(context* child);
 
 		int build(const char* FileName);

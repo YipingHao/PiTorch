@@ -771,352 +771,6 @@ void NetWork::OutputShift(Node* target, Node* source)
 	}
 }
 
-/*
-NeuralNetwork::NeuralNetwork()
-{
-	//input = NULL;
-	//input;
-}
-NeuralNetwork::~NeuralNetwork()
-{
-	size_t i;
-	for (i = 0; i < StaticParameter.count(); i++)
-		delete StaticParameter[i];
-	for (i = 0; i < DynamicParameter.count(); i++)
-		delete DynamicParameter[i];
-	for (i = 0; i < vortex.count(); i++)
-		delete vortex[i];
-}
-void NeuralNetwork::ParameterOffsetBuild(void)
-{
-	size_t offset;
-	size_t i;
-	offset = 0;
-	DynamicParameterOffset.recount(DynamicParameter.count());
-	for (i = 0; i < DynamicParameter.count(); i++)
-	{
-		DynamicParameterOffset[i] = offset;
-		offset += DynamicParameter[i]->GetCount();
-	}
-	DynamicParameterCount = offset;
-
-	if (StaticParameter.count() == 0)return;
-	offset = 0;
-	StaticParameterOffset.recount(StaticParameter.count());
-	for (i = 0; i < StaticParameter.count(); i++)
-	{
-		StaticParameterOffset[i] = offset;
-		offset += StaticParameter[i]->GetCount();
-	}
-	StaticParameterCount = offset;
-}
-void NeuralNetwork::VortexOffsetBuild(void)
-{
-	size_t offset;
-	size_t i, j;
-	offset = 0;
-
-	VortexOffset.recount(vortex.count());
-	for (i = 0; i < vortex.count(); i++)
-	{
-		for (j = 0; j < output.count(); j++)
-			if (output[j] == vortex[i]) break;
-		if (j == output.count())
-		{
-			VortexOffset[i] = offset;
-			offset += vortex[i]->GetDim();
-		}
-
-	}
-	VortexDim = offset;
-}
-
-
-int NeuralNetwork::InputAccomplished(void)
-{
-	ParameterOffsetBuild();
-}
-const char* NeuralNetwork::getInputAccomplishedError(int error)
-{
-	switch (error)
-	{
-	case 0:
-		return "No Error";
-	default:
-		return "Unknown Type";
-	}
-}
-
-
-int NeuralNetwork::GraphUnfold(const tensor& differential)
-{
-	int errorType;
-	
-	vector<size_t> Critical;
-	vector<size_t> Sequence;
-	vector<size_t> FoldPrefix;
-	vector<size_t> OutCount;
-	size_t Xoffset;
-	size_t FuncOffset;
-	size_t TotalNewVortex;
-	size_t i, outCount__, Site, Prefix;
-	int inner(void);
-
-
-
-	errorType = CheckPartialInput(differential);
-	if (errorType != 0) return errorType;
-	errorType = GetFunctionAndX(differential, Xoffset, FuncOffset);
-	if (errorType != 0) return errorType;
-	errorType = CriticalPath(Critical, Xoffset, FuncOffset);
-	if (errorType != 0) return errorType;
-	errorType = SequenceGet(Critical, Sequence, OutCount, FoldPrefix, TotalNewVortex);
-	if (errorType != 0) return errorType;
-
-	for (i = 0; i < Sequence.count(); i++)
-	{
-		outCount__ = OutCount[i];
-		Site = FoldPrefix[i];
-		Prefix = FoldPrefix[i];
-
-	}
-
-
-	return errorType;
-}
-int NeuralNetwork::CheckPartialInput(const tensor& infor) const
-{
-	size_t temp, i;
-	tensor former;
-	if (infor.GetOrder() <= 1) return 1;
-	for (i = 1; i < infor.GetOrder(); i++)
-	{
-		temp = infor[i];
-		if (temp >= input.count()) return 2;
-	}
-	former.CutLast(infor);
-	for (i = 0; i < OutputInfro.count(); i++)
-	{
-		if (infor == OutputInfro[i][0]) return 3;
-	}
-	for (i = 0; i < OutputInfro.count(); i++)
-	{
-		if (former == OutputInfro[i][0]) break;
-	}
-	if (i == OutputInfro.count()) return 4;
-	
-
-
-	return 0;
-}
-int NeuralNetwork::GetFunctionAndX(const tensor& infor, size_t& Xoffset, size_t& FuncOffset) const
-{
-	size_t temp, i;
-	tensor former;
-	Xoffset = infor[infor.GetOrder() - 1];
-	former.CutLast(infor);
-	for (i = 0; i < OutputInfro.count(); i++)
-	{
-		if (former == OutputInfro[i][0]) FuncOffset = i;
-	}
-	return 0;
-}
-int NeuralNetwork::CriticalPath(vector<size_t>& Critical, size_t Xoffset, size_t FuncOffset) const
-{
-	vector<size_t> label1;
-	vector<size_t> label2;
-	size_t i;
-	buffer<size_t> queue;
-
-	queue.append(Xoffset);
-	BFTforward(label1, queue);
-	if (label1.count() != 0) return 5;
-	queue.append(FuncOffset);
-	BFTbackward(label2, queue);
-	if (label1.count() != 0) return 5;
-
-
-	Critical.recount(label1.count());
-	for (i = 0; i < label1.count(); i++)
-	{
-		Critical[i] = label1[i] && label2[i];
-	}
-	return 0;
-}
-int NeuralNetwork::SequenceGet(const vector<size_t>& Critical, vector<size_t>& Sequence, vector<size_t>& OutCount, vector<size_t>& FoldPrefix, size_t & TotalNewVortex) const
-{
-	vector<size_t> back;
-	size_t i, Site, Count, Prefix;
-	TopologicalSortingBack(back);
-	Sequence.clear();
-	Prefix = 0;
-	for (i = 0; i < back.count(); i++)
-	{
-		Site = back[i];
-		if (Critical[Site] != 0)
-		{
-			Sequence.append(Site);
-			Count = OutputCount(Site, Critical);
-			OutCount.append(Count);
-			FoldPrefix.append(Prefix);
-			Prefix += (Count == 0 ? 0 : 2 * Count - 1);
-		}
-	}
-	TotalNewVortex = Prefix;
-	return 0;
-}
-size_t NeuralNetwork::OutputCount(const size_t Site, const vector<size_t>& Critical) const
-{
-	size_t i, Count, length, temp;
-	Vortex* Target;
-	Count = 0;
-	Target = vortex[Site];
-	length = Target->out.count();
-	for (i = 0; i < length; i++)
-	{
-		temp = Target->out[i]->site;
-		Count += (Critical[temp] != 0 ? 1 : 0);
-	}
-	return Count;
-}
-
-
-
-
-
-const char* NeuralNetwork::getUnfoldError(int error)
-{
-	switch (error)
-	{
-	case 0:
-		return "No Error";
-	case 1:
-		return "illegal differential Input: It must be a differential formula";
-	case 2:
-		return "illegal differential Input:independent variable out of range";
-	case 3:
-		return "The differential already exist!";
-	case 4:
-		return "There is no precursor differential!";
-	case 5:
-		return "Critical path error!";
-	default:
-		return "Unknown Type";
-	}
-}
-
-
-void NeuralNetwork::BFTforward(vector<size_t>& label, buffer<size_t> &queue) const
-{
-	size_t head, i, next;
-	Vortex* now;
-	label.recount(vortex.count());
-	label.value(0);
-
-	while (queue.dequeue(head))
-	{
-		if (label[head] == 0)
-		{
-			label[head] = 1;
-			now = vortex[head];
-			for (i = 0; i < now->out.count(); i++)
-			{
-				next = now->out[i]->site;
-				if(label[next] == 0) queue.append(next);
-			}
-		}
-	}
-
-}
-void NeuralNetwork::BFTbackward(vector<size_t>& label, buffer<size_t>& queue) const
-{
-	size_t head, i, next;
-	Vortex* now;
-	label.recount(vortex.count());
-	label.value(0);
-	while (queue.dequeue(head))
-	{
-		if (label[head] == 0)
-		{
-			label[head] = 1;
-			now = vortex[head];
-			for (i = 0; i < now->in.count(); i++)
-			{
-				next = now->in[i]->site;
-				if (label[next] == 0) queue.append(next);
-			}
-		}
-	}
-}
-void NeuralNetwork::TopologicalSorting(vector<size_t>& sequence)const
-{
-	vector<size_t> label;
-	buffer<size_t> queue;
-	size_t head, i, next;
-	Vortex* now;
-	label.recount(vortex.count());
-	sequence.clear();
-	for (i = 0; i < vortex.count(); i++)
-	{
-		label[i] = vortex[i]->in.count();
-		if (label[i] == 0) queue.append(i);
-	}
-	while (queue.dequeue(head))
-	{
-		sequence.append(head);
-		now = vortex[head];
-		for (i = 0; i < now->out.count(); i++)
-		{
-			next = now->out[i]->site;
-			if (label[next] == 0)
-			{
-				
-			}
-			label[next] -= 1;
-			if (label[next] == 0)
-			{
-				queue.append(next);
-			}
-		}
-	}
-}
-void NeuralNetwork::TopologicalSortingBack(vector<size_t>& sequence)const
-{
-	vector<size_t> label;
-	buffer<size_t> queue;
-	size_t head, i, next;
-	Vortex* now;
-	label.recount(vortex.count());
-	sequence.clear();
-	for (i = 0; i < vortex.count(); i++)
-	{
-		label[i] = vortex[i]->out.count();
-		if (label[i] == 0) queue.append(i);
-	}
-	while (queue.dequeue(head))
-	{
-		sequence.append(head);
-		now = vortex[head];
-		for (i = 0; i < now->in.count(); i++)
-		{
-			next = now->in[i]->site;
-#ifdef Debug01
-			if (label[next] == 0)
-			{
-				fprintf(stderr, "Debug01:void NeuralNetwork::TopologicalSortingBack(vector<size_t>& sequence)const\n");
-			}
-#endif // Debug01
-
-			
-			label[next] -= 1;
-			if (label[next] == 0)
-			{
-				queue.append(next);
-			}
-		}
-	}
-}
-*/
 
 
 
@@ -1229,4 +883,69 @@ void NetWork::InputNameSearch(const vector<const char*>& name, const vector<size
 
 
 
+// NetWork类的demo方法实现
+// Implementation of NetWork::demo with indentation and English output
 
+void Pikachu::NetWork::demo(FILE* fp)
+{
+	demo(0, fp);
+}
+
+void Pikachu::NetWork::demo(size_t tabs, FILE* fp)
+{
+	// Print network basic info
+	for (size_t i = 0; i < tabs; ++i) fprintf(fp, "\t");
+	fprintf(fp, "Network Structure:\n");
+
+	// Print input nodes
+	for (size_t i = 0; i < tabs + 1; ++i) fprintf(fp, "\t");
+	fprintf(fp, "Inputs[%zu]:\n", input.count());
+	for (size_t i = 0; i < input.count(); ++i)
+	{
+		for (size_t j = 0; j < tabs + 2; ++j) fprintf(fp, "\t");
+		if (input[i])
+			input[i]->demo(fp);
+		else
+			fprintf(fp, "NULL");
+		fprintf(fp, "\n");
+	}
+
+	// Print parameter nodes
+	for (size_t i = 0; i < tabs + 1; ++i) fprintf(fp, "\t");
+	fprintf(fp, "Parameters[%zu]:\n", parameter.count());
+	for (size_t i = 0; i < parameter.count(); ++i)
+	{
+		for (size_t j = 0; j < tabs + 2; ++j) fprintf(fp, "\t");
+		if (parameter[i])
+			parameter[i]->demo(fp);
+		else
+			fprintf(fp, "NULL");
+		fprintf(fp, "\n");
+	}
+
+	// Print output nodes
+	for (size_t i = 0; i < tabs + 1; ++i) fprintf(fp, "\t");
+	fprintf(fp, "Outputs[%zu]:\n", output.count());
+	for (size_t i = 0; i < output.count(); ++i)
+	{
+		for (size_t j = 0; j < tabs + 2; ++j) fprintf(fp, "\t");
+		if (output[i])
+			output[i]->demo(fp);
+		else
+			fprintf(fp, "NULL");
+		fprintf(fp, "\n");
+	}
+
+	// Print all nodes in graph
+	for (size_t i = 0; i < tabs + 1; ++i) fprintf(fp, "\t");
+	fprintf(fp, "All Nodes[%zu]:\n", net.count());
+	for (size_t i = 0; i < net.count(); ++i)
+	{
+		for (size_t j = 0; j < tabs + 2; ++j) fprintf(fp, "\t");
+		if (net[i])
+			net[i]->demo(fp);
+		else
+			fprintf(fp, "NULL");
+		fprintf(fp, "\n");
+	}
+}

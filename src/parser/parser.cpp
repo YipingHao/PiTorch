@@ -2507,9 +2507,46 @@ void context::ruin(void)
 	nets.clear();
 	parent = NULL;
 }
+void context::demo(size_t tabs, FILE* fp) const
+{
+	fprintf(fp, "context demo:\n");
+
+	// 打印全局变量 / Print global variables
+	fprintf(fp, "global variables(%zu): \n", global.count());
+	for (size_t i = 0; i < global.count(); i++) {
+		global[i]->demo(fp, tabs + 1);
+	}
+
+	// 打印常量对象 / Print constant objects
+	fprintf(fp, "const objects(%zu): \n", Cobj.count());
+	for (size_t i = 0; i < Cobj.count(); i++) {
+		Cobj[i]->demo(fp);
+	}
+
+	// 打印函数 / Print functions
+	fprintf(fp, "functions(%zu): \n", funcs.count());
+	for (size_t i = 0; i < funcs.count(); i++) {
+		fprintf(fp, "func[%zu]:\n", i);
+		funcs[i]->demo(fp);
+	}
+
+	// 打印网络 / Print networks
+	fprintf(fp, "networks(%zu): \n", nets.count());
+	for (size_t i = 0; i < nets.count(); i++) {
+		fprintf(fp, "net[%zu]:\n", i);
+		nets[i]->demo(fp);
+	}
+
+	// 打印子上下文 / Print child contexts
+	fprintf(fp, "child contexts(%zu): \n", childs.count());
+	for (size_t i = 0; i < childs.count(); i++) {
+		fprintf(fp, "child[%zu]:\n", i);
+		childs[i]->demo(tabs + 1, fp);
+	}
+}
 void context::demo(FILE* fp) const
 {
-
+	demo(0, fp);
 }
 void context::append(context* child)
 {

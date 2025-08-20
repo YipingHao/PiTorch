@@ -5,7 +5,7 @@
 using namespace Pikachu;
 static bool compare(const char* str1, const char* str2);
 
-
+typedef hyperlex::BufferChar bufferC;
 
 
 
@@ -685,7 +685,101 @@ void func::ruin(void)
 	realm = NULL;
 	ruinCO();
 }
+// func类的demo方法实现
+// Implementation of func::demo methods
 
+void Pikachu::func::demo(FILE* fp)
+{
+	demo(0, fp);
+}
+void Pikachu::func::demo(size_t tabs, FILE* fp)
+{
+	// 打印带缩进的函数信息 / Print function info with indentation
+	for (size_t i = 0; i < tabs; ++i) fprintf(fp, "\t");
+	fprintf(fp, "Function Name: %s\n", GetName());
+
+	for (size_t i = 0; i < tabs; ++i) fprintf(fp, "\t");
+	fprintf(fp, "InputCount: %zu\n", InputCount);
+
+	for (size_t i = 0; i < tabs; ++i) fprintf(fp, "\t");
+	fprintf(fp, "OutputCount: %zu\n", OutputCount);
+
+	for (size_t i = 0; i < tabs; ++i) fprintf(fp, "\t");
+	fprintf(fp, "ParameterCount: %zu\n", ParaCount);
+
+	for (size_t i = 0; i < tabs; ++i) fprintf(fp, "\t");
+	fprintf(fp, "Expression:\n");
+	// 打印表达式信息 / Print expression info
+	if (Exp)
+	{
+		fprintf(fp, "Expression:\n");
+		// 使用Expres::demo(bufferC& out, bool single, size_t No)和Expres::node::Demo
+		for (size_t i = 0; i < Exp->OutputAmount(); ++i)
+		{
+			bufferC out;
+			Exp->demo(out, InputCount == 1, i); // true表示单行输出
+			for (size_t j = 0; j < tabs + 1; ++j) fprintf(fp, "\t");
+			fprintf(fp, "Outout[%zu]: %s\n", i, out.ptr());
+		}
+	}
+	else
+	{
+		fprintf(fp, "Expression: NULL\n");
+	}
+
+	for (size_t i = 0; i < tabs; ++i) fprintf(fp, "\t");
+	fprintf(fp, "Realm Context:\n");
+	if (realm)
+		realm->demo(tabs + 1, fp);
+	else
+	{
+		for (size_t i = 0; i < tabs + 1; ++i) fprintf(fp, "\t");
+		fprintf(fp, "NULL\n");
+	}
+}
+
+// NetInContext类的demo方法实现
+// Implementation of NetInContext::demo methods
+
+void Pikachu::NetInContext::demo(FILE* fp)
+{
+	demo(0, fp);
+}
+// NetInContext类的demo方法实现
+// Implementation of NetInContext::demo with indentation and bilingual comments
+// NetInContext类的demo方法实现
+// Implementation of NetInContext::demo with indentation and English output
+void Pikachu::NetInContext::demo(size_t tabs, FILE* fp)
+{
+	// Print network name
+	for (size_t i = 0; i < tabs; ++i) fprintf(fp, "\t");
+	fprintf(fp, "Network Name: %s\n", GetName());
+
+	// Print realm context
+	for (size_t i = 0; i < tabs; ++i) fprintf(fp, "\t");
+	fprintf(fp, "Realm Context:\n");
+	if (realm)
+		realm->demo(tabs + 1, fp);
+	else
+	{
+		for (size_t i = 0; i < tabs + 1; ++i) fprintf(fp, "\t");
+		fprintf(fp, "NULL\n");
+	}
+
+	// Print network structure
+	for (size_t i = 0; i < tabs; ++i) fprintf(fp, "\t");
+	fprintf(fp, "Network Structure:\n");
+	if (net)
+	{
+		for (size_t i = 0; i < tabs + 1; ++i) fprintf(fp, "\t");
+		net->demo(tabs + 1, fp);
+	}
+	else
+	{
+		for (size_t i = 0; i < tabs + 1; ++i) fprintf(fp, "\t");
+		fprintf(fp, "NULL\n");
+	}
+}
 
 NetInContext::NetInContext()
 {
