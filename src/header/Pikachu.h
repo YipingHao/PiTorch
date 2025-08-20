@@ -423,7 +423,7 @@ namespace Pikachu
 		void forward(size_t No, const vector<size_t> & UpNo, const char*OutputName);
 		void backward(size_t No, const vector<size_t>& DownNo, const char* OutputName);
 		void demo(FILE* fp = stdout);
-		void demo(size_t tabs, FILE* fp, const vector<Node*> & list, const char * infor);
+		void demo(size_t tabs, FILE* fp, const vector<Node*> & listT, const char * Tinfor);
 		void demo(size_t tabs, FILE* fp);
 
 		void gradient(void);

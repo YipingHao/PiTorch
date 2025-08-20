@@ -893,15 +893,14 @@ void Pikachu::NetWork::demo(FILE* fp)
 void NetWork::demo(size_t tabs, FILE* fp, const vector<Node*>& listT, const char* Tinfor)
 {
 	for (size_t i = 0; i < tabs + 1; ++i) fprintf(fp, "\t");
-	fprintf(fp, "%s, [%zu]:\n", Tinfor, listT.count());
+	fprintf(fp, "%s[%zu]:\n", Tinfor, listT.count());
 	for (size_t i = 0; i < listT.count(); ++i)
 	{
 		for (size_t j = 0; j < tabs + 2; ++j) fprintf(fp, "\t");
 		if (listT[i])
 			listT[i]->PrintConcise(fp);
 		else
-			fprintf(fp, "NULL");
-		fprintf(fp, "\n");
+			fprintf(fp, "NULL\n");
 	}
 }
 void Pikachu::NetWork::demo(size_t tabs, FILE* fp)
@@ -918,6 +917,30 @@ void Pikachu::NetWork::demo(size_t tabs, FILE* fp)
 
 	// 打印输出节点
 	demo(tabs, fp, output, "Outputs");
+
+	// 输出张量描述
+	for (size_t i = 0; i < tabs + 1; ++i) fprintf(fp, "\t");
+	fprintf(fp, "Output Descriptors[%zu]:\n", OutDesc.count());
+	for (size_t i = 0; i < OutDesc.count(); ++i) {
+		for (size_t j = 0; j < tabs + 2; ++j) fprintf(fp, "\t");
+		if (OutDesc[i])
+			OutDesc[i]->demo(fp);
+		else
+			fprintf(fp, "NULL");
+		fprintf(fp, "\n");
+	}
+
+	// 梯度相关
+	demo(tabs, fp, BackSrc, "Gradient Source Nodes (BackSrc)");
+	demo(tabs, fp, BackOut, "Gradient Output Nodes (BackOut)");
+
+	// Hessian相关
+	demo(tabs, fp, HvSrc, "Hessian Source Nodes (HvSrc)");
+	demo(tabs, fp, HvOut, "Hessian Output Nodes (HvOut)");
+
+	// Jacobi相关
+	demo(tabs, fp, JacobiSrc, "Jacobi Source Nodes (JacobiSrc)");
+	demo(tabs, fp, JacobiOut, "Jacobi Output Nodes (JacobiOut)");
 
 	// Print all nodes in graph
 	for (size_t i = 0; i < tabs + 1; ++i) fprintf(fp, "\t");
