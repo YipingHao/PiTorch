@@ -83,7 +83,10 @@ void Node::clearCore(void)
 
 
 // Node类及子类中新增的demo函数实现（使用indiceIS进行索引转换）
-
+void Node::demo(FILE* fp = stdout) const
+{
+	demo(0, fp);
+}
 // Node类实现（支持缩进）
 // Implementation of Node::Demo with indentation
 void Node::Demo(size_t tabs, FILE* fp) const
@@ -125,9 +128,9 @@ static void printIndices(FILE* fp, const vector<sint>& indices) {
 
 }
 
-void LeafNode::demo(FILE* fp) const 
+void LeafNode::demo(size_t tabs, FILE* fp) const
 {
-	Node::Demo(0, fp);
+	Node::Demo(tabs, fp);
 	fprintf(fp, "\tLeafType: ");
 	switch ((LeafType)Op) {
 	case _leafIn_: fprintf(fp, "input\n"); break;
@@ -141,9 +144,9 @@ void LeafNode::demo(FILE* fp) const
 	//}
 	fprintf(fp, "\tLabel: %zu\n", Label);
 }
-void MonoLinear::demo(FILE* fp) const 
+void MonoLinear::demo(size_t tabs, FILE* fp) const
 {
-	Node::Demo(0, fp);
+	Node::Demo(tabs, fp);
 	fprintf(fp, "\tAlpha: %.16lf\n", alpha);
 	fprintf(fp, "\tIndexDst (char): "); printIndices(fp, indexDst);
 	fprintf(fp, "\tIndexSrc (char): "); printIndices(fp, indexSrc);
@@ -151,8 +154,8 @@ void MonoLinear::demo(FILE* fp) const
 	fprintf(fp, "\tNewIndex: %zu\n", NewIndex);
 	fprintf(fp, "\tRepeatedIndex: %zu\n", RepeatedIndex);
 }
-void DiLinear::demo(FILE* fp) const {
-	Node::Demo(0, fp);
+void DiLinear::demo(size_t tabs, FILE* fp) const {
+	Node::Demo(tabs, fp);
 	fprintf(fp, "\tOpType: ");
 	switch ((OpType)Op) {
 	case _add_: fprintf(fp, "add\n"); break;
@@ -166,8 +169,8 @@ void DiLinear::demo(FILE* fp) const {
 	fprintf(fp, "\tDummyIndex: %zu\n", DummyIndex);
 	fprintf(fp, "\tRepeatedIndex: %zu\n", RepeatedIndex);
 }
-void MonoNonlinear::demo(FILE* fp) const {
-	Node::Demo(0, fp);
+void MonoNonlinear::demo(size_t tabs, FILE* fp) const {
+	Node::Demo(tabs, fp);
 	fprintf(fp, "\tScalarInput: %s\n", ScalarInput ? "true" : "false");
 	fprintf(fp, "\tx: %lld\n", (long long)x);
 	fprintf(fp, "\tFunction (char): "); printIndices(fp, function);
@@ -176,8 +179,8 @@ void MonoNonlinear::demo(FILE* fp) const {
 	fprintf(fp, "\tFuncTensor: "); funcTensor.demo(fp);
 	//fprintf(fp, "\tFormula: "); formula.demo(fp);
 }
-void DiNonlinear::demo(FILE* fp) const {
-	Node::Demo(0, fp);
+void DiNonlinear::demo(size_t tabs, FILE* fp) const {
+	Node::Demo(tabs, fp);
 	fprintf(fp, "\tScalarInput: %s\n", ScalarInput ? "true" : "false");
 	fprintf(fp, "\tx: %lld\n", (long long)x);
 	fprintf(fp, "\tScalarPara: %s\n", ScalarPara ? "true" : "false");

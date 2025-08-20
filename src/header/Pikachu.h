@@ -160,7 +160,8 @@ namespace Pikachu
 		virtual void clear(void) = 0;
 		virtual void PrintScreen(FILE* fp = stdout)const = 0;
 		virtual bool IsConst(const FuncConst & value) const = 0;
-		virtual void demo(FILE* fp = stdout) const = 0;
+		void demo(FILE* fp = stdout) const;
+		virtual void demo(size_t tabs, FILE* fp) const = 0;
 		virtual bool IsZero(void) const = 0;
 		void setDesc(const Tensor& desc);
 		void setDesc(const vector<size_t>& desc);
@@ -212,7 +213,7 @@ namespace Pikachu
 		void clear(void);
 		void PrintScreen(FILE* fp = stdout)const;
 		bool IsConst(const FuncConst& value) const;
-		void demo(FILE* fp = stdout) const;
+		void demo(size_t tabs, FILE* fp = stdout) const;
 		bool IsZero(void) const;
 		void zero(void);
 	};
@@ -235,7 +236,7 @@ namespace Pikachu
 		void PrintScreen(FILE* fp = stdout)const;
 		bool IsConst(const FuncConst& value) const;
 		bool IsZero(void) const;
-		void demo(FILE* fp = stdout) const;
+		void demo(size_t tabs, FILE* fp = stdout) const;
 	protected:
 		double alpha;
 		vector<sint> indexDst;
@@ -271,7 +272,7 @@ namespace Pikachu
 		void PrintScreen(FILE* fp = stdout)const;
 		bool IsConst(const FuncConst& value) const;
 		bool IsZero(void) const;
-		void demo(FILE* fp = stdout) const;
+		void demo(size_t tabs, FILE* fp = stdout) const;
 	protected:
 		//elementwise descE;
 		vector<sint> indexDst;
@@ -339,7 +340,7 @@ namespace Pikachu
 		void PrintScreen(FILE* fp = stdout)const;
 		bool IsConst(const FuncConst& value) const;
 		bool IsZero(void) const;
-		void demo(FILE* fp = stdout) const;
+		void demo(size_t tabs, FILE* fp = stdout) const;
 
 		int build(const dims_t& dims, Node* srcL, Expres* func, indiceIS& indice);
 		ErrorInfor CheckIndice(void) const;
@@ -360,7 +361,7 @@ namespace Pikachu
 		void PrintScreen(FILE* fp = stdout)const;
 		bool IsConst(const FuncConst& value) const;
 		bool IsZero(void) const;
-		void demo(FILE* fp = stdout) const;
+		void demo(size_t tabs, FILE* fp = stdout) const;
 	protected:
 		Tensor funcTensor;
 
