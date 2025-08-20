@@ -480,7 +480,7 @@ Node* NetWork::NewNodeLeaf(const dims_t& dims, Node::LeafType T)
 	LeafNode* New = new LeafNode(this, T, Node::initial);
 	New->setDesc(dims);
 	NodeAppend(New);
-	switch (T)
+	/*switch (T)
 	{
 	case Pikachu::Node::_leafIn_:
 		input.append(New);
@@ -492,7 +492,7 @@ Node* NetWork::NewNodeLeaf(const dims_t& dims, Node::LeafType T)
 		break;
 	default:
 		break;
-	}
+	}*/
 	return New;
 }
 Node* NetWork::NewNodeMonoLinear(const dims_t&dims, Node* src, double factor_, indiceIS& indice)
