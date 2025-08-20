@@ -2559,11 +2559,18 @@ void context::demo(size_t tabs, FILE* fp) const
 	}
 
 	// 打印子上下文 / Print child contexts
-	fprintfTabs(tabs, fp);
-	fprintf(fp, "child contexts(%zu): \n", childs.count());
+	if (childs.count())
+	{
+		fprintfTabs(tabs, fp);
+		fprintf(fp, "child contexts(%zu): \n", childs.count());
+	}
 	for (size_t i = 0; i < childs.count(); i++) {
+		fprintfTabs(tabs + 1, fp);
+		fprintf(fp, "{\n");
 		fprintf(fp, "child[%zu]:\n", i);
-		childs[i]->demo(tabs + 1, fp);
+		childs[i]->demo(tabs + 2, fp);
+		fprintfTabs(tabs + 1, fp);
+		fprintf(fp, "}\n");
 	}
 }
 void context::demo(FILE* fp) const
