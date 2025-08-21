@@ -180,10 +180,10 @@ namespace Pikachu
 			TENSORID_TENSORID_ = 82,
 			TENSOR_TENSOR_ = 83,
 			INDEXLIST_INDEXLIST_ = 84,
-			INDEXUNITS_single_ = 85,
-			INDEXUNITS_multi_ = 86,
-			ID2_yes_ = 87,
-			ID2_no_ = 88,
+			INDEXUNITS_null_ = 85,
+			INDEXUNITS_done_ = 86,
+			ID2_single_ = 87,
+			ID2_multi_ = 88,
 			TENSORVALUE_single_ = 89,
 			TENSORVALUE_single1_ = 90,
 			TENSORVALUE_multi_ = 91,
@@ -247,8 +247,8 @@ namespace Pikachu
 		static const size_t NonTerminalCount;
 		static const size_t TerminalCount;
 		static const size_t RulesCount;
-		static const int GOTO[189][47];
-		static const int ACTION[189][55];
+		static const int GOTO[188][47];
+		static const int ACTION[188][55];
 		static const int RulesToSymbol[97];
 		static const int RulesLength[97];
 		static const char* const RulesName[97];
