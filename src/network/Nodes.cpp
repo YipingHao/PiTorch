@@ -120,12 +120,12 @@ static void printIndices(FILE* fp, const vector<sint>& indices) {
 	converter.appendI(indices);
 	converter.ItoS();
 
-	fprintf(fp, "[");
-	for (size_t i = 0; i < converter.Scount(); i++) {
-		const vector<char*>& strIndices = converter.S(i);
-		for (size_t j = 0; j < strIndices.count(); j++) {
-			fprintf(fp, "%s%s", strIndices[j], j < strIndices.count() - 1 ? ", " : "");
-		}
+	
+	const vector<char*>& strIndices = converter.S(0);
+	fprintf(fp, "(%zu)[", strIndices.count());
+	for (size_t j = 0; j < strIndices.count(); j++)
+	{
+		fprintf(fp, "%s%s", strIndices[j], j < strIndices.count() - 1 ? ", " : "");
 	}
 	fprintf(fp, "]\n");
 
