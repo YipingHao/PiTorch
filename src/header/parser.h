@@ -351,6 +351,8 @@ namespace Pikachu
 			ErrorSelfCheck,
 			ErrorUndefined,
 			buildUndone,
+
+			ErrorNewNodeMonoNonlinear,
 		};
 		int build(const char* FileName, context* dst);
 		void ErrorDemo(FILE* fp = stdout) const;

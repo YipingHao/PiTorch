@@ -2023,7 +2023,7 @@ int BuildInfor::buildTENSORsingleF(Node*& newNode, const vector<size_t>& dims, T
 	newNode = net->NewNodeMonoNonlinear(dims, srcL, funcR->Exp, IS);
 	if (newNode == NULL)
 	{
-		errorCode = ErrorUnsupportType;
+		errorCode = ErrorNewNodeMonoNonlinear;
 		errorInfor1 = line;
 		ErrorNode = TENSORID;
 		return 42245341;
