@@ -1695,7 +1695,7 @@ MonoNonlinear::ErrorInfor MonoNonlinear::CheckIndice(void) const
 		size_t siteFunc = function.search(temp);
 		if (siteSrc == _uintMax_ && siteFunc == _uintMax_) return IndexDstNotInIndexSrcOrFunction;
 	}
-	//4.检查 indexSrc或function中的指标，如果不是x，那么必须在indexDst中
+	//4.检查 indexSrc中的指标，如果不是x，那么必须在indexDst中
 	for (size_t i = 0; i < indexSrc.count(); ++i)
 	{
 		sint temp = indexSrc[i];
@@ -1703,10 +1703,12 @@ MonoNonlinear::ErrorInfor MonoNonlinear::CheckIndice(void) const
 		size_t siteDst = indexDst.search(temp);
 		if (siteDst == _uintMax_) return IndexSrcOrFunctionNotInIndexDst;
 	}
+	//5.检查 function中的指标，不能是x，必须在indexDst中
 	for (size_t i = 0; i < function.count(); ++i)
 	{
 		sint temp = function[i];
-		if (temp == x) continue; // 如果是 x，跳过检查
+		if (temp == x) return FunctionContainsX; 
+		// function 中包含 x 或不在 indexDst 中
 		size_t siteDst = indexDst.search(temp);
 		if (siteDst == _uintMax_) return IndexSrcOrFunctionNotInIndexDst;
 	}
@@ -1908,7 +1910,7 @@ DiNonlinear::ErrorInfor DiNonlinear::CheckIndice(void) const
 		size_t siteFunc = function.search(temp);
 		if (siteSrc == _uintMax_ && siteFunc == _uintMax_) return IndexDstNotInIndexSrcOrFunction;
 	}
-	//5.检查 indexSrc或function中的指标，如果不是x，那么必须在indexDst中
+	//5.检查 indexSrc中的指标，如果不是x，那么必须在indexDst中
 	for (size_t i = 0; i < indexSrc.count(); ++i)
 	{
 		sint temp = indexSrc[i];
@@ -1916,14 +1918,15 @@ DiNonlinear::ErrorInfor DiNonlinear::CheckIndice(void) const
 		size_t siteDst = indexDst.search(temp);
 		if (siteDst == _uintMax_) return IndexSrcOrFunctionNotInIndexDst;
 	}
+	//6.检查 function中的指标，不能是x，不能是omega，必须在indexDst中
 	for (size_t i = 0; i < function.count(); ++i)
 	{
 		sint temp = function[i];
-		if (temp == x || temp == omega) continue; // 如果是 x，跳过检查
+		if (temp == x || temp == omega) return FunctionContainsXOrOmega;
 		size_t siteDst = indexDst.search(temp);
 		if (siteDst == _uintMax_) return IndexSrcOrFunctionNotInIndexDst;
 	}
-	//6.检查x是否等于omega
+	//7.检查x是否等于omega
 	if (!ScalarInput && !ScalarPara && x == omega) return XEqualOmega; // x 等于 omega，报错
 	
 	return NoError;
@@ -2058,7 +2061,7 @@ void indiceIS::StoI(void)
 			const char* str = (*temp)[j];
 			if (str == NULL)
 			{
-				(*newI)[j] = -1; // 使用 -1 作为特殊标记
+				(*newI)[j] = InvalidLabal(); // 使用 -1 作为特殊标记
 			}
 			else
 			{

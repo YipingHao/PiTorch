@@ -71,6 +71,11 @@ namespace Pikachu
 		void appendI(const vector<sint>& I);
 		/** 将数字索引转换为字符串表示 | Convert numerical index to string representation */
 		static char* IndexToString(size_t index);
+
+		inline static sint InvalidLabal(void)
+		{
+			return -1;
+		}
 	};
 
 	class network;
@@ -325,8 +330,10 @@ namespace Pikachu
 			XInIndexDst,
 			//indexDst中的指标不在indexSrc 或 function 中
 			IndexDstNotInIndexSrcOrFunction,
-			// 检查 indexSrc或function中的指标，如果不是x，那么必须在indexDst中
+			// 检查 indexSrc中的指标，如果不是x，那么必须在indexDst中
 			IndexSrcOrFunctionNotInIndexDst,
+			//检查 function中的指标，不能是x，必须在indexDst中
+			FunctionContainsX
 		};
 		MonoNonlinear();
 		MonoNonlinear(Affiliation AA);
@@ -402,6 +409,7 @@ namespace Pikachu
 			// 检查 indexSrc或function中的指标，如果不是x，那么必须在indexDst中
 			IndexSrcOrFunctionNotInIndexDst,
 			XEqualOmega,//
+			FunctionContainsXOrOmega,// 
 		};
 		int build(const dims_t& dims, Node* srcL, Node* srcR, Expres* func, indiceIS& indice);
 		ErrorInfor CheckIndice(void) const;

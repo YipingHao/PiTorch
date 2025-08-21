@@ -1980,7 +1980,11 @@ int BuildInfor::buildTENSORsingleF(Node*& newNode, const vector<size_t>& dims, T
 	}
 	context* dst = Net->realm;
 	NetWork* net = Net->net;
-
+	//tensorDef2: TENSOR TENSORID assign TENSORVALUE semicolon;
+	//singleF: TENSORID SQ_INDEXUNITS left  TENSORID  right;
+	//           0            1         2      3       4
+	//        algebraic<->  [-]        (  hidden[1]<i>  )
+	//tensor[dims[2]] activation[1]<i> = algebraic <->[-](hidden[1]<i>);
 	GTNode* TENSORID = TENSORVALUE->child(0);
 	TensorID funR;
 	int error = funR.BuildSingle(eme, TENSORID, this, dst);
