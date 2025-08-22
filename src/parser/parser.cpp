@@ -1888,8 +1888,18 @@ int BuildInfor::buildTENSORsingle(Node*& newNode, const vector<size_t>& dims, Te
 	IS.appendS(idL.GetSIndex());
 	IS.StoI();
 
-
-	newNode = net->NewNodeMonoLinear(dims, srcL, alpha, IS);
+	try
+	{
+		newNode = net->NewNodeMonoLinear(dims, srcL, alpha, IS);
+	}
+	catch (hyperlex::dictionary* Error)
+	{
+		hyperlex::dictionary* Err = getAdict();
+		Err->append("error", "net->NewNodeMonoLinear failed");
+		Err->append("location", "buildTENSORsingle::1743");
+		Err->append("src", Error);
+		return 73445543;
+	}
 	if (newNode == NULL)
 	{
 		errorCode = ErrorUnsupportType;
@@ -2020,7 +2030,18 @@ int BuildInfor::buildTENSORsingleF(Node*& newNode, const vector<size_t>& dims, T
 	IS.StoI();
 
 
-	newNode = net->NewNodeMonoNonlinear(dims, srcL, funcR->Exp, IS);
+	try
+	{
+		newNode = net->NewNodeMonoNonlinear(dims, srcL, funcR->Exp, IS);
+	}
+	catch(hyperlex::dictionary* Error)
+	{
+		hyperlex::dictionary* Err = getAdict();
+		Err->append("error", "net->NewNodeMonoNonlinear failed");
+		Err->append("location", "buildTENSORsingleF::1781");
+		Err->append("src", Error);
+		return 73445543;
+	}
 	if (newNode == NULL)
 	{
 		errorCode = ErrorNewNodeMonoNonlinear;
@@ -2086,8 +2107,18 @@ int BuildInfor::buildTENSORmultiF(Node*& newNode, const vector<size_t>& dims, Te
 	IS.appendS(idSrcR.GetSIndex());
 	IS.StoI();
 
-
-	newNode = net->NewNodeDiNonlinear(dims, srcL, srcR, funcR->Exp, IS);
+	try
+	{
+		newNode = net->NewNodeDiNonlinear(dims, srcL, srcR, funcR->Exp, IS);
+	}
+	catch (hyperlex::dictionary* Error)
+	{
+		hyperlex::dictionary* Err = getAdict();
+		Err->append("error", "net->NewNodeDiNonlinear failed");
+		Err->append("location", "buildTENSORmultiF::2108");
+		Err->append("src", Error);
+		return 73445543;
+	}
 	if (newNode == NULL)
 	{
 		errorCode = ErrorUnsupportType;
@@ -2479,6 +2510,8 @@ const char* BuildInfor::errorTypeGet(BuildInfor::errorType error)
 		return "ErrorUndefined";
 	case errorType::buildUndone:
 		return "buildUndone";
+	case errorType::ErrorNewNodeMonoNonlinear:
+		return "ErrorNewNodeMonoNonlinear";
 	default:
 		return "????";
 	}

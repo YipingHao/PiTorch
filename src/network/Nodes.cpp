@@ -1654,18 +1654,19 @@ int MonoNonlinear::build(const dims_t& dims, Node* srcL, Expres* func, indiceIS&
 
 	formula.build(func);
 	ScalarInput = formula.ScalarInput();
-	if (1 < listI.count())
+	if (1 == listI.count())
 	{
-		return 2343223; // 错误代码，函数索引维度不匹配
+		x = listI[0];
 	}
 	else if(listI.count() == 0)
 	{
 		x = -1; // 错误代码，函数索引维度为空
 	}
-	else if (!ScalarInput) x = listI[0];
 	funcTensor.Set(formula.GetDims());
 	
-	function.copy(funcI);
+	if(funcI.count() == 1 && funcI[0] != indiceIS::InvalidLabal())
+		function.copy(funcI);
+	
 
 	indexDst.copy(dstI);
 	indexSrc.copy(srcLI);
@@ -1713,6 +1714,8 @@ MonoNonlinear::ErrorInfor MonoNonlinear::CheckIndice(void) const
 	{
 		sint temp = function[i];
 		if (temp == x) return FunctionContainsX; 
+		size_t siteSrc = indexSrc.search(temp);
+		if (siteSrc != _uintMax_) return FunctionContainsX;
 		// function 中包含 x 或不在 indexDst 中
 		size_t siteDst = indexDst.search(temp);
 		if (siteDst == _uintMax_) return IndexSrcOrFunctionNotInIndexDst;
@@ -1870,7 +1873,8 @@ int DiNonlinear::build(const dims_t& dims, Node* srcL, Node* srcR, Expres* func,
 	funcTensor.Set(formula.GetDims());
 	if (!ScalarInput) x = listI[0];
 	if (!ScalarPara) omega = listI[1];
-	function.copy(funcI);
+	if (funcI.count() == 1 && funcI[0] != indiceIS::InvalidLabal())
+		function.copy(funcI);
 	indexDst.copy(dstI);
 	indexSrc.copy(srcLI);
 	indexPara.copy(srcRI);
@@ -1928,6 +1932,8 @@ DiNonlinear::ErrorInfor DiNonlinear::CheckIndice(void) const
 	{
 		sint temp = function[i];
 		if (temp == x || temp == omega) return FunctionContainsXOrOmega;
+		size_t siteSrc = indexSrc.search(temp);
+		if (siteSrc != _uintMax_) return FunctionContainsXOrOmega;
 		size_t siteDst = indexDst.search(temp);
 		if (siteDst == _uintMax_) return IndexSrcOrFunctionNotInIndexDst;
 	}

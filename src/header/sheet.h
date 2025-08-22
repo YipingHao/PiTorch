@@ -181,17 +181,18 @@ namespace Pikachu
 			TENSOR_TENSOR_ = 83,
 			INDEXLIST_INDEXLIST_ = 84,
 			INDEXUNITS_null_ = 85,
-			INDEXUNITS_done_ = 86,
-			ID2_single_ = 87,
-			ID2_multi_ = 88,
-			TENSORVALUE_single_ = 89,
-			TENSORVALUE_single1_ = 90,
-			TENSORVALUE_multi_ = 91,
-			TENSORVALUE_singleF_ = 92,
-			TENSORVALUE_multiF_ = 93,
-			SUMSYMBOL_single_ = 94,
-			SUMSYMBOL_multi_ = 95,
-			SQ_INDEXUNITS_single_ = 96
+			INDEXUNITS_single_ = 86,
+			INDEXUNITS_multi_ = 87,
+			ID2_yes_ = 88,
+			ID2_no_ = 89,
+			TENSORVALUE_single_ = 90,
+			TENSORVALUE_single1_ = 91,
+			TENSORVALUE_multi_ = 92,
+			TENSORVALUE_singleF_ = 93,
+			TENSORVALUE_multiF_ = 94,
+			SUMSYMBOL_single_ = 95,
+			SUMSYMBOL_multi_ = 96,
+			SQ_INDEXUNITS_single_ = 97
 		};
 		enum nonterminal
 		{
@@ -247,12 +248,12 @@ namespace Pikachu
 		static const size_t NonTerminalCount;
 		static const size_t TerminalCount;
 		static const size_t RulesCount;
-		static const int GOTO[188][47];
-		static const int ACTION[188][55];
-		static const int RulesToSymbol[97];
-		static const int RulesLength[97];
-		static const char* const RulesName[97];
-		static const int Implicit[97];
+		static const int GOTO[189][47];
+		static const int ACTION[189][55];
+		static const int RulesToSymbol[98];
+		static const int RulesLength[98];
+		static const char* const RulesName[98];
+		static const int Implicit[98];
 	};
 	struct NetPreL
 	{

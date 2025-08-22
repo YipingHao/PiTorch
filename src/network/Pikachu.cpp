@@ -570,6 +570,17 @@ Node* NetWork::NewNodeDiLinear(const dims_t& dims, Node* srcL, Node* srcR, Node:
 Node* NetWork::NewNodeMonoNonlinear(const dims_t& dims, Node* srcL, Expres* func, indiceIS& indice)
 {
 	if (indice.Icount() != 4) return NULL;
+	vector<sint> const& funcI = indice.I(1);//IS.appendS(funR.GetSIndex());
+	vector<sint> const& listI = indice.I(2);//IS.appendS(listFunc.GetSIndex());
+	if (funcI.count() > 1 && listI.count() > 1)
+	{
+		hyperlex::dictionary* error = new hyperlex::dictionary;
+		error->append("location", "NewNodeMonoNonlinear");
+		error->append("funcICount", funcI.count());
+		error->append("listICount", listI.count());
+		error->append("error", "(funcI.count() > 1 && listI.count() > 1)");
+		throw error;
+	}
 	MonoNonlinear* dst = new MonoNonlinear(Node::initial);
 	int error = dst->build(dims, srcL, func, indice);
 	if (error != 0)
