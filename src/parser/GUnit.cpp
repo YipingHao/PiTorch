@@ -1291,7 +1291,7 @@ int Indexs::buildINDEXUNITS(const lex& eme, GTNode* INDEXUNITS, BuildInfor* info
 				case Pikachu::NetG::ID2_multi_:
 				case Pikachu::NetG::ID2_single_:
 				{
-					GTNode* ID2 = GT->child(2);
+					GTNode* ID2 = GT;
 					if (ID2 == NULL) return 43593; // °²È«¼ì²é
 					append(eme, ID2, infor, dst);
 					break;
