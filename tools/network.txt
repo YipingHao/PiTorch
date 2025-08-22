@@ -17,26 +17,16 @@
 	TENSOR: tensor squareL VALUELIST squareR;
 	INDEXLIST: angleL INDEXUNITS angleR;
 	
-	/*INDEXUNITS: 
+	INDEXUNITS: 
 	{
+		null: void;
 		single: ID2;
 		multi: INDEXUNITS comma ID2;
 	}
 	ID2:
 	{
 		yes: id;
-		no: sub;
-	}*/
-
-	INDEXUNITS: 
-	{
-		null: void;
-		done: ID2;
-	}
-	ID2:
-	{
-		single: id;
-		multi: ID2 comma id;
+		no: dot;
 	}
 
 	TENSORVALUE:

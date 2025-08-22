@@ -1654,12 +1654,17 @@ int MonoNonlinear::build(const dims_t& dims, Node* srcL, Expres* func, indiceIS&
 
 	formula.build(func);
 	ScalarInput = formula.ScalarInput();
-	if (1 != listI.count())
+	if (1 < listI.count())
 	{
 		return 2343223; // 错误代码，函数索引维度不匹配
 	}
+	else if(listI.count() == 0)
+	{
+		x = -1; // 错误代码，函数索引维度为空
+	}
+	else if (!ScalarInput) x = listI[0];
 	funcTensor.Set(formula.GetDims());
-	if (!ScalarInput) x = listI[0];
+	
 	function.copy(funcI);
 
 	indexDst.copy(dstI);
