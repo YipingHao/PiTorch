@@ -1292,7 +1292,7 @@ int Indexs::buildINDEXUNITS(const lex& eme, GTNode* INDEXUNITS, BuildInfor* info
 				case Pikachu::NetG::ID2_single_:
 				{
 					GTNode* ID2 = GT->child(2);
-					if (ID2 == NULL) return 4353; // 安全检查
+					if (ID2 == NULL) return 43593; // 安全检查
 					append(eme, ID2, infor, dst);
 					break;
 				}
@@ -1302,7 +1302,7 @@ int Indexs::buildINDEXUNITS(const lex& eme, GTNode* INDEXUNITS, BuildInfor* info
 		}
 		return 0;
 	}
-	return 43534543;
+	return 493534543;
 }
 int Indexs::buildSUMSYMBOL(const lex& eme, GTNode* SUMSYMBOL, BuildInfor* infor, context* dst)
 {
@@ -1482,7 +1482,7 @@ int ValueList::build(const lex& eme, GTNode* VALUELIST, BuildInfor* infor, conte
 	}
 	values.append(output); // 将ConstObj添加到values向量中
 	GTNode* VALUES = VALUELIST->child(1);
-	if (VALUES == NULL) return 4353; // 安全检查
+	if (VALUES == NULL) return 4378653; // 安全检查
 	//printf("VALUES->ChildCount() %zu\n", VALUES->ChildCount());
 	for (size_t i = 0; i < VALUES->ChildCount(); i++)
 	{
@@ -1503,7 +1503,7 @@ int ValueList::build(const lex& eme, GTNode* VALUELIST, BuildInfor* infor, conte
 			infor->errorCode = BuildInfor::ErrorListTypeMismatch; // 类型不匹配错误
 			infor->errorInfor1 = i; // 错误索引
 			infor->ErrorNode = VALUELIST; // 错误节点
-			return 43535; // 返回错误代码
+			return 4439535; // 返回错误代码
 		}
 	}
 	return 0;
@@ -1519,7 +1519,7 @@ int ValueList::checkInt(BuildInfor* infor) const
 	{
 		infor->errorCode = BuildInfor::ErrorListTypeMismatch; // 类型不匹配错误
 		infor->ErrorNode = backup; // 错误节点（可选）
-		return 43535; // 返回错误代码
+		return 493535; // 返回错误代码
 	}
 	return 0;
 }
@@ -1529,7 +1529,7 @@ int ValueList::checkIndex(BuildInfor* infor) const
 	{
 		infor->errorCode = BuildInfor::ErrorListTypeMismatch; // 类型不匹配错误
 		infor->ErrorNode = backup; // 错误节点（可选）
-		return 43535; // 返回错误代码
+		return 43593587; // 返回错误代码
 	}
 	if (GetType() == ConstObj::_sint_)
 	{
@@ -1551,7 +1551,7 @@ int ValueList::checkDim(BuildInfor* infor) const
 	{
 		infor->errorCode = BuildInfor::ErrorListTypeMismatch; // 类型不匹配错误
 		infor->ErrorNode = backup; // 错误节点（可选）
-		return 43535; // 返回错误代码
+		return 43953785; // 返回错误代码
 	}
 	for (size_t i = 0; i < values.count(); i++)
 	{
