@@ -529,7 +529,7 @@ namespace Pikachu
 		vector<char*> Tindex;
 		char* copy(const char* src) const;
 		void append(const char* src);
-		void append(const lex& eme, GTNode* ID2, BuildInfor* infor, context* dst);
+		//void append(const lex& eme, GTNode* ID2, BuildInfor* infor, context* dst);
 	public:
 		inline const char* operator[](size_t No) const
 		{

@@ -1220,18 +1220,19 @@ void Indexs::append(const lex& eme, GTNode* ID2, BuildInfor* infor, context* dst
 {
 	if (ID2 == NULL) return;
 	NetG::rules Rule = (NetG::rules)ID2->root().site;
-	if (Rule == NetG::rules::ID2_yes_)
+	GTNode* id = NULL;
+	if (Rule == NetG::rules::ID2_single_)
 	{
-		GTNode* id = ID2->child(0);
-		const char* name = eme.GetWord(id->root().site);
-		char* newName = copy(name);
-		Tindex.append(newName);
-		return;
+		id = ID2->child(0);
 	}
-	else
+	else //if( Rule == NetG::rules::ID2_multi_)
 	{
-		Tindex.append(NULL);
+		id = ID2->child(2);
 	}
+	const char* name = eme.GetWord(id->root().site);
+	char* newName = copy(name);
+	Tindex.append(newName);
+	return;
 }
 int Indexs::buildSQ_INDEXUNITS(const lex& eme, GTNode* SQ_INDEXUNITS, BuildInfor* infor, context* dst)
 {
@@ -1269,35 +1270,39 @@ int Indexs::buildINDEXUNITS(const lex& eme, GTNode* INDEXUNITS, BuildInfor* info
 		infor->errorCode = BuildInfor::WrongEntrance;
 		return 24522343;
 	}
-	GTiterator iterator;
-	iterator.initial(INDEXUNITS);
-	while (iterator.still())
+	NetG::rules Rule = (NetG::rules)INDEXUNITS->root().site;
+	if(Rule == NetG::INDEXUNITS_null_)
 	{
-		GTNode* GT = iterator.target();
-		if (iterator.state() == 1)
-		{
-			NetG::rules Rule = (NetG::rules)GT->root().site;
-			switch (Rule)
-			{
-			case Pikachu::NetG::INDEXUNITS_single_:
-			{
-				GTNode* ID2 = GT->child(0);
-				if (ID2 == NULL) return 4353; // 安全检查
-				append(eme, ID2, infor, dst);
-				break;
-			}
-			case Pikachu::NetG::INDEXUNITS_multi_:
-			{
-				GTNode* ID2 = GT->child(2);
-				if (ID2 == NULL) return 4353; // 安全检查
-				append(eme, ID2, infor, dst);
-				break;
-			}
-			}
-		}
-		iterator.next();
+		// 空的INDEXUNITS
+		return 0;
 	}
-	return 0;
+	else if (Rule == NetG::INDEXUNITS_done_)
+	{
+		GTiterator iterator;
+		iterator.initial(INDEXUNITS);
+		while (iterator.still())
+		{
+			GTNode* GT = iterator.target();
+			if (iterator.state() == 1)
+			{
+				NetG::rules Rule = (NetG::rules)GT->root().site;
+				switch (Rule)
+				{
+				case Pikachu::NetG::ID2_multi_:
+				case Pikachu::NetG::ID2_single_:
+				{
+					GTNode* ID2 = GT->child(2);
+					if (ID2 == NULL) return 4353; // 安全检查
+					append(eme, ID2, infor, dst);
+					break;
+				}
+				}
+			}
+			iterator.next();
+		}
+		return 0;
+	}
+	return 43534543;
 }
 int Indexs::buildSUMSYMBOL(const lex& eme, GTNode* SUMSYMBOL, BuildInfor* infor, context* dst)
 {
@@ -1403,7 +1408,7 @@ void TensorID::append(const char* src)
 		Tindex.append(NULL);
 	}
 }
-void TensorID::append(const lex& eme, GTNode* ID2, BuildInfor* infor, context* dst)
+/*void TensorID::append(const lex& eme, GTNode* ID2, BuildInfor* infor, context* dst)
 {
 	if (ID2 == NULL) return;
 	NetG::rules Rule = (NetG::rules)ID2->root().site;
@@ -1420,7 +1425,7 @@ void TensorID::append(const lex& eme, GTNode* ID2, BuildInfor* infor, context* d
 		Tindex.append(NULL);
 	}
 }
-
+*/
 
 
 

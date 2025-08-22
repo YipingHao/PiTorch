@@ -29,12 +29,12 @@ net test(input x, output y, para w[depth + 1])
 	tensor[dims[1]] hidden[0]<i> = \sum_{k} w[0]<i, k> * x<k>;
 
 
-	tensor[dims[1]] activation[0]<i> = algebraic<->[-](hidden[0]<i>);
+	tensor[dims[1]] activation[0]<i> = algebraic<>[](hidden[0]<i>);
 
 	//=====================
 	tensor[dims[2], dims[1]] w[1];
 	tensor[dims[2]] hidden[1]<i> = \sum_{k} w[1]<i, k> * activation[0]<k>;
-	tensor[dims[2]] activation[1]<i> = algebraic<->[-](hidden[1]<i>);
+	tensor[dims[2]] activation[1]<i> = algebraic<>[](hidden[1]<i>);
 
 	//=====================
 	tensor[dims[3], dims[2]] w[2];
