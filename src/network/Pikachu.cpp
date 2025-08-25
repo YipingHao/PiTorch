@@ -5,6 +5,18 @@ using namespace Pikachu;
 #define _uintMax_ 0xffffffffffffffff
 #endif
 
+static void ErrorAdd(const vector<size_t>& infor, const char* name, hyperlex::dictionary* error)
+{
+	char key[256];
+	sprintf(key, "%s_dims", name);
+	error->append(key, (long int)infor.count());
+	sprintf(key, "%s_infor", name);
+	for (size_t i = 0; i < infor.count(); i++)
+	{
+		error->append(key, (long int)infor[i]);
+	}
+}
+
 NetWork::NetWork()
 {
 
@@ -560,6 +572,12 @@ Node* NetWork::NewNodeDiLinear(const dims_t& dims, Node* srcL, Node* srcR, Node:
 	// 校验输出结构
 	if (Desc != dims) {
 		net.ruin(dst->site());
+		hyperlex::dictionary* error = new hyperlex::dictionary;
+		error->append("location", "NewNodeDiNonlinear");
+		error->append("error", "Desc != dims");
+		ErrorAdd(dims, "dims", error);
+		ErrorAdd(Desc, "Desc", error);
+		throw error;
 		return NULL;
 	}
 
@@ -596,7 +614,12 @@ Node* NetWork::NewNodeMonoNonlinear(const dims_t& dims, Node* srcL, Expres* func
 	if (Desc != dims)
 	{
 		delete dst;
-		return NULL;
+		hyperlex::dictionary* error = new hyperlex::dictionary;
+		error->append("location", "NewNodeMonoNonlinear");
+		error->append("error", "Desc != dims");
+		ErrorAdd(dims, "dims", error);
+		ErrorAdd(Desc, "Desc", error);
+		throw error;
 	}
 	NodeAppend(dst);
 	return dst;
@@ -619,7 +642,12 @@ Node* NetWork::NewNodeDiNonlinear(const dims_t& dims, Node* srcL, Node* srcR, Ex
 	if (Desc != dims)
 	{
 		delete dst;
-		return NULL;
+		hyperlex::dictionary* error = new hyperlex::dictionary;
+		error->append("location", "NewNodeDiNonlinear");
+		error->append("error", "Desc != dims");
+		ErrorAdd(dims, "dims", error);
+		ErrorAdd(Desc, "Desc", error);
+		throw error;
 	}
 	NodeAppend(dst);
 	return dst;
