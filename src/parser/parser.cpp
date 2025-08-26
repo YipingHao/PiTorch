@@ -1574,7 +1574,7 @@ int BuildInfor::buildDiff(const lex& eme, GTNode* DIFF_NET, context * dst)
 			Error->append("NetSrc", NetSrc.GetName());
 			Error->append("Location", "buildDiff");
 			Error->append("Error", "Missing NetSrc.GetName()");
-			ErrorNode = DIFF_INSTR;
+			ErrorNode = DIFF_NET->child(5);
 			return 894153348;
 		}
 		if (NetDst.eqaul(NetSrc.GetName()))
