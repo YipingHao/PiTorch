@@ -1567,7 +1567,7 @@ int BuildInfor::buildDiff(const lex& eme, GTNode* DIFF_NET, context * dst)
 		if (error != 0) return error;
 
 		NetInContext* NetDiffSrc = dst->SearchNetLocal(NetSrc.GetName());
-		if (NetDiffSrc != NULL)
+		if (NetDiffSrc == NULL)
 		{
 			errorCode = ErrorDiffBatchDim;
 			hyperlex::dictionary* Error = getAdict();
