@@ -14,7 +14,18 @@ int main(int argc, char* argv[])
     try
     {
         error = entrance(argc, argv);
-        return error;
+        
+    }
+
+    catch (hyperlex::dictionary* Error)
+    {
+        std::cout << "int main(): hyperlex::dictionary* Error" << std::endl;
+        Error->print(stderr);
+		delete Error;
+    }
+    return error;
+    try
+    {
         error = test_entrance_old("./");
     }
     catch (Pikachu::PikaError& E)
@@ -22,12 +33,7 @@ int main(int argc, char* argv[])
         std::cout << "int main(): " << std::endl;
         E.show(stderr);
     }
-    catch (hyperlex::dictionary* Error)
-    {
-        std::cout << "int main(): hyperlex::dictionary* Error" << std::endl;
-        Error->print(stderr);
-		delete Error;
-    }
+    
     return error;
 }
 
