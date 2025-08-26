@@ -1870,8 +1870,8 @@ int static Test004(const hyperlex::dictionary& para)
 	int error = 0;
 
 	hyperlex::FilePath Path1, Path2;
-	const char* dataPath = para.search("./data/", "InputFilePath");
-	const char* dataName = para.search("diff.txt", "InputFileName");
+	const char* dataPath = para.search("./data/", "DataFilePath");
+	const char* dataName = para.search("diff.txt", "DataFileName");
 	Path1.build(dataPath);
 	Path2.build(dataName);
 	Path1 += Path2;

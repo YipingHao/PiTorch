@@ -20,13 +20,14 @@
 	
 	funcName = "RtoFI";
 	
-	DataFilePath = "/share/fayelulu/FIanalyzer/data/";
-	DataFileName = "fort.100";
+	//DataFilePath = "/share/fayelulu/FIanalyzer/data/";
+	DataFilePath = "./data";
+	DataFileName = "diff.txt";
 
 	item = "test";
 	TestItem = 
 	{
-		item = 3;
+		item = 4;
 	};
 }
 /*
