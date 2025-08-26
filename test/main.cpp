@@ -16,7 +16,6 @@ int main(int argc, char* argv[])
         error = entrance(argc, argv);
         
     }
-
     catch (hyperlex::dictionary* Error)
     {
         std::cout << "int main(): hyperlex::dictionary* Error" << std::endl;

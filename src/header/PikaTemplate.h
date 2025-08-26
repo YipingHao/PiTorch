@@ -1015,7 +1015,16 @@ namespace Pikachu
 	}
 	template <class V> graph<V>::~graph()
 	{
-		clear();
+		try
+		{
+			clear();
+		}
+		catch (hyperlex::dictionary*error) 
+		{
+			error->print(stderr);
+			delete error;
+			exit(328);
+		}
 	}
 	template <class V> void graph<V>::copy(const graph<V>& src)
 	{
