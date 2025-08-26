@@ -224,6 +224,7 @@ void NetWork::backward(size_t No, const vector<size_t>& DownNo, const char* Outp
 	TempLeaf = new LeafNode(this, Node::_leafConst_, AA);
 	TempLeaf->Initial(Out->descriptor, H);
 	label[No] = TempLeaf;
+	NodeAppend(TempLeaf);
 
 	for (size_t i = 0; i < sequence.count(); i++)
 	{
@@ -305,6 +306,7 @@ void NetWork::gradient(void)
 		TempLeaf = new LeafNode(this, Node::_leafIn_, AA);
 		TempLeaf->setDesc(Out->descriptor);
 		label[output[i]->site()] = TempLeaf;
+		NodeAppend(TempLeaf);
 		BackSrc.append(TempLeaf);
 	}
 	
@@ -370,6 +372,7 @@ void NetWork::jacobi(void)
 		TempLeaf = new LeafNode(this, Node::_leafIn_, AA);
 		TempLeaf->setDesc(Out->descriptor);
 		label[output[i]->site()] = TempLeaf;
+		NodeAppend(TempLeaf);
 		JacobiSrc.append(TempLeaf);
 	}
 
