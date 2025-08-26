@@ -1566,7 +1566,17 @@ int BuildInfor::buildDiff(const lex& eme, GTNode* DIFF_NET, context * dst)
 		error = NetSrc.buildScalar(eme, DIFF_NET->child(5), this, dst);
 		if (error != 0) return error;
 
-		NetInContext* NetDiffSrc = dst->nets.top();
+		NetInContext* NetDiffSrc = dst->SearchNetLocal(NetSrc.GetName());
+		if (NetDiffSrc != NULL)
+		{
+			errorCode = ErrorDiffBatchDim;
+			hyperlex::dictionary* Error = getAdict();
+			Error->append("NetSrc", NetSrc.GetName());
+			Error->append("Location", "buildDiff");
+			Error->append("Error", "Missing NetSrc.GetName()");
+			ErrorNode = DIFF_INSTR;
+			return 894153348;
+		}
 		if (NetDst.eqaul(NetSrc.GetName()))
 		{
 			NetDiffDst = NetDiffSrc;
