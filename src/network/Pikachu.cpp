@@ -111,7 +111,7 @@ void NetWork::forward(size_t No, const vector<size_t>& UpNo, const char* OutputN
 		}
 	}
 	net.BFTbackward(valid, queue);
-	net.TopoSortBFSBack(sequence);
+	net.TopoSortBFS(sequence);
 	net.Shrink(valid, sequence);
 
 	length = net.count();
@@ -119,33 +119,35 @@ void NetWork::forward(size_t No, const vector<size_t>& UpNo, const char* OutputN
 	label.recount(length);
 	label.value(NULL);
 
-	for (size_t i = 0; i < length; i++)
+	for (size_t i = 0; i < sequence.count(); i++)
 	{
 		here = sequence[i];
-		if (here == input[No])
+		if (here->site() == No)
 		{
 			TempLeaf = new LeafNode(this, Node::_leafConst_, AA);
 			TempLeaf->Initial(here->descriptor, H);
-			label[input[No]->site()] = TempLeaf;
+			label[No] = TempLeaf;
 		}
 	}
-
-	for (size_t i = 0; i < length; i++)
+	size_t InputSite = 0;
+	for (size_t i = 0; i < input.count(); i++)
+	{
+		if (input[i]->site() == No) {
+			InputSite = i;
+			break;
+		}
+	}
+	for (size_t i = 0; i < sequence.count(); i++)
 	{
 		here = sequence[i];
 		here->forward(Node::dYdX, label, H);
 		if (here->IfOutput)
 		{
 			Node* Out;
-			Tensor* diff;
+			
 			size_t hereSite = here->site();
 			Out = label[hereSite];
-			Out->IfOutput = true;
-			output.append(label);
-			diff = new Tensor;
-			diff->copy(*OutDesc[hereSite]);
-			diff->append(No);
-			OutDesc.append(diff);
+			
 			size_t LabelSite = here->site();
 			for (size_t j = 0; j < UpNo.count(); j++)
 			{
@@ -153,8 +155,16 @@ void NetWork::forward(size_t No, const vector<size_t>& UpNo, const char* OutputN
 				{
 					if (OutputName != NULL)
 					{
+						Tensor* diff;
 						Out->SetName(OutputName);
 						Out->SetLabel(j);
+
+						Out->IfOutput = true;
+						output.append(Out);
+						diff = new Tensor;
+						diff->copy(*OutDesc[hereSite]);
+						diff->append(InputSite);
+						OutDesc.append(diff);
 					}
 					//else
 					//{
@@ -185,7 +195,7 @@ void NetWork::backward(size_t No, const vector<size_t>& DownNo, const char* Outp
 
 	net.TopoSortBFSBack(sequence);
 
-	Out = output[No];
+	Out = net[No];
 	queue.append(Out);
 	net.BFTbackward(valid, queue);
 	net.Shrink(valid, sequence);
@@ -213,9 +223,9 @@ void NetWork::backward(size_t No, const vector<size_t>& DownNo, const char* Outp
 
 	TempLeaf = new LeafNode(this, Node::_leafConst_, AA);
 	TempLeaf->Initial(Out->descriptor, H);
-	label[output[No]->site()] = TempLeaf;
+	label[No] = TempLeaf;
 
-	for (size_t i = 0; i < length; i++)
+	for (size_t i = 0; i < sequence.count(); i++)
 	{
 		here = sequence[i];
 		here->backward(Node::dYdX, label, H);
@@ -233,8 +243,7 @@ void NetWork::backward(size_t No, const vector<size_t>& DownNo, const char* Outp
 				error->append("error", "OutB == NULL");
 				throw error;
 			}
-			OutB->IfOutput = true;
-			output.append(OutB);
+			
 			size_t LabelSite = here->site();
 			for (size_t j = 0; j < DownNo.count(); j++)
 			{
@@ -244,15 +253,19 @@ void NetWork::backward(size_t No, const vector<size_t>& DownNo, const char* Outp
 					{
 						Out->SetName(OutputName);
 						Out->SetLabel(j);
+						OutB->IfOutput = true;
+						output.append(OutB);
+
+						diff = new Tensor;
+						diff->copy(*OutDesc[hereSite]);
+						diff->append(No);
+						OutDesc.append(diff);
 					}
 					break;
 				}
 			}
 
-			diff = new Tensor;
-			diff->copy(*OutDesc[hereSite]);
-			diff->append(No);
-			OutDesc.append(diff);
+			
 		}
 	}
 
@@ -297,7 +310,7 @@ void NetWork::gradient(void)
 	
 	BackOut.recount(parameter.count());
 	BackOut.value(NULL);
-	for (size_t i = 0; i < length; i++)
+	for (size_t i = 0; i < sequence.count(); i++)
 	{
 		here = sequence[i];
 		here->backward(Node::dLdW, label, H);
@@ -362,7 +375,7 @@ void NetWork::jacobi(void)
 
 	JacobiOut.recount(parameter.count());
 	JacobiOut.value(NULL);
-	for (size_t i = 0; i < length; i++)
+	for (size_t i = 0; i < sequence.count(); i++)
 	{
 		here = sequence[i];
 		here->backward(Node::Jacobi_, label, H);
