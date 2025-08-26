@@ -1102,7 +1102,7 @@ void MonoNonlinear::forward(Affiliation AA, vector<Node*>& label, vector<size_t>
 	Node* sourceF;
 	size_t siteThis;
 	siteThis = site();
-	sourceF = label[siteThis];
+	sourceF = label[In(0)->site()];
 
 
 	diff = new DiLinear(Node::_mul_, AA);
