@@ -1,0 +1,45 @@
+sint depth;
+depth = 2;
+sint dims[depth + 2] = [6, 64, 64, 1];
+
+
+func algebraic(input x, output y)
+{
+	y = x / (sqrt(1.0 + x * x));
+}
+
+func bondlength(input x[6], output y)
+{
+	def z[3];
+	z[0] = x[3] - x[0];
+	z[1] = x[4] - x[1];
+	z[2] = x[5] - x[2];
+	y = sqrt(z[0] * z[0] + z[1] * z[1] + z[2] * z[2]);
+	//y = sqrt(x[0]^2 + x[1]^2);
+}
+
+net test(input x, output y, para w[depth + 1])
+{
+	def hidden[depth];
+	def activation[depth];
+	//=====================
+	tensor[dims[0]] x;
+	tensor[dims[1], dims[0]] w[0];
+
+	tensor[dims[1]] hidden[0]<i> = \sum_{k} w[0]<i, k> * x<k>;
+
+
+	tensor[dims[1]] activation[0]<i> = algebraic<.>[.](hidden[0]<i>);
+
+	//=====================
+	tensor[dims[2], dims[1]] w[1];
+	tensor[dims[2]] hidden[1]<i> = \sum_{k} w[1]<i, k> * activation[0]<k>;
+	tensor[dims[2]] activation[1]<i> = algebraic<.>[.](hidden[1]<i>);
+
+	//=====================
+	tensor[dims[3], dims[2]] w[2];
+	tensor[dims[3]] y<i> = \sum_{k} w[2]<i, k> * activation[1]<k>;
+}
+
+forward newNet.diff = test[y][x];
+

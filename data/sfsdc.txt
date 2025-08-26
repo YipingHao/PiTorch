@@ -1,0 +1,49 @@
+#include "test.txt"
+
+func FI3body(input r[3], output fi[3])
+{
+	fi[0] = r[0] + r[1] + r[2];
+	fi[1] = r[0] * r[1] + r[1] * r[2] + r[2] * r[0];
+	fi[2] = r[0] * r[1] * r[2];
+
+	fi[0] = exp(fi[0]);
+	fi[1] = sin(fi[1]);
+	fi[2] = cos(fi[2]);
+}
+
+net test(input x, output y, para w[depth + 1])
+{
+	def hidden[depth];
+	def activation[depth];
+	//=====================
+	tensor[dims[0]] x;
+	tensor[dims[1], dims[0]] w[0];
+	tensor[dims[1]] hidden[0]<i> = \sum_{k} w[0]<i, k> * x<k>;
+	tensor[dims[1]] activation[0]<i> = algebraic<->[-](hidden[0]<i>);
+
+	//=====================
+	tensor[dims[2], dims[1]] w[1];
+	tensor[dims[2]] hidden[1]<i> = \sum_{k} w[1]<i, k> * activation[0]<k>;
+	tensor[dims[2]] activation[1]<i> = algebraic<->[-](hidden[1]<i>);
+
+	//=====================
+	tensor[dims[3], dims[2]] w[2];
+	tensor[dims[3]] y<i> = \sum_{k} w[2]<i, k> * activation[1]<k>;
+}
+
+backward force.F = test<y><x>;
+forward Hessian.H = force<F><x>;
+forward Nonsence.C = Hessian<H><x>;
+forward Nonsence1.C = Hessian<H><x>;
+
+net test1(input x[3], output y[2], para w[depth + 1])
+{
+	/* definitions */
+}
+
+backward force1.F[3] = test1<y[2]><x[0], x[1], x[2]>;//right
+backward force1.F = test1<y[1], y[2]><x[0]>;//wrong
+
+forward Hessian1.H[3] = force1<F[0], F[1], F[2]><x[0]>;//right
+forward Hessian1.H[3] = force1<F[0]><x[0], x[1], x[2]>;//wrong
+

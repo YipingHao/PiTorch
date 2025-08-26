@@ -4,7 +4,6 @@
 #include "../header/sheet.h"
 using namespace Pikachu;
 static bool compare(const char* str1, const char* str2);
-
 // 输出指定数量的制表符到文件
 // Print specified number of tabs to the file
 static void fprintfTabs(size_t tabs, FILE* fp)
@@ -1551,7 +1550,7 @@ int BuildInfor::buildDiff(const lex& eme, GTNode* DIFF_NET, context * dst)
 	//       0          1  2  3    4    5         6            7           8
 	
 	IDinfor NewOutput;
-	error = NewOutput.build(eme, DIFF_INSTR->child(3), this, dst);
+	error = NewOutput.build(eme, DIFF_NET->child(3), this, dst);
 	if (error != 0) return error;
 
 
@@ -1561,10 +1560,10 @@ int BuildInfor::buildDiff(const lex& eme, GTNode* DIFF_NET, context * dst)
 	//模块1，获得输出网络
 	{
 		IDinfor NetDst;
-		error = NetDst.buildScalar(eme, DIFF_INSTR->child(1), this, dst);
+		error = NetDst.buildScalar(eme, DIFF_NET->child(1), this, dst);
 		if (error != 0) return error;
 		IDinfor NetSrc;
-		error = NetSrc.buildScalar(eme, DIFF_INSTR->child(5), this, dst);
+		error = NetSrc.buildScalar(eme, DIFF_NET->child(5), this, dst);
 		if (error != 0) return error;
 
 		NetInContext* NetDiffSrc = dst->nets.top();
@@ -1587,7 +1586,7 @@ int BuildInfor::buildDiff(const lex& eme, GTNode* DIFF_NET, context * dst)
 		if (judge)
 		{
 			errorCode = ErrorDiffRepeatNetDef;
-			ErrorNode = DIFF_INSTR->child(3);
+			ErrorNode = DIFF_NET->child(3);
 			return 894148489;
 		}
 	}
@@ -1598,9 +1597,9 @@ int BuildInfor::buildDiff(const lex& eme, GTNode* DIFF_NET, context * dst)
 	{
 		IDlist listL, listR;
 		size_t batchDim = 0;
-		error = listL.build(eme, DIFF_INSTR->child(6), this, dst);
+		error = listL.build(eme, DIFF_NET->child(6), this, dst);
 		if (error != 0) return error;
-		error = listR.build(eme, DIFF_INSTR->child(7), this, dst);
+		error = listR.build(eme, DIFF_NET->child(7), this, dst);
 		if (error != 0) return error;
 		//检查输入的维数是否一致
 		if (forward)
@@ -1608,8 +1607,8 @@ int BuildInfor::buildDiff(const lex& eme, GTNode* DIFF_NET, context * dst)
 			if (listR.count() != 1)
 			{
 				errorCode = ErrorDiffForwardTooMuchInput;
-				errorInfor1 = DIFF_INSTR->root().site;
-				ErrorNode = DIFF_INSTR;
+				errorInfor1 = DIFF_NET->root().site;
+				ErrorNode = DIFF_NET;
 				return 894153486;
 			}
 			batchDim = listL.count();
@@ -1656,7 +1655,56 @@ int BuildInfor::buildDiff(const lex& eme, GTNode* DIFF_NET, context * dst)
 			ErrorHere->append("ErrorInfor", Error1);
 			return 894153488;
 		}
+		bool judge = false;
+		if (forward)
+		{
+			for (size_t i = 0; i < UpNo.count(); i++)
+			{
+				for (size_t j = i + 1; j < UpNo.count(); j++)
+				{
+					if (UpNo[i] == UpNo[j])
+					{
+						judge = true;
+						break;
+					}
+				}
+				if(DownNo[0] == UpNo[i])
+				{
+					judge = true;
+					break;
+				}
+			}
+		}
+		else
+		{
+			for (size_t i = 0; i < DownNo.count(); i++)
+			{
+				for (size_t j = i + 1; j < DownNo.count(); j++)
+				{
+					if (DownNo[i] == DownNo[j])
+					{
+						judge = true;
+						break;
+					}
+				}
+				if(UpNo[0] == DownNo[i])
+				{
+					judge = true;
+					break;
+				}
+			}
 
+		}
+		if (judge)
+		{
+			hyperlex::dictionary* ErrorHere = getAdict();
+			ErrorHere->append("location", "buildDiff");
+			ErrorHere->append("Error", "Error Diff Repeat Input Output");
+			ErrorHere->append("line", ASTNodeUnitGet(eme, DIFF_NET->child(3)));
+			errorCode = ErrorDiffRepeatInputOutput;
+			ErrorNode = DIFF_NET;
+			return 894387;
+		}
 	}
 
 	
