@@ -41,5 +41,6 @@ net test(input x, output y, para w[depth + 1])
 	tensor[dims[3]] y<i> = \sum_{k} w[2]<i, k> * activation[1]<k>;
 }
 
-forward newNet.diff = test[y][x];
+backward newNet1.diff1 = test[y][x];
 
+forward newNet2.diff2[1] = newNet2[diff1][x];

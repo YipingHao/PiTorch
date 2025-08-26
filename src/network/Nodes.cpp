@@ -234,6 +234,7 @@ void DiNonlinear::demo(size_t tabs, FILE* fp) const
 LeafNode::LeafNode()
 {
 	Type = _leaf_;
+	Label = 0;
 }
 LeafNode::LeafNode(NetWork* context, Node::LeafType t, Affiliation AA)
 {
