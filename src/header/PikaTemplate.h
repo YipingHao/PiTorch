@@ -1492,7 +1492,10 @@ namespace Pikachu
 		{
 			error->append("location", "vortex<V>::~vortex()");
 			error->append("i", i);
-			throw error;
+			error->print(stderr);
+			delete error;
+			exit(330);
+			//throw error;
 		}
 	}
 	template <class V> void vortex<V>::ArcClear(void)
