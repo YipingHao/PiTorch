@@ -1472,26 +1472,29 @@ namespace Pikachu
 
 	template <class V> vortex<V>::~vortex()
 	{
-		size_t i, site;
+		size_t i, Site;
 		Vextern* target;
 		try
 		{
 			target = (Vextern*)infor;
 			for (i = 0; i < in.count(); i++)
 			{
-				site = in[i]->SearchOutExcept(target);
-				in[i]->ShrinkOut(site);
+				Site = in[i]->SearchOutExcept(target);
+				in[i]->ShrinkOut(Site);
 			}
 			for (i = 0; i < out.count(); i++)
 			{
-				site = out[i]->SearchInExcept(target);
-				out[i]->ShrinkIn(site);
+				Site = out[i]->SearchInExcept(target);
+				out[i]->ShrinkIn(Site);
 			}
 		}
 		catch (hyperlex::dictionary* error)
 		{
 			error->append("location", "vortex<V>::~vortex()");
 			error->append("i", i);
+			error->append("site", site());
+			error->append("in", in.count());
+			error->append("out", out.count());
 			error->print(stderr);
 			delete error;
 			exit(330);
