@@ -1868,8 +1868,17 @@ int static Test003(const hyperlex::dictionary& para)
 int static Test004(const hyperlex::dictionary& para)
 {
 	int error = 0;
+
+	hyperlex::FilePath Path1, Path2;
+	const char* dataPath = para.search("./data/", "InputFilePath");
+	const char* dataName = para.search("diff.txt", "InputFileName");
+	Path1.build(dataPath);
+	Path2.build(dataName);
+	Path1 += Path2;
+	const char* path = Path1.path();
+
 	context ctx;
-	error = ctx.build("data/test.txt", stdout);
+	error = ctx.build(path, stdout);
 	std::cout << "error: " << error << std::endl;
 	ctx.demo();
 	std::cout << "error: " << error << std::endl;

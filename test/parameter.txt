@@ -15,7 +15,7 @@
 	InputFilePath = "./data"; // FI ploynomial formula
 	OutputFilePath = "./output";
 
-	InputFileName = "AB3PIP.txt"; //FI ploynomial formula
+	InputFileName = "diff.txt"; //FI ploynomial formula
 	OutputFileName = "RtoFI.c";
 	
 	funcName = "RtoFI";
