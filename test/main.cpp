@@ -11,10 +11,10 @@ int test(hyperlex::dictionary& para);
 int main(int argc, char* argv[])
 {
     int error;
-    error = entrance(argc, argv);
-    return error;
     try
     {
+        error = entrance(argc, argv);
+        return error;
         error = test_entrance_old("./");
     }
     catch (Pikachu::PikaError& E)
