@@ -203,6 +203,8 @@ void MonoNonlinear::demo(size_t tabs, FILE* fp) const
 	fprintf(fp, "IndexSrc: "); printIndices(fp, indexSrc);
 	fprintfTabs(tabs, fp);
 	fprintf(fp, "FuncTensor: "); funcTensor.demo(fp);
+
+	formula.demo(tabs + 1, fp);
 	//fprintf(fp, "\tFormula: "); formula.demo(fp);
 }
 void DiNonlinear::demo(size_t tabs, FILE* fp) const
@@ -227,6 +229,8 @@ void DiNonlinear::demo(size_t tabs, FILE* fp) const
 	fprintfTabs(tabs, fp);
 	fprintf(fp, "FuncTensor: "); funcTensor.demo(fp);
 	//fprintf(fp, "\tFormula: "); formula.demo(fp);
+
+	formula.demo(tabs + 1, fp);
 }
 
 

@@ -305,6 +305,8 @@ namespace Pikachu
 		void Example(size_t No);
 		int example(const char* source);
 
+		void demo(size_t tabs, FILE* fp) const;
+		void demo(FILE* fp, bool single, size_t No)const;
 		void demo(bufferC& out, bool single, size_t No)const;
 		void demo(FILE* fp)const;
 
@@ -551,6 +553,7 @@ namespace Pikachu
 		void clear(void);
 		void copy(const MonoFunc& source);
 		void demo(FILE* fp = stdout) const;
+		void demo(size_t tabs, FILE* fp) const;
 		inline size_t GetOutputOrder(void) const
 		{
 			return OutputDim;
@@ -599,6 +602,7 @@ namespace Pikachu
 		void differential(bool X);
 		void copy(const DiFunc& source);
 		void clear(void);
+		void demo(size_t tabs, FILE* fp) const;
 		void demo(FILE* fp = stdout) const;
 		void build(Expres* source);
 		inline size_t GetOutputOrder(void) const

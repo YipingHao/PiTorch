@@ -421,7 +421,7 @@ void NetWork::Hv(void)
 	for (size_t i = 0; i < BackOut.count(); i++)
 		queue.append(BackOut[i]);
 	net.BFTbackward(valid, queue);
-	net.TopoSortBFSBack(sequence);
+	net.TopoSortBFS(sequence);
 	net.Shrink(valid, sequence);
 
 	length = net.count();

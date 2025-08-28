@@ -4,7 +4,11 @@ using namespace Pikachu;
 #ifndef _uintMax_
 #define _uintMax_ 0xffffffffffffffff
 #endif
-
+static void fprintfTabs(size_t tabs, FILE* fp)
+{
+    for (size_t i = 0; i < tabs; ++i)
+        fprintf(fp, "\t");
+}
 
 expression::expression()
 {
@@ -2759,6 +2763,25 @@ void Expres::Example(size_t No)
     else error = example("pow(x * x,x)");
 }
 
+
+void Expres::demo(size_t tabs, FILE* fp) const
+{
+	bool single = (InputDim.count() == 1 && InputDim[0] == 1);
+    bufferC out;
+    for (size_t i = 0; i < output.count(); i++)
+    {
+        demo(out, single, i);
+        if(i != 0)fprintfTabs(tabs, fp);
+        fprintf(fp, "%s\n", out.ptr());
+        out.clear();
+    }
+}
+void Expres::demo(FILE* fp, bool single, size_t No)const
+{
+    bufferC out;
+	demo(out, single, No);   
+	fprintf(fp, "%s", out.ptr());
+}
 void Expres::demo(bufferC& out, bool single, size_t No)const
 {
     vector<size_t> label, stack;

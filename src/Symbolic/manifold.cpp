@@ -525,6 +525,10 @@ void MonoFunc::copy(const MonoFunc& source)
 }
 void MonoFunc::demo(FILE* fp) const
 {
+	demo(0, fp);
+}
+void MonoFunc::demo(size_t tabs, FILE* fp) const
+{
 	fprintf(fp, "MonoFunc: OutputDim = %zu, InputDim = %zu, ", OutputDim, InputDim);
 	fprintf(fp, "Order = %zu, OutputFusion = %s\n", order, OutputFusion ? "true" : "false");
 	for (size_t i = 0; i < dims.count(); i++)
@@ -536,10 +540,10 @@ void MonoFunc::demo(FILE* fp) const
 		for (size_t i = 0; i < cluster.count(); i++)
 		{
 			fprintf(fp, "Function %zu:\n", i);
-			cluster[i]->demo(fp);
+			cluster[i]->demo(tabs, fp);
 		}
 	}
-	else 
+	else
 	{
 		vector<size_t> indice;
 		indice.recount(order);
@@ -547,7 +551,7 @@ void MonoFunc::demo(FILE* fp) const
 		{
 			// Calculate the indices for the current function
 			/*
-			
+
 			*/
 			size_t index = i;
 			for (size_t j = 0; j < order; j++)
@@ -568,7 +572,7 @@ void MonoFunc::demo(FILE* fp) const
 				fprintf(fp, "[%zu]", indice[j]);
 			}
 			fprintf(fp, "\n");
-			cluster[i]->demo(fp);
+			cluster[i]->demo(tabs, fp);
 		}
 	}
 }
@@ -740,7 +744,7 @@ void DiFunc::clear(void)
 	original.clear();
 	diffInfor.clear();
 }
-void DiFunc::demo(FILE* fp) const
+void DiFunc::demo(size_t tabs, FILE* fp) const
 {
 	fprintf(fp, "DiFunc: OutputDim = %zu, InputDim = %zu, ParameterDim = %zu\n", OutputDim, InputDim, ParameterDim);
 	fprintf(fp, "Order = %zu, OutputFusion = %s\n", order, OutputFusion ? "true" : "false");
@@ -776,6 +780,10 @@ void DiFunc::demo(FILE* fp) const
 		fprintf(fp, "Function %zu:\n", i);
 		cluster[i]->demo(fp);
 	}
+}
+void DiFunc::demo(FILE* fp) const
+{
+	demo(0, fp);
 }
 void DiFunc::build(Expres* source)
 {
