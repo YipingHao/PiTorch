@@ -2,6 +2,12 @@
 using namespace Pikachu;
 #include<cmath>
 
+static void fprintfTabs(size_t tabs, FILE* fp)
+{
+	for (size_t i = 0; i < tabs; ++i)
+		fprintf(fp, "\t");
+}
+
 manifold::manifold()
 {
 }
@@ -529,18 +535,25 @@ void MonoFunc::demo(FILE* fp) const
 }
 void MonoFunc::demo(size_t tabs, FILE* fp) const
 {
+	fprintfTabs(tabs, fp);
 	fprintf(fp, "MonoFunc: OutputDim = %zu, InputDim = %zu, ", OutputDim, InputDim);
-	fprintf(fp, "Order = %zu, OutputFusion = %s\n", order, OutputFusion ? "true" : "false");
-	for (size_t i = 0; i < dims.count(); i++)
+	fprintf(fp, "Order = %zu, OutputFusion = %s, dims: %zu, [", order, OutputFusion ? "true" : "false", dims.count());
+	if (dims.count())
 	{
-
+		fprintf(fp, "%zu", dims[0]);
+		for (size_t i = 1; i < dims.count(); i++)
+		{
+			fprintf(fp, ", %zu", dims[i]);
+		}
 	}
+	fprintf(fp, "]\n");
 	if (InputDim == 1 || order == 0)
 	{
 		for (size_t i = 0; i < cluster.count(); i++)
 		{
-			fprintf(fp, "Function %zu:\n", i);
-			cluster[i]->demo(tabs, fp);
+			fprintfTabs(tabs + 1, fp);
+			fprintf(fp, "Function %zu:", i);
+			cluster[i]->demo(tabs + 1, fp);
 		}
 	}
 	else
@@ -559,6 +572,7 @@ void MonoFunc::demo(size_t tabs, FILE* fp) const
 				indice[order - j - 1] = index % InputDim;
 				index /= InputDim;
 			}
+			fprintfTabs(tabs + 1, fp);
 			if (OutputFusion || OutputDim == 1)
 			{
 				fprintf(fp, "No[%zu] diff:", i);
@@ -571,8 +585,8 @@ void MonoFunc::demo(size_t tabs, FILE* fp) const
 			{
 				fprintf(fp, "[%zu]", indice[j]);
 			}
-			fprintf(fp, "\n");
-			cluster[i]->demo(tabs, fp);
+			fprintf(fp, ": ");
+			cluster[i]->demo(tabs + 1, fp);
 		}
 	}
 }
@@ -746,14 +760,16 @@ void DiFunc::clear(void)
 }
 void DiFunc::demo(size_t tabs, FILE* fp) const
 {
+	fprintfTabs(tabs, fp);
 	fprintf(fp, "DiFunc: OutputDim = %zu, InputDim = %zu, ParameterDim = %zu\n", OutputDim, InputDim, ParameterDim);
 	fprintf(fp, "Order = %zu, OutputFusion = %s\n", order, OutputFusion ? "true" : "false");
 	if (InputDim == 1 || order == 0)
 	{
 		for (size_t i = 0; i < cluster.count(); i++)
 		{
-			fprintf(fp, "Function %zu:\n", i);
-			cluster[i]->demo(fp);
+			fprintfTabs(tabs + 1, fp);
+			fprintf(fp, "Function %zu:", i);
+			cluster[i]->demo(tabs + 1, fp);
 		}
 		return;
 	}
@@ -761,6 +777,7 @@ void DiFunc::demo(size_t tabs, FILE* fp) const
 	indice.recount(order);
 	for (size_t i = 0; i < cluster.count(); i++)
 	{
+		fprintfTabs(tabs + 1, fp);
 		fprintf(fp, "No[%zu] diff:", i);
 		size_t index = i;
 		for (size_t j = 0; j < order; j++)
@@ -772,13 +789,14 @@ void DiFunc::demo(size_t tabs, FILE* fp) const
 		{
 			fprintf(fp, "[%zu]", indice[j]);
 		}
-		fprintf(fp, "\n");
-		cluster[i]->demo(fp);
+		fprintf(fp, ": ");
+		cluster[i]->demo(tabs + 1, fp);
 	}
 	for (size_t i = 0; i < cluster.count(); i++)
 	{
+		fprintfTabs(tabs + 1, fp);
 		fprintf(fp, "Function %zu:\n", i);
-		cluster[i]->demo(fp);
+		cluster[i]->demo(tabs + 1, fp);
 	}
 }
 void DiFunc::demo(FILE* fp) const
