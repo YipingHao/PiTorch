@@ -1786,6 +1786,7 @@ int BuildInfor::buildNETCheck(const lex& eme, GTNode* NETBODY, context* dst, Net
 				Node* node_ = temp->GetTensor(j);
 				//net->output.append(node_);
 				net->AppendOutput(node_);
+				node_->demo();
 			}
 			for (size_t j = 0; j < net->output.count(); j++)
 			{
