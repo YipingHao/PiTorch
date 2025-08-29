@@ -470,7 +470,8 @@ namespace Pikachu
 		vector<Node*> JacobiSrc;
 		vector<Node*> JacobiOut;
 
-		
+		void AppendOutput(Node* out);
+
 		void replace(Node* target, Node* source);
 		void OutputShift(Node* target, Node* source);
 		bool simplify(void);

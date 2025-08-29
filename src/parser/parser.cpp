@@ -1782,7 +1782,9 @@ int BuildInfor::buildNETCheck(const lex& eme, GTNode* NETBODY, context* dst, Net
 		else if (temp->compareAttri("output"))
 		{
 			for (size_t j = 0; j < temp->count(); j++)
-				net->output.append(temp->GetTensor(j));
+			{
+				net->AppendOutput(temp->GetTensor(j));
+			}
 			for (size_t j = 0; j < net->output.count(); j++)
 			{
 				Tensor* desc = new Tensor;
