@@ -108,6 +108,8 @@ void Node::Demo(size_t tabs, FILE* fp) const
 	for (size_t i = 0; i < tabs; ++i) fprintf(fp, "\t");
 	fprintf(fp, "Descriptor: ");
 	descriptor.demo(fp);
+	for (size_t i = 0; i < tabs; ++i) fprintf(fp, "\t");
+	fprintf(fp, "Name: %s, Label: %zu\n", name == NULL ? "NULL" : name, NameLabel);
 	vortex<Node>::demo(tabs, fp);
 }
 void Node::PrintConcise(FILE* fp) const
