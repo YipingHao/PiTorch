@@ -1444,10 +1444,16 @@ int BuildInfor::buildSymbolicCheck(const lex& eme, GTNode* SYMBOLIC, context* ds
 				errorCode = ErrorSelfCheck;
 				return 893534346;
 			}
+			Func->OutputCount = temp->count();
 		}
 		else if (temp->compareAttri("para"))
 		{
 			Exp->SetParameterCount(temp->count());
+			Func->ParaCount = temp->count();
+		}
+		else if (temp->compareAttri("input"))
+		{
+			Func->InputCount = temp->count();
 		}
 	}
 

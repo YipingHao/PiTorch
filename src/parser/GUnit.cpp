@@ -717,15 +717,9 @@ void Pikachu::func::demo(size_t tabs, FILE* fp)
 	if (Exp)
 	{
 		fprintfTabs(tabs, fp);
-		fprintf(fp, "Expression:\n");
+		fprintf(fp, "Expression:");
+		Exp->demo(tabs + 1, fp); // 使用Expres::demo(FILE* fp, size_t tabs)
 		// 使用Expres::demo(bufferC& out, bool single, size_t No)和Expres::node::Demo
-		for (size_t i = 0; i < Exp->OutputAmount(); ++i)
-		{
-			bufferC out;
-			Exp->demo(out, InputCount == 1, i); // true表示单行输出
-			for (size_t j = 0; j < tabs + 1; ++j) fprintf(fp, "\t");
-			fprintf(fp, "Outout[%zu]: %s\n", i, out.ptr());
-		}
 	}
 	else
 	{
