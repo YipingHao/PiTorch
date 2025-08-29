@@ -246,6 +246,7 @@ LeafNode::LeafNode(NetWork* context, Node::LeafType t, Affiliation AA)
 	Op = (int)t;
 	network = context;
 	Affi = AA;
+	Label = 0;
 }
 LeafNode::~LeafNode()
 {
