@@ -826,10 +826,10 @@ void NetWork::OutputShift(Node* target, Node* source)
 	}
 }
 
-void NetWork::AppendOutput(Node* out)
+void NetWork::AppendOutput(Node* Out)
 {
-	output.append(out);
-	//out->IfOutput = true;
+	output.append(Out);
+	Out->IfOutput = true;
 }
 
 
