@@ -1783,7 +1783,7 @@ int BuildInfor::buildNETCheck(const lex& eme, GTNode* NETBODY, context* dst, Net
 		{
 			for (size_t j = 0; j < temp->count(); j++)
 			{
-				net->AppendOutput(temp->GetTensor(j));
+				net->output.append(temp->GetTensor(j));
 			}
 			for (size_t j = 0; j < net->output.count(); j++)
 			{
