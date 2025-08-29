@@ -829,7 +829,7 @@ void NetWork::OutputShift(Node* target, Node* source)
 void NetWork::AppendOutput(Node* out)
 {
 	output.append(out);
-	out->IfOutput = true;
+	//out->IfOutput = true;
 }
 
 
