@@ -149,6 +149,15 @@ void NetWork::forward(size_t No, const vector<size_t>& UpNo, const char* OutputN
 			Out = label[hereSite];
 			
 			size_t LabelSite = here->site();
+			size_t OutputSite = 0;
+			for (size_t j = 0; j < output.count(); j++)
+			{
+				if(output[j] == here)
+				{
+					OutputSite = j;
+					break;
+				}
+			}
 			for (size_t j = 0; j < UpNo.count(); j++)
 			{
 				if (LabelSite == UpNo[j])
@@ -158,11 +167,10 @@ void NetWork::forward(size_t No, const vector<size_t>& UpNo, const char* OutputN
 						Tensor* diff;
 						Out->SetName(OutputName);
 						Out->SetLabel(j);
+						AppendOutput(Out);
 
-						Out->IfOutput = true;
-						output.append(Out);
 						diff = new Tensor;
-						diff->copy(*OutDesc[hereSite]);
+						diff->copy(*OutDesc[OutputSite]);
 						diff->append(InputSite);
 						OutDesc.append(diff);
 					}
@@ -246,6 +254,15 @@ void NetWork::backward(size_t No, const vector<size_t>& DownNo, const char* Outp
 			}
 			
 			size_t LabelSite = here->site();
+			size_t OutputSite = 0;
+			for (size_t j = 0; j < output.count(); j++)
+			{
+				if (output[j] == here)
+				{
+					OutputSite = j;
+					break;
+				}
+			}
 			for (size_t j = 0; j < DownNo.count(); j++)
 			{
 				if (LabelSite == DownNo[j])
@@ -258,7 +275,7 @@ void NetWork::backward(size_t No, const vector<size_t>& DownNo, const char* Outp
 						output.append(OutB);
 
 						diff = new Tensor;
-						diff->copy(*OutDesc[hereSite]);
+						diff->copy(*OutDesc[OutputSite]);
 						diff->append(No);
 						OutDesc.append(diff);
 					}
