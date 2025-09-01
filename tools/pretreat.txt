@@ -26,7 +26,8 @@ grammar: pretreat:
 		number:[number];
 		string: string;
 		//macro: [macro];
-		instruct: [instruct];
+		instructG: [instructG];
+		instructN: [instructN];
 		reserved: [reserved];
 		type: [type];
 		function1: [function1];
