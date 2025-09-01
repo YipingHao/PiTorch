@@ -24,7 +24,7 @@ grammar: context:
 		diff: [instructG] id dot ID assign id ID_LISTSQUARE ID_LISTSQUARE semicolon;
 		diff2: [instructG] id assign id semicolon;
 		demo: demo left id right;
-		print: print left id comma string right;
+		print: print dot id left id comma string right;
 	}
 	ID_LISTSQUARE: squareL ID_LIST squareR;
 	ID_LIST:
