@@ -282,7 +282,17 @@ namespace Pikachu
 		void demo(FILE* fp = stdout);
 		void demo(size_t tabs, FILE* fp);
 		friend class BuildInfor;
+		enum Affiliation
+		{
+			unknown = 0,
+			initial = 1,
+			dYdX = 2,
+			dLdW = 3,
+			Jacobi_ = 4,
+			Hdv = 5,
+		};
 	private:
+		Affiliation Affi;
 		context* realm;
 		NetWork* net;
 		void ruin(void);

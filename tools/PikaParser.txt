@@ -21,12 +21,10 @@ grammar: context:
 	}
 	DIFF_NET:
 	{
-		diff: DIFF_INSTR id dot ID assign id ID_LISTSQUARE ID_LISTSQUARE semicolon;
-	}
-	DIFF_INSTR:
-	{
-		forward: forward;
-		backward: backward;
+		diff: [instructG] id dot ID assign id ID_LISTSQUARE ID_LISTSQUARE semicolon;
+		diff2: [instructG] id assign id semicolon;
+		demo: demo left id right;
+		print: print left id comma string right;
 	}
 	ID_LISTSQUARE: squareL ID_LIST squareR;
 	ID_LIST:

@@ -32,10 +32,17 @@ lexical:{
 	{ 
 		include: '#' i n c l u d e;
 	}
-	instruct:
+	instructG(+5):
 	{
-		forward(+5);
-		backward(+5);
+		forward;
+		backward;
+		Hv;
+		gradient;
+		demo;
+		print;
+	}
+	instructN:
+	{
 		sum: '\\' s u m '_';
 	}
 	reserved(+5):
