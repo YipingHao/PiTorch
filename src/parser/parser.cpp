@@ -442,7 +442,7 @@ int BuildInfor::buildAll(const lex& eme, AST& Tree, context* dst)
 					{
 						fprintf(screen, "\t buildDiff begin\n");
 					}
-					error = buildDiff(eme, GTarget, dst);
+					error = buildDiffAll(eme, GTarget, dst);
 					if (PrintScreen)
 					{
 						
@@ -1537,6 +1537,40 @@ int BuildInfor::buildNet(const lex& eme, GTNode* NETWORK, context * dst)
 	
 	return buildNETCheck(eme, NETWORK, subcontext, Net);
 }
+
+int BuildInfor::buildDiffAll(const lex& eme, GTNode* DIFF_NET, context* dst)
+{
+	size_t rules = DIFF_NET->root().site;
+	NetG::nonterminal NT = (NetG::nonterminal)NetG::RulesToSymbol[rules];
+	if(NT!= NetG::nonterminal::_DIFF_NET_)
+	{
+		errorInfor1 = DIFF_NET->root().site;
+		ErrorNode = DIFF_NET;
+		errorCode = WrongEntrance;
+		return 797861871;
+	}
+	NetG::rules RR = (NetG::rules)rules;
+	switch (RR)
+	{
+	case Pikachu::NetG::DIFF_NET_diff_:
+		return buildDiff(eme, DIFF_NET, dst);
+	case Pikachu::NetG::DIFF_NET_diff2_:
+		return buildDiff2(eme, DIFF_NET, dst);
+	case Pikachu::NetG::DIFF_NET_demo_:
+		return buildDiffDemo(eme, DIFF_NET, dst);
+	case Pikachu::NetG::DIFF_NET_print_:
+		return buildDiffPrint(eme, DIFF_NET, dst);
+	default:
+		{
+			errorInfor1 = DIFF_NET->root().site;
+			ErrorNode = DIFF_NET;
+			errorCode = WrongEntrance;
+			return 79786187;
+		}
+	}
+	return 0;
+}
+
 int BuildInfor::buildDiff(const lex& eme, GTNode* DIFF_NET, context * dst)
 {
 	size_t line = DIFF_NET->child(0)->root().site;
@@ -1549,8 +1583,21 @@ int BuildInfor::buildDiff(const lex& eme, GTNode* DIFF_NET, context * dst)
 		return 797861872;
 	}
 	GTNode* DIFF_INSTR = DIFF_NET->child(0);
-	NetG::rules DIFF_INSTR_Rule = (NetG::rules)DIFF_INSTR->root().site;
-	const bool forward = DIFF_INSTR_Rule == NetG::rules::DIFF_INSTR_forward_;
+	const char* DIFF_INSTR_name = eme.GetWord(DIFF_INSTR->root().site);
+	bool tempB = true;
+	if (compare(DIFF_INSTR_name, "forward")) tempB = true;
+	else if (compare(DIFF_INSTR_name, "backward")) tempB = false;
+	else
+	{
+		errorCode = ErrorDiffBatchDim;
+		hyperlex::dictionary* Error = getAdict();
+		Error->append("DIFF_INSTR_name", DIFF_INSTR_name);
+		Error->append("Location", "buildDiff");
+		Error->append("Error", "Wrong instruction name");
+		ErrorNode = DIFF_INSTR;
+		return 8923448;
+	}
+	const bool forward = tempB;
 	int error = 0;
 	//diff: DIFF_INSTR id dot ID assign id ID_LISTSQUARE ID_LISTSQUARE semicolon;
 	//       0          1  2  3    4    5         6            7           8
@@ -1749,6 +1796,21 @@ int BuildInfor::buildDiff(const lex& eme, GTNode* DIFF_NET, context * dst)
 
 	return error;
 }
+int BuildInfor::buildDiff2(const lex& eme, GTNode* DIFF_NET, context* dst)
+{
+
+	return 0;
+}
+int BuildInfor::buildDiffDemo(const lex& eme, GTNode* DIFF_NET, context* dst)
+{
+
+	return 0;
+}
+int BuildInfor::buildDiffPrint(const lex& eme, GTNode* DIFF_NET, context* dst)
+{
+	return 0;
+}
+
 
 int BuildInfor::buildNETCheck(const lex& eme, GTNode* NETBODY, context* dst, NetInContext* Net)
 {

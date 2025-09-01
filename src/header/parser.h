@@ -404,8 +404,13 @@ namespace Pikachu
 		int buildExp(const lex& eme, GTNode* GTarget, context* dst);
 		int buildSymbolic(const lex& eme, GTNode* GTarget, context* dst);
 		int buildNet(const lex& eme, GTNode* GTarget, context* dst);
-		int buildDiff(const lex& eme, GTNode* GTarget, context* dst);
-		
+		int buildDiffAll(const lex& eme, GTNode* DIFF_NET, context* dst);
+
+		int buildDiff(const lex& eme, GTNode* DIFF_NET, context* dst);
+		int buildDiff2(const lex& eme, GTNode* DIFF_NET, context* dst);
+		int buildDiffDemo(const lex& eme, GTNode* DIFF_NET, context* dst);
+		int buildDiffPrint(const lex& eme, GTNode* DIFF_NET, context* dst);
+
 		int GetIDdim(size_t& dim, const lex& eme, GTNode* ID, context* dst);
 		int GetIDindex(size_t& index, const lex& eme, GTNode* ID, context* dst);
 		
