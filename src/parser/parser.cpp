@@ -1589,7 +1589,7 @@ int BuildInfor::buildDiff(const lex& eme, GTNode* DIFF_NET, context * dst)
 	else if (compare(DIFF_INSTR_name, "backward")) tempB = false;
 	else
 	{
-		errorCode = ErrorDiffBatchDim;
+		errorCode = ErrorWrongInstruction;
 		hyperlex::dictionary* Error = getAdict();
 		Error->append("DIFF_INSTR_name", DIFF_INSTR_name);
 		Error->append("Location", "buildDiff");
@@ -1640,6 +1640,7 @@ int BuildInfor::buildDiff(const lex& eme, GTNode* DIFF_NET, context * dst)
 			NetDiffDst->SetName(NetDst.GetName());
 			dst->nets.append(NetDiffDst);
 		}
+		NetDiffDst->Affi = NetInContext::dYdX;
 		context* DstContext = NetDiffDst->realm;
 		context* SrcContext = NetDiffSrc->realm;
 		DstNet = NetDiffDst->net;
@@ -1798,16 +1799,161 @@ int BuildInfor::buildDiff(const lex& eme, GTNode* DIFF_NET, context * dst)
 }
 int BuildInfor::buildDiff2(const lex& eme, GTNode* DIFF_NET, context* dst)
 {
+	size_t line = DIFF_NET->child(0)->root().site;
+	NetG::rules RR = (NetG::rules)DIFF_NET->root().site;
+	if (RR != NetG::rules::DIFF_NET_diff_)
+	{
+		errorInfor1 = line;
+		ErrorNode = DIFF_NET;
+		errorCode = WrongEntrance;
+		return 797861872;
+	}
+	GTNode* DIFF_INSTR = DIFF_NET->child(0);
+	const char* DIFF_INSTR_name = eme.GetWord(DIFF_INSTR->root().site);
+	enum isntruction
+	{
+		gradient,
+		Hv,
+		Jacobian,
+	} Instru = gradient;
+	if(compare(DIFF_INSTR_name, "gradient")) Instru = gradient;
+	else if (compare(DIFF_INSTR_name, "Hv")) Instru = Hv;
+	else if (compare(DIFF_INSTR_name, "Jacobian")) Instru = Jacobian;
+	else
+	{
+		errorCode = ErrorWrongInstruction;
+		hyperlex::dictionary* Error = getAdict();
+		Error->append("DIFF_INSTR_name", DIFF_INSTR_name);
+		Error->append("Location", "buildDiff2");
+		Error->append("Error", "Wrong instruction name");
+		ErrorNode = DIFF_INSTR;
+		return 8923448;
+	}
+	
+	int error = 0;
+	NetWork* DstNet = NULL;
+	NetInContext* NetDiffDst = NULL;
+	//diff2: [instructG] id assign id semicolon;
+	//  0  :    0         1    2    3      4
+	//模块1，获得输出网络
+	{
+		IDinfor NetDst;
+		error = NetDst.buildScalar(eme, DIFF_NET->child(1), this, dst);
+		if (error != 0) return error;
+		IDinfor NetSrc;
+		error = NetSrc.buildScalar(eme, DIFF_NET->child(5), this, dst);
+		if (error != 0) return error;
 
+		NetInContext* NetDiffSrc = dst->SearchNetLocal(NetSrc.GetName());
+		if (NetDiffSrc == NULL)
+		{
+			errorCode = ErrorDiffBatchDim;
+			hyperlex::dictionary* Error = getAdict();
+			Error->append("NetSrc", NetSrc.GetName());
+			Error->append("Location", "buildDiff2");
+			Error->append("Error", "Missing NetSrc.GetName()");
+			ErrorNode = DIFF_NET->child(0);
+			return 894153348;
+		}
+		if (NetDst.eqaul(NetSrc.GetName()))
+		{
+			NetDiffDst = NetDiffSrc;
+		}
+		else
+		{
+			NetDiffDst = new NetInContext(dst->nets.top(), dst);
+			NetDiffDst->SetName(NetDst.GetName());
+			dst->nets.append(NetDiffDst);
+		}
+		context* DstContext = NetDiffDst->realm;
+		context* SrcContext = NetDiffSrc->realm;
+		DstNet = NetDiffDst->net;
+		//检查新的输出名称是否与旧网络的输出输入与参数名称重复
+	}
+
+	switch (Instru)
+	{
+	case gradient:
+		break;
+	case Hv:
+		break;
+	case Jacobian:
+		break;
+	}
 	return 0;
 }
 int BuildInfor::buildDiffDemo(const lex& eme, GTNode* DIFF_NET, context* dst)
 {
+	size_t line = DIFF_NET->child(0)->root().site;
+	NetG::rules RR = (NetG::rules)DIFF_NET->root().site;
+	if (RR != NetG::rules::DIFF_NET_demo_)
+	{
+		errorInfor1 = line;
+		ErrorNode = DIFF_NET;
+		errorCode = WrongEntrance;
+		return 38961872;
+	}
+	//demo: demo left id right;
+	//        0    1   2   3
 
-	return 0;
+	IDinfor Target;
+	int error = Target.buildScalar(eme, DIFF_NET->child(2), this, dst);
+	if (error != 0) return error;
+
+	const char* Name = Target.GetName();
+
+	NetInContext* Net = dst->SearchNet(Name);
+	if (Net != NULL)
+	{
+		Net->demo(screen);
+		return 0;
+	}
+	func* Func = dst->searchFuncs(Name);
+	if (Func != NULL)
+	{
+		Func->demo(screen);
+		return 0;
+	}
+	ConstObj* obj = dst->searchConst(Name);
+	if (obj != NULL)
+	{
+		obj->demo(screen);
+		return 0;
+	}
+	var* variable = dst->search(Name);
+	if (variable != NULL)
+	{
+		variable->demo(screen, 0);
+		return 0;
+	}
+
+	errorInfor1 = line;
+	ErrorNode = DIFF_NET->child(2);
+	errorCode = ErrorNameNULL;
+	return 38961772;
 }
 int BuildInfor::buildDiffPrint(const lex& eme, GTNode* DIFF_NET, context* dst)
 {
+	size_t line = DIFF_NET->child(0)->root().site;
+	NetG::rules RR = (NetG::rules)DIFF_NET->root().site;
+	if (RR != NetG::rules::DIFF_NET_print_)
+	{
+		errorInfor1 = line;
+		ErrorNode = DIFF_NET;
+		errorCode = WrongEntrance;
+		return 94578678;
+	}
+	//print: print dot id left id comma string right;
+	//        0     1   2   3  4   5      6      7
+
+	IDinfor Machine;
+	int error = Machine.buildScalar(eme, DIFF_NET->child(2), this, dst);
+	if (error != 0) return error;
+	IDinfor Target;
+	int error = Target.buildScalar(eme, DIFF_NET->child(4), this, dst);
+	if (error != 0) return error;
+
+
 	return 0;
 }
 
@@ -1864,6 +2010,7 @@ int BuildInfor::buildNETCheck(const lex& eme, GTNode* NETBODY, context* dst, Net
 			return 234789407;
 		}
 	}
+	Net->Affi = NetInContext::initial;
 	return 0;
 }
 int BuildInfor::buildTENSOR(const lex& eme, GTNode* NET_STATEMENT, NetInContext* Net)

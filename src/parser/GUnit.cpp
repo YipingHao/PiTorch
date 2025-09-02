@@ -790,6 +790,7 @@ NetInContext::NetInContext()
 {
 	net = new NetWork;
 	realm = NULL;
+	Affi = unknown;
 }
 NetInContext::NetInContext(NetInContext* src, context* Realm)
 {
@@ -797,6 +798,7 @@ NetInContext::NetInContext(NetInContext* src, context* Realm)
 	Realm->append(realm); 
 	net = new NetWork;
 	net->copy(*src->net); // Éî¿½±´ÍøÂç¶ÔÏó
+	Affi = src->Affi;
 }
 NetInContext::~NetInContext()
 {
