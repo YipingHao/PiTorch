@@ -122,7 +122,7 @@ namespace Pikachu
 		{
 			content[No] = NewDim;
 		}
-		inline size_t GetCount(void)const
+		inline size_t GetCount(void) const
 		{
 			size_t num = 1;
 			for (size_t i = 0; i < Count; i++)

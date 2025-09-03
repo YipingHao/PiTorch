@@ -66,10 +66,33 @@ int BackEnd::build(const char* machine, NetWork* net, const char* output)
 	}
 	return 0;
 }
+namespace example//CPU back end example
+{
+	size_t ParameterCount = 12;
+	size_t OutputCount = 48;
+	size_t InputCount = 36;
+
+	// 计算整个神经网络的前向传播,包括用户定义的神经网络输出对输入导数的计算
+	void compute(size_t count, const double* input, const double* parameter, double* output);
+	// 计算神经网络的原始输出,不包括用户定义的神经网络输出对输入导数的计算
+	void computeOringinal(size_t count, const double* input, const double* parameter, double* output);
+	// 计算神经网络的损失梯度,包括用户定义的神经网络输出对输入导数的计算
+	void computeGradient(size_t count, const double* input, const double* parameter, const double* outputGrad, double* inputGrad, double* parameterGrad);
+}
+/*
+
+*/
+static void PrintBegin(FILE* fp);
+static void PrintEnd(FILE* fp);
+static void PrintConstant(NetWork* net, FILE* fp);
 
 
 int BackEnd::CPUbackEnd(NetWork* net, FILE* fp)
 {
+	PrintBegin(fp);
+	PrintConstant(net, fp);
+
+	PrintEnd(fp);
 	return 0;
 }
 int BackEnd::CUDAbackEnd(NetWork* net, FILE* fp)
@@ -77,6 +100,26 @@ int BackEnd::CUDAbackEnd(NetWork* net, FILE* fp)
 	return 0;
 }
 
+static void PrintBegin(FILE* fp)
+{
+	fprintf(fp, "namespace example\n{\n");
+}
+static void PrintEnd(FILE* fp)
+{
+	fprintf(fp, "}\n");
+}
+static void PrintConstant(NetWork* net, FILE* fp)
+{
+	fprintf(fp, "\tconst size_t ParameterCount = %zu;\n", net->ParameterCount());
+	fprintf(fp, "\tconst size_t OutputCount = %zu;\n", net->OutputCount());
+	fprintf(fp, "\tconst size_t InputCount = %zu;\n", net->InputCount());
+	fprintf(fp, "\n");
+	
+	fprintf(fp, "\tvoid compute(size_t count, const double* input, const double* parameter, double* output);\n");
+	fprintf(fp, "\tvoid computeOringinal(size_t count, const double* input, const double* parameter, double* output);\n");
+
+
+}
 
 
 

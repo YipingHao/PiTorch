@@ -954,7 +954,34 @@ void NetWork::InputNameSearch(const vector<const char*>& name, const vector<size
 
 
 
-
+size_t NetWork::InputCount(void) const
+{
+	size_t count = 0;
+	for (size_t i = 0; i < input.count(); i++)
+	{
+		if (input[i] != NULL) count += input[i]->descriptor.GetCount();
+	}
+	return count;
+}
+size_t NetWork::ParameterCount(void) const
+{
+	size_t count = 0;
+	for (size_t i = 0; i < parameter.count(); i++)
+	{
+		if (parameter[i] != NULL) count += parameter[i]->descriptor.GetCount();
+	}
+	return count;	
+}
+size_t NetWork::OutputCount(void) const
+{
+	size_t count = 0;
+	for (size_t i = 0; i < output.count(); ++i)
+	{
+		if (output[i] != NULL)
+			count += output[i]->descriptor.GetCount();
+	}
+	return count;
+}
 
 
 

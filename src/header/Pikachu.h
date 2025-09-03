@@ -199,6 +199,11 @@ namespace Pikachu
 		void SetLabel(size_t NewLabel);
 		bool CompareName(const char* NewName) const;
 		inline const char* GetName(void) const { return name; }
+		inline size_t GetLabel(void) const { return NameLabel; }
+		inline size_t GetOrder(void) const { return descriptor.GetOrder(); }
+		inline size_t GetDim(size_t No) const { return descriptor[No]; }
+		inline const Tensor& GetDesc(void) const { return descriptor; }
+		inline size_t GetElementCount(void) const { return descriptor.GetCount(); }
 	};
 	class LeafNode : public Node
 	{
@@ -453,6 +458,13 @@ namespace Pikachu
 		Node* NewNodeMonoNonlinear(const dims_t& dims, Node* srcL, Expres * func, indiceIS& indice);
 		Node* NewNodeDiNonlinear(const dims_t& dims, Node* srcL, Node* srcR, Expres* func, indiceIS& indice);
 
+
+		inline size_t InputNodeCount(void) const { return input.count(); }
+		inline size_t ParameterNodeCount(void) const { return parameter.count(); }
+		inline size_t OutputNodeCount(void) const { return output.count(); }
+		size_t InputCount(void) const;
+		size_t ParameterCount(void) const;
+		size_t OutputCount(void) const;
 	protected:
 		friend class BuildInfor;
 		graph<Node> net;
