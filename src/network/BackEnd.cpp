@@ -5,7 +5,7 @@ using namespace Pikachu;
 #define _uintMax_ 0xffffffffffffffff
 #endif
 
-static enum BackEndType
+enum BackEndType
 {
 	unknown,
 	CPU,
@@ -76,3 +76,19 @@ int BackEnd::CUDAbackEnd(NetWork* net, FILE* fp)
 {
 	return 0;
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
