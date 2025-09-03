@@ -1870,15 +1870,31 @@ int BuildInfor::buildDiff2(const lex& eme, GTNode* DIFF_NET, context* dst)
 		DstNet = NetDiffDst->net;
 		//检查新的输出名称是否与旧网络的输出输入与参数名称重复
 	}
-
-	switch (Instru)
+	try
 	{
-	case gradient:
-		break;
-	case Hv:
-		break;
-	case Jacobian:
-		break;
+		switch (Instru)
+		{
+		case gradient:
+			DstNet->gradient();
+			NetDiffDst->Affi = NetInContext::dLdW;
+			break;
+		case Hv:
+			DstNet->Hv();
+			NetDiffDst->Affi = NetInContext::Hdv;
+			break;
+		case Jacobian:
+			DstNet->jacobi();
+			break;
+		}
+	}
+	catch (hyperlex::dictionary* Error1)
+	{
+		hyperlex::dictionary* ErrorHere = getAdict();
+		ErrorHere->append("location", "buildDiff2");
+		ErrorHere->append("Error", "Differetial Process Error");
+		ErrorHere->append("instruction", DIFF_INSTR_name);
+		ErrorHere->append("ErrorInfor", Error1);
+		return 89434588;
 	}
 	return 0;
 }
@@ -1952,9 +1968,39 @@ int BuildInfor::buildDiffPrint(const lex& eme, GTNode* DIFF_NET, context* dst)
 	IDinfor Target;
 	int error = Target.buildScalar(eme, DIFF_NET->child(4), this, dst);
 	if (error != 0) return error;
+	const char* machineName = Machine.GetName();
+	const char* targetName = Target.GetName();
+	size_t stringSite = DIFF_NET->child(6)->root().site;
+	char* Path = eme.GetString(stringSite);
+	BackEnd BE;
 
+	NetInContext* Net = dst->SearchNet(targetName);
+	if(Net == NULL)
+	{
+		errorCode = ErrorNameNULL;
+		ErrorNode = DIFF_NET->child(4);
 
-	return 0;
+		hyperlex::dictionary* ErrorHere = getAdict();
+		ErrorHere->append("location", "buildDiffPrint");
+		ErrorHere->append("Error", "Missing NetWork Obj");
+		ErrorHere->append("NetName", targetName);
+		return 894153348;
+	}
+	try
+	{
+		error = BE.build(machineName, Net->net, Path);
+	}
+	catch (hyperlex::dictionary* Error)
+	{
+		hyperlex::dictionary* ErrorHere = getAdict();
+		ErrorHere->append("location", "buildDiffPrint");
+		ErrorHere->append("Error", "Build BackEnd Error");
+		ErrorHere->append("ErrorInfor", Error);
+		free(Path);
+		return error;
+	}
+	free(Path);
+	return error;
 }
 
 

@@ -421,7 +421,7 @@ namespace Pikachu
 	
 	
 	
-
+	class BackEnd;
 	class NetWork
 	{
 	public:
@@ -446,6 +446,7 @@ namespace Pikachu
 		friend class MonoLinear;
 		friend class MonoNonlinear;
 
+		friend class BackEnd;
 		Node* NewNodeLeaf(const dims_t& dims, Node::LeafType T);
 		Node* NewNodeMonoLinear(const dims_t&dims, Node* src, double factor_, indiceIS & indice);
 		Node* NewNodeDiLinear(const dims_t& dims, Node* srcL, Node* srcR, Node::OpType OT, indiceIS& indice);
@@ -497,6 +498,17 @@ namespace Pikachu
 
 	
 	
+
+	class BackEnd
+	{
+	public:
+		BackEnd();
+		~BackEnd();
+		int build(const char* machine, NetWork* net, const char* output);
+	private:
+		int CPUbackEnd(NetWork* net, FILE*fp);
+		int CUDAbackEnd(NetWork* net, FILE* fp);
+	};
 
 	
 }
