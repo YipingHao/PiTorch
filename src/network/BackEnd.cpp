@@ -68,16 +68,18 @@ int BackEnd::build(const char* machine, NetWork* net, const char* output)
 }
 namespace example//CPU back end example
 {
+	typedef double real;
+	typedef const real Creal;
 	size_t ParameterCount = 12;
 	size_t OutputCount = 48;
 	size_t InputCount = 36;
 
 	// 计算整个神经网络的前向传播,包括用户定义的神经网络输出对输入导数的计算
-	void compute(size_t count, const double* input, const double* parameter, double* output);
+	void compute(size_t count, Creal* input, Creal* parameter, real* output);
 	// 计算神经网络的原始输出,不包括用户定义的神经网络输出对输入导数的计算
-	void computeOringinal(size_t count, const double* input, const double* parameter, double* output);
+	void computeOringinal(size_t count, Creal* input, Creal* parameter, real* output);
 	// 计算神经网络的损失梯度,包括用户定义的神经网络输出对输入导数的计算
-	void computeGradient(size_t count, const double* input, const double* parameter, const double* outputGrad, double* inputGrad, double* parameterGrad);
+	void computeGradient(size_t count, Creal* input, Creal* parameter, Creal* outputGrad, real* inputGrad, real* parameterGrad);
 }
 /*
 
@@ -102,7 +104,8 @@ int BackEnd::CUDAbackEnd(NetWork* net, FILE* fp)
 
 static void PrintBegin(FILE* fp)
 {
-	fprintf(fp, "namespace example\n{\n");
+	fprintf(fp, "#include <BackEnd.h>\n");
+	fprintf(fp, "using namespace example;\n");
 }
 static void PrintEnd(FILE* fp)
 {
