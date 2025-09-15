@@ -260,8 +260,8 @@ namespace Pikachu
 		static const size_t NonTerminalCount;
 		static const size_t TerminalCount;
 		static const size_t RulesCount;
-		static const int GOTO[206][47];
-		static const int ACTION[206][59];
+		static const int GOTO[208][47];
+		static const int ACTION[208][59];
 		static const int RulesToSymbol[105];
 		static const int RulesLength[105];
 		static const char* const RulesName[105];
