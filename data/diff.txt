@@ -55,14 +55,14 @@ forward newNet2.diff2[1] = newNet1[diff1][x];
 
 //forward newNet3.diff3[1] = newNet2[diff2][x];
 
-gradient CC = newNet2;
+//gradient CC = newNet2;
 
-Jacobi J = newNet2;
+//Jacobi J = newNet2;
 
-Hv s = newNet2;
+//Hv s = newNet2;
 
 print.CPU(newNet2, "./output/here.cpp");
 
 print.CUDA(newNet2, "./output/here.cu");
 
-print.HaiGsb(newNet2, "./output/here.cu");
+//print.HaiGsb(newNet2, "./output/here.cu");
