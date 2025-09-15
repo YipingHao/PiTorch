@@ -66,21 +66,7 @@ int BackEnd::build(const char* machine, NetWork* net, const char* output)
 	}
 	return 0;
 }
-namespace example//CPU back end example
-{
-	typedef double real;
-	typedef const real Creal;
-	size_t ParameterCount = 12;
-	size_t OutputCount = 48;
-	size_t InputCount = 36;
 
-	// 计算整个神经网络的前向传播,包括用户定义的神经网络输出对输入导数的计算
-	void compute(size_t count, Creal* input, Creal* parameter, real* output);
-	// 计算神经网络的原始输出,不包括用户定义的神经网络输出对输入导数的计算
-	void computeOringinal(size_t count, Creal* input, Creal* parameter, real* output);
-	// 计算神经网络的损失梯度,包括用户定义的神经网络输出对输入导数的计算
-	void computeGradient(size_t count, Creal* input, Creal* parameter, Creal* outputGrad, real* inputGrad, real* parameterGrad);
-}
 /*
 
 */
@@ -109,7 +95,7 @@ static void PrintBegin(FILE* fp)
 }
 static void PrintEnd(FILE* fp)
 {
-	fprintf(fp, "}\n");
+	//fprintf(fp, "}\n");
 }
 static void PrintConstant(NetWork* net, FILE* fp)
 {
