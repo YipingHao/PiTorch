@@ -1966,7 +1966,7 @@ int BuildInfor::buildDiffPrint(const lex& eme, GTNode* DIFF_NET, context* dst)
 	int error = Machine.buildScalar(eme, DIFF_NET->child(2), this, dst);
 	if (error != 0) return error;
 	IDinfor Target;
-	int error = Target.buildScalar(eme, DIFF_NET->child(4), this, dst);
+	error = Target.buildScalar(eme, DIFF_NET->child(4), this, dst);
 	if (error != 0) return error;
 	const char* machineName = Machine.GetName();
 	const char* targetName = Target.GetName();
