@@ -8,6 +8,17 @@ func algebraic(input x, output y)
 	y = x / (sqrt(1.0 + x * x));
 }
 
+func gaussian(input x, output y)
+{
+	y = exp(-x * x);
+}
+
+func gaussian3(input x, output y, para w[6])
+{
+	def z = x * w[4] + w[5]; 
+	y = (w[0] + w[1] * x + w[2] * x * x + w[3] * x * x * x) * exp(-z * z);
+}
+
 func bondlength(input x[6], output y)
 {
 	def z[3];
@@ -26,7 +37,7 @@ func bondlength(input x[6], output y)
 	//y = sqrt(x[0]^2 + x[1]^2);
 }
 
-net test(input x, output y, para w[depth + 1])
+net test(input x, output y, para w[depth + 1])//, para w2)
 {
 	def hidden[depth];
 	def activation[depth];
@@ -41,8 +52,10 @@ net test(input x, output y, para w[depth + 1])
 
 	//=====================
 	tensor[dims[2], dims[1]] w[1];
+	//tensor[dims[2], 6] w2;
 	tensor[dims[2]] hidden[1]<i> = \sum_{k} w[1]<i, k> * activation[0]<k>;
 	tensor[dims[2]] activation[1]<i> = algebraic<.>[.](hidden[1]<i>);
+	//tensor[dims[2]] activation[1]<i> = gaussian3<.>[.,j](hidden[1]<i>, w2<i, j>);
 
 	//=====================
 	tensor[dims[3], dims[2]] w[2];

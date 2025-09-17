@@ -67,8 +67,31 @@ int BackEnd::build(const char* machine, NetWork* net, const char* output)
 	return 0;
 }
 
+void static AppendFile(FILE* fpSrc, FILE* fpDst)
+{
+	if (fpSrc == NULL || fpDst == NULL)
+	{
+		return;
+	}
+	// 将fpDst的文件指针移到末尾
+	//fseek(fpDst, 0, SEEK_END);
 
-
+	char buffer[4096];
+	size_t n;
+	while ((n = fread(buffer, 1, sizeof(buffer), fpSrc)) > 0)
+	{
+		fwrite(buffer, 1, n, fpDst);
+	}
+}
+void ThrowErrorFO(const char* location, const char* filename)
+{
+	hyperlex::dictionary* err;
+	err = new hyperlex::dictionary;
+	err->append("location", location);
+	err->append("path", filename);
+	err->append("error", "failure open");
+	throw err;
+}
 /*
 
 */
@@ -79,10 +102,17 @@ static void PrintConstant(NetWork* net, FILE* fp);
 
 int BackEnd::CPUbackEnd(NetWork* net, FILE* fp)
 {
-	PrintBegin(fp);
+	const char* path = "../data/material/all.cpp";
+	FILE* fpSource = fopen(path, "r");
+	ThrowErrorFO("BackEnd::CPUbackEnd", path);
+	AppendFile(fpSource, fp);
+
 	PrintConstant(net, fp);
 
-	PrintEnd(fp);
+
+	const char* path = "../data/material/CPUcode.cpp";
+	FILE* fpSource = fopen(path, "r");
+	ThrowErrorFO("BackEnd::CPUbackEnd", path);
 	return 0;
 }
 int BackEnd::CUDAbackEnd(NetWork* net, FILE* fp)
