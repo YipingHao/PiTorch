@@ -16,12 +16,20 @@ namespace BackEnd//CPU back end example
 		real* HiddenHost;
 		real* OutputDevice;
 		real* OutputHost;
+		//尺寸与维度获得接口
+		size_t GetParaDim(void) const;
+		size_t GetInputDim(void) const;
+		size_t GetHiddenDim(void) const;
+		size_t GetOutputDim(void) const;
 
 		// 前向传播的输出包括用户定义的神经网络网络输出对输入导数的计算
 		real* OutputGradDevice;
 		real* OutputGradHost;
 		real* HiddenDevice02;
 		real* HiddenHost02;
+
+		size_t GetOutputGradDim(void) const;
+		size_t GetHiddenDim02(void) const;
 
 		// 对损失函数进行反向传播所需的内存
 		real* LossInputDevice;
@@ -31,22 +39,33 @@ namespace BackEnd//CPU back end example
 		real* LossHiddenDevice;
 		real* LossHiddenHost;
 
+		size_t GetLossInputDim(void) const;
+		size_t GetLossGradDim(void) const;
+		size_t GetLossHiddenDim(void) const;
+
 		// 计算海塞矩阵乘以矢量的前向传播微分所需的内存
 		real* HvInputDevice;
 		real* HvInputHost;
-		real* HvParaDevice;
-		real* HvParaHost;
+		real* HvOutputDevice;
+		real* HvOutputHost;
 		real* HvHiddenDevice;
 		real* HvHiddenHost;
+
+		size_t GetHvInputDim(void) const;
+		size_t GetHvOutputDim(void) const;
+		size_t GetHvHiddenDim(void) const;
 
 		// 计算雅可比矩阵所需的内存
 		real* JacobiInputDevice;
 		real* JacobiInputHost;
-		real* JacobiParaDevice;
-		real* JacobiParaHost;
+		real* JacobiOutputDevice;
+		real* JacobiOutputHost;
 		real* JacobiHiddenDevice;
 		real* JacobiHiddenHost;
 
+		size_t GetJacobiInputDim(void) const;
+		size_t GetJacobiOutputDim(void) const;
+		size_t GetJacobiHiddenDim(void) const;
 	private:
 		size_t ld;
 		size_t count;//BacthSize
@@ -65,27 +84,47 @@ namespace BackEnd//CPU back end example
 		bool Hv;
 		bool jacobi;
 		bool LeadingDimLast;
+		void MemRelease();
 		//Leading Dim 是不是数组的最后一个维度
+	
+	private:
+		//内存分配接口
+		void forwardOriMemAlloc();
+		void forwardMemAlloc();
+		void lossMemAlloc();
+		void HvMemAlloc();
+		void jacobiMemAlloc();
 	public:
 		ANetWork(size_t newld = 1024);
 		~ANetWork();
-		inline bool IfLeadingDimLast()const { return LeadingDimLast; }
-		void MemRelease();
-		void SetLd(size_t newld);
+		inline bool IfLeadingDimLast() const { return LeadingDimLast; }
+		inline size_t GetBatchSize(void) const { return count; }
+		inline size_t GetLd(void) const { return ld; }
 
+		void SetLd(size_t newld);
 		void refresh(void);
 		void SetBatchSize(void);
 		void SetBatchSize(size_t BatchSize);
-
+	
+				
+		
+		
+	public://计算接口
 		// 计算整个神经网络的前向传播,包括用户定义的神经网络输出对输入导数的计算
 		void compute();
 		// 计算神经网络的原始输出,不包括用户定义的神经网络输出对输入导数的计算
-		void computeOringinal();
+		void ComputeOringinal();
 		// 计算神经网络的损失梯度,包括用户定义的神经网络输出对输入导数的计算
-		void computeLoss();
+		void ComputeLoss();
 		// 计算神经网络的损失梯度,包括用户定义的神经网络输出对输入导数的计算
-		void computeHv();
+		void ComputeHv();
 
-		void computeJacobi();
+		void ComputeJacobi();
+	private:
+		void ComputeCore();
+		void ForwardOriCore();
+		void LossCore();
+		void HvCore();
+		void JacobiCore();
 	};
 }
