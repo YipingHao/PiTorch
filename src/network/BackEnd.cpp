@@ -92,9 +92,17 @@ void ThrowErrorFO(const char* location, const char* filename)
 	err->append("error", "failure open");
 	throw err;
 }
-/*
+void static AppendFile(const char* location, const char* path, FILE* fpDst)
+{
+	FILE* fpSrc = fopen(path, "r");
+	if (fpSrc == NULL)
+	{
+		ThrowErrorFO(location, path);
+	}
+	AppendFile(fpSrc, fpDst);
+	fclose(fpSrc);
+}
 
-*/
 static void PrintBegin(FILE* fp);
 static void PrintEnd(FILE* fp);
 static void PrintConstant(NetWork* net, FILE* fp);
@@ -102,17 +110,11 @@ static void PrintConstant(NetWork* net, FILE* fp);
 
 int BackEnd::CPUbackEnd(NetWork* net, FILE* fp)
 {
-	const char* path = "../data/material/all.cpp";
-	FILE* fpSource = fopen(path, "r");
-	ThrowErrorFO("BackEnd::CPUbackEnd", path);
-	AppendFile(fpSource, fp);
-
+	AppendFile("BackEnd::CPUbackEnd", "../data/material/all.cpp", fp);
 	PrintConstant(net, fp);
+	
 
-
-	const char* path = "../data/material/CPUcode.cpp";
-	FILE* fpSource = fopen(path, "r");
-	ThrowErrorFO("BackEnd::CPUbackEnd", path);
+	AppendFile("BackEnd::CPUbackEnd", "../data/material/CPUcode.cpp", fp);
 	return 0;
 }
 int BackEnd::CUDAbackEnd(NetWork* net, FILE* fp)
