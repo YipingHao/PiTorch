@@ -1,8 +1,3 @@
-//=============================================================
-// 不变素材区，所有的结构和硬件架构都需要同一套素材。
-// 这个素材固定的写在文件all.cpp里面
-// 输出固定架构对应的代码时，读入这个文件并输出到最终的代码中
-//=============================================================
 #include "../output/BackEnd.h"
 #include"stdlib.h"
 using namespace BackEnd;
@@ -47,7 +42,7 @@ ANetWork::ANetWork(size_t newld)
 	, JacobiOutputHost(NULL)
 	, JacobiHiddenDevice(NULL)
 	, JacobiHiddenHost(NULL)
-	
+
 	, forwardOri_mem(false)
 	, forward_mem(false)
 	, loss_mem(false)
@@ -222,89 +217,4 @@ size_t ANetWork::GetJacobiInputDim(void) const
 {
 	return GetLossInputDim();
 }
-
-
-
-
-
-
-
-
-//=============================================================
-// 变化素材区，每一种硬件架构都需要一套素材，
-// 这些素材固定的写在某些文件里面
-// 输出固定架构对应的代码时，读入这些文件并输出到最终的代码中
-//=============================================================
-
-static void MemReleaseHost(real*& ptr)
-{
-	ptr = NULL;
-}
-static void MemReleaseDevice(real*& ptr)
-{
-	free(ptr);
-	ptr = NULL;
-}
-static real* MemAllocHost(size_t ld, size_t dim)
-{
-	return (real*)malloc(ld * dim * sizeof(real));
-}
-static real* MemAllocDevice(size_t ld, size_t dim)
-{
-	return (real*)malloc(ld * dim * sizeof(real));
-}
-static void MemAllocHD(size_t ld, size_t dim, real*& host, real*& device)
-{
-	device = (real*)malloc(ld * dim * sizeof(real));
-	host = device;
-}
-
-
-//=============================================================
-// 结构决定区，每一个不同的神经网络结构都需要一套素材，
-// 这些素材直接由程序计算后写在输出的代码里面
-// 下面列出的函数仅作为演示和占位
-//=============================================================
-
-size_t ANetWork::GetParaDim(void) const
-{
-	return 0;
-}
-size_t ANetWork::GetInputDim(void) const
-{
-	return 0;
-}
-size_t ANetWork::GetHiddenDim(void) const
-{
-	return 0;
-}
-size_t ANetWork::GetOutputDim(void) const
-{
-	return 0;
-}
-size_t ANetWork::GetOutputGradDim(void) const
-{
-	return 0;
-}
-size_t ANetWork::GetHiddenDim02(void) const
-{
-	return 0;
-}
-size_t ANetWork::GetLossHiddenDim(void) const
-{
-	return 0;
-}
-size_t ANetWork::GetHvHiddenDim(void) const
-{
-	return 0;
-}
-size_t ANetWork::GetJacobiOutputDim(void) const
-{
-	return 0;
-}
-size_t ANetWork::GetJacobiHiddenDim(void) const
-{
-	return 0;
-}
-
 
