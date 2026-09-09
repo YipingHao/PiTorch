@@ -483,7 +483,7 @@ void NetWork::Hv(void)
 		here = sequence[i];
 		here->forward(Node::Hdv, label, H);
 		if (!here->IfOutput) continue;
-		for (size_t j = 0; j < length; j++)
+		for (size_t j = 0; j < BackOut.count(); j++)
 		{
 			if (BackOut[j] == here)
 			{
@@ -1053,7 +1053,7 @@ void Pikachu::NetWork::demo(size_t tabs, FILE* fp)
 			for (size_t j = 0; j < Tabs; ++j) fprintf(fp, "\t");
 			fprintf(fp, "Nodes[%zu]:\n", i);
 			for (size_t j = 0; j < Tabs; ++j) fprintf(fp, "\t");
-			fprintf(fp, "{\n", i);
+			fprintf(fp, "{\n");
 			net[i]->demo(Tabs + 1, fp);
 			for (size_t j = 0; j < Tabs; ++j) fprintf(fp, "\t");
 			fprintf(fp, "}\n");

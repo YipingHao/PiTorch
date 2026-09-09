@@ -1,5 +1,5 @@
-#include"../src/header/Pikachu.h"
-#include"../extern/header/all.h"
+#include"../header/Pikachu.h"
+#include"../../extern/header/all.h"
 #include "../header/parser.h"
 #include "../header/sheet.h"
 using namespace Pikachu;
@@ -1094,7 +1094,7 @@ int BuildInfor::buildConstObj(const lex& eme, GTNode* CONSTVAR, context * dst)
 	}
 	if(PrintScreen)
 	{
-		fprintf(screen, "\t\tbuildConstObj: %s, type: %s, dim: %d, is scalar: %d\n",
+		fprintf(screen, "\t\tbuildConstObj: %s, type: %s, dim: %zu, is scalar: %d\n",
 			obj->GetName(), ConstObj::TypeName(TT), obj->GetDim(), obj->GetScalar());
 	}
 	if (RR == Pikachu::NetG::CONSTVAR_def1_) return error;

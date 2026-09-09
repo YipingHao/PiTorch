@@ -977,7 +977,7 @@ namespace hyperlex
 			assert(pool.arrayCapacity == 0);
 			for (size_t i = 0; i < 8; ++i) {
 				char buffer[10];
-				sprintf(buffer, "str%d", i);
+				sprintf(buffer, "str%zu", i);
 				pool.append(buffer);
 			}
 			assert(pool.arrayCapacity == 8);
@@ -2504,7 +2504,6 @@ int enumL::GroupGet(int accept)
 	0, \
 	0, \
 	0 };
-
 
 
 

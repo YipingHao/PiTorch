@@ -5,7 +5,9 @@
 
 using namespace HyperAlgebra;
 
+#if defined(HYPERALGEBRA_USE_MKL)
 #define _MKL_LIB_EXIST_YET_LALALA_
+#endif
 
 
 #ifdef _MKL_LIB_EXIST_YET_LALALA_

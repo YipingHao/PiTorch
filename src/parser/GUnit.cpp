@@ -1,5 +1,5 @@
-#include"../src/header/Pikachu.h"
-#include"../extern/header/all.h"
+#include"../header/Pikachu.h"
+#include"../../extern/header/all.h"
 #include "../header/parser.h"
 #include "../header/sheet.h"
 using namespace Pikachu;

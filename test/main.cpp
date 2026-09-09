@@ -10,7 +10,7 @@ int test(hyperlex::dictionary& para);
 #include<cmath>
 int main(int argc, char* argv[])
 {
-    int error;
+    int error = 1;
     try
     {
         error = entrance(argc, argv);
@@ -46,7 +46,7 @@ int static entrance(int argc, char* argv[])
     int error;
     hyperlex::BufferChar input;
     hyperlex::BufferChar temp;
-    int info;
+    int info = 1;
 
     if (argc > 1) file = argv[1];
     else file = "./parameter/parameter.txt";

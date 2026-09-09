@@ -239,7 +239,7 @@ namespace Pikachu
 			return infors.count();
 		}
 		//inline size_t dim(void)
-		inline size_t SetCount(size_t dim) 
+		inline void SetCount(size_t dim)
 		{
 			infors.recount(dim);
 			for (size_t i = 0; i < dim; i++)

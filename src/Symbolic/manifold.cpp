@@ -48,7 +48,8 @@ void manifold::Backdiff(size_t dx, size_t y, const manifold* in)
 }
 manifold* manifold::MonoForward(size_t y, vector<size_t>& OutputDim) const
 {
-	manifold* here, now;
+	manifold* here = NULL;
+	manifold now;
 	size_t i, j;
 	for (i = 0; i < InputDim.count(); i++)
 	{
@@ -73,7 +74,12 @@ manifold* manifold::MonoForward(size_t y, vector<size_t>& OutputDim) const
 }
 manifold* manifold::DiForward(size_t y, vector<size_t>& OutputDim) const
 {
-
+	(void)y;
+	(void)OutputDim;
+	hyperlex::dictionary* error = new hyperlex::dictionary;
+	error->append("location", "manifold::DiForward");
+	error->append("error", "not implemented");
+	throw error;
 }
 bool manifold::Simplify(void)
 {
@@ -840,5 +846,4 @@ void DiFunc::build(Expres* source)
 		cluster[i] = dst;
 	}
 }
-
 

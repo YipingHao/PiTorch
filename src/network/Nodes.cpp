@@ -602,7 +602,6 @@ void DiNonlinear::compute(Tensor& DescOut)const
 		size_t siteS = indexSrc.search(indexDst[i]);
 		size_t siteF = function.search(indexDst[i]);
 		size_t siteP = indexPara.search(indexDst[i]);
-		size_t index = _uintMax_;
 		int count = 0;
 		if (siteS != _uintMax_)
 		{
@@ -619,7 +618,7 @@ void DiNonlinear::compute(Tensor& DescOut)const
 			count += 1;
 			DescOut.ChangeDim(i, in[1]->descriptor[siteP]);
 		}
-		if (count != 0)
+		if (count != 1)
 		{
 			// 必须且只能在三者之一出现，否则报错
 			// Must appear in exactly one of the three, else throw error
@@ -788,6 +787,7 @@ void DiLinear::trivial(Node* SrcL, Node* SrcR, Affiliation AA)
 	}
 	Op = OpType::_add_;
 	Affi = AA;
+	descriptor.Set(SrcL->descriptor);
 	DummyIndex = 0;
 	RepeatedIndex = SrcL->descriptor.GetOrder();
 	indexDst.recount(RepeatedIndex);
@@ -850,12 +850,11 @@ void DiLinear::backward(Affiliation AA, vector<Node*>& label, vector<size_t>& H)
 	case Pikachu::Node::_sub_:
 	{
 		MonoLinear* diff;
-		Node* SrcBack_, * source;
-		size_t siteThis, siteSource;
+		Node* SrcBack_;
+		size_t siteThis;
 		double Ralpha;
 		Ralpha = (OT == _sub_ ? -1.0 : 1.0);
 		siteThis = site();
-		siteSource = source->site();
 		SrcBack_ = label[siteThis];
 
 
@@ -1046,7 +1045,7 @@ void DiLinear::forward(Affiliation AA, vector<Node*>& label, vector<size_t>& H)
 		siteThis = site();
 
 
-		diff = new DiLinear(Node::_mul_, AA);
+		diff = new DiLinear(OT, AA);
 		//diff->build(indexDst, indexSrcL, H, 1.0);
 		diff->setDesc(descriptor, H);
 		diff->value(indexDst, indexSrcR, indexSrcL);
@@ -1827,7 +1826,7 @@ DiNonlinear* DiNonlinear::differential(bool X, Affiliation AA)
 			diff->function.append(omega);
 			diff->indexDst.append(omega);
 			diff->omega = index;
-			diff->indexSrc[site] = index;
+			diff->indexPara[site] = index;
 			diff->descriptor.append(dimX);
 			diff->funcTensor.append(dimX);
 		}
@@ -1836,6 +1835,7 @@ DiNonlinear* DiNonlinear::differential(bool X, Affiliation AA)
 	
 	network->NodeAppend(diff);
 	network->net.ArcAdd(in[0], in[1], diff);
+	return diff;
 }
 void DiNonlinear::inforPrint(hyperlex::dictionary& dict)const
 {
