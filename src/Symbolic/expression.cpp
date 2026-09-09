@@ -2925,9 +2925,9 @@ void Expres::PrintForwardMiniReg(VISA1& instru, vector<size_t>& FreeReg)const
             src1 = instru.append(L_->Type, FreeReg, L_->src1, L_->src2, L_->Fc, label[left_]);
             src2 = 0;
             formula.OutputCut(output_, now);
-            if (output_[left_] == 0 || isLeaf(L_->Type))  FreeReg.append(label[left_]);
+            if (output_[left_] == 0 || isLeaf(L_->Type))  FreeReg.append(src1);
             //if ((function)here->Code == _pow_)
-            //    if ((output_[right_] == 0 || isLeaf(R_->Type)) && src2 != src1) FreeReg.append(label[right_]);
+            //    if ((output_[right_] == 0 || isLeaf(R_->Type)) && src2 != src1) FreeReg.append(src2);
             label[now] = instru.append(VISA1::_func_, here->Code, FreeReg, src1, src2);
             break;
         case _Funct2_:
@@ -2940,8 +2940,8 @@ void Expres::PrintForwardMiniReg(VISA1& instru, vector<size_t>& FreeReg)const
                 src2 = instru.append(R_->Type, FreeReg, R_->src1, R_->src2, R_->Fc, label[right_]);
             else src2 = src1;
             formula.OutputCut(output_, now);
-            if (output_[left_] == 0 || isLeaf(L_->Type))  FreeReg.append(label[left_]);
-            if ((output_[right_] == 0 || isLeaf(R_->Type)) && src2 != src1) FreeReg.append(label[right_]);
+            if (output_[left_] == 0 || isLeaf(L_->Type))  FreeReg.append(src1);
+            if ((output_[right_] == 0 || isLeaf(R_->Type)) && src2 != src1) FreeReg.append(src2);
             label[now] = instru.append(VISA1::_func2_, here->Code, FreeReg, src1, src2);
             break;
         default:
@@ -3126,6 +3126,7 @@ void Expres::ParameterBackward(size_t No)
     length = sequence.count();
     ClearOutput();
     output.recount(ParameterCount);
+    output.value(NULL);
     for (i = 0; i < length; i++)
     {
         here = sequence[i];
@@ -3157,7 +3158,7 @@ void Expres::backward(bool ExternOutput, size_t NewInputDim, size_t No, vector<E
 
 
     length = sequence.count();
-    label.recount(length);
+    label.recount(formula.count());
     label.value(NULL);
 
     if (ExternOutput)
@@ -3536,7 +3537,7 @@ void Expres::FunctBackDiff(vector<Expres::Ele*>& label, size_t now, Expres::Ele*
         FunctBackAccumulate(label, now, origin_, _mul_);
         break;
     case _cos_:
-        site = NewNode(Src_, _cos_);
+        site = NewNode(Src_, _sin_);
         origin_ = NewNode(site, _minus_);
         FunctBackAccumulate(label, now, origin_, _mul_);
         break;
@@ -3573,7 +3574,7 @@ void Expres::Funct2BackDiff(vector<Expres::Ele*>& label, size_t now, Expres::Ele
     Expres::Ele* temp2;
     Src_ = here->In(0);
     RSrc_ = here->In(1);
-    switch ((function)here->Code)
+    switch ((function2)here->Code)
     {
     case _pow_:// R^{prime}ln(L)L^R+L^{prime}L^{R-1}
         //1

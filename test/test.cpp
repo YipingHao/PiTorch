@@ -2174,41 +2174,125 @@ int static Test062(const hyperlex::dictionary& para)
 	int error = 0;
 	return error;
 }
-int static Test063(const hyperlex::dictionary& para)
+
+class SymbolicRegressionExpression : public Expres
 {
-	int error = 0;
-	for (size_t i = 0; i < 64; i++)
+public:
+	void BuildCosParameterWithDeadNode()
 	{
-		printf("int static Test");
-		if (i < 10) printf("00%zu", i);
-		else if (i < 100) printf("0%zu", i);
-		else printf("%zu", i);
-		printf("(const hyperlex::dictionary& para)");
-		if (error == 0)
-		{
-			printf("\n{\n");
-			printf("\tint error = 0;\n");
-			printf("\treturn error;\n");
-			printf("}\n");
-		}
-		else
-		{
-			printf(";");
-		}
+		clear();
+		NewNode((long int)42); // Keep a hole before the active subgraph.
+		Ele* parameter = NewNode(_LeafPara_, 0, 0);
+		OutputAppend(NewNode(parameter, _cos_));
+		SetParameterCount(1);
 	}
 
-	for (size_t i = 2; i < 64; i++)
+	void BuildInputParameterProduct()
 	{
-		printf("\t\tcase ");
-		printf("%zu:\n\t\t{\n\t\t\terror = Test", i);
-		if (i < 10) printf("00%zu", i);
-		else if (i < 100) printf("0%zu", i);
-		else printf("%zu", i);
-		printf("(para);\n");
-		printf("\t\t\tbreak;\n");
-		printf("\t\t}\n");
+		clear();
+		InputDim.append(1);
+		SetParameterCount(1);
+		Ele* input = NewNode(_LeafX_, 0, 0);
+		Ele* parameter = NewNode(_LeafPara_, 0, 0);
+		OutputAppend(NewNode(input, parameter, _mul_));
 	}
-	return error;
+
+	void BuildTwoOutputs()
+	{
+		clear();
+		InputDim.append(1);
+		Ele* input = NewNode(_LeafX_, 0, 0);
+		OutputAppend(input);
+		OutputAppend(NewNode(input, input, _mul_));
+	}
+
+	void BuildSinCosSum()
+	{
+		clear();
+		InputDim.append(1);
+		Ele* input = NewNode(_LeafX_, 0, 0);
+		Ele* sine = NewNode(input, _sin_);
+		Ele* cosine = NewNode(input, _cos_);
+		OutputAppend(NewNode(sine, cosine, _add_));
+	}
+};
+
+class InspectableDiFunc : public DiFunc
+{
+public:
+	size_t OriginalCount() const { return original.count(); }
+	size_t ClusterCount() const { return cluster.count(); }
+};
+
+static double EvaluateSymbolic(Expres& expression, bool miniReg, double input, double parameter)
+{
+	VISA1 program;
+	Pikachu::vector<size_t> freeRegisters;
+	if (miniReg) expression.PrintForwardMiniReg(program, freeRegisters);
+	else expression.PrintForwardMiniOp(program, freeRegisters);
+
+	double inputData[1] = { input };
+	double* inputs[1] = { inputData };
+	double parameters[1] = { parameter };
+	double outputs[2] = { 0.0, 0.0 };
+	program.compute(inputs, parameters, outputs);
+	return outputs[0];
+}
+
+int static Test063(const hyperlex::dictionary& para)
+{
+	(void)para;
+
+	FuncConst notANumber;
+	notANumber.nan();
+	assert(!notANumber.isZero());
+	assert(!notANumber.isOne());
+	FuncConst hugeFinite;
+	hugeFinite.SetValue(1.0e300);
+	assert(!hugeFinite.isZero());
+	assert(!hugeFinite.isOne());
+
+	SymbolicRegressionExpression cosine;
+	cosine.BuildCosParameterWithDeadNode();
+	cosine.ParameterBackward(0);
+	const double angle = 0.37;
+	const double cosineGradient = EvaluateSymbolic(cosine, false, 1.0, angle);
+	assert(std::fabs(cosineGradient + std::sin(angle)) < 1.0e-12);
+
+	SymbolicRegressionExpression product;
+	product.BuildInputParameterProduct();
+	InspectableDiFunc parameterDerivative;
+	parameterDerivative.build(&product);
+	parameterDerivative.differential(false);
+	const double productGradient = EvaluateSymbolic(*parameterDerivative[0], false, 2.5, 4.0);
+	assert(std::fabs(productGradient - 2.5) < 1.0e-12);
+
+	SymbolicRegressionExpression twoOutputs;
+	twoOutputs.BuildTwoOutputs();
+	InspectableDiFunc split;
+	split.build(&product);
+	split.build(&twoOutputs);
+	assert(split.OriginalCount() == 2);
+	assert(split.ClusterCount() == 2);
+	assert(split[0]->OutputAmount() == 1);
+	assert(split[1]->OutputAmount() == 1);
+
+	InspectableDiFunc copied;
+	copied.build(&product);
+	copied.copy(split);
+	assert(copied.OriginalCount() == split.OriginalCount());
+	assert(copied.ClusterCount() == split.ClusterCount());
+
+	SymbolicRegressionExpression sinCos;
+	sinCos.BuildSinCosSum();
+	const double miniOp = EvaluateSymbolic(sinCos, false, angle, 0.0);
+	const double miniReg = EvaluateSymbolic(sinCos, true, angle, 0.0);
+	const double expected = std::sin(angle) + std::cos(angle);
+	assert(std::fabs(miniOp - expected) < 1.0e-12);
+	assert(std::fabs(miniReg - expected) < 1.0e-12);
+
+	std::cout << "Test063: symbolic differentiation regressions passed." << std::endl;
+	return 0;
 }
 
 
@@ -2504,10 +2588,6 @@ int enumL::GroupGet(int accept)
 	0, \
 	0, \
 	0 };
-
-
-
-
 
 
 

@@ -693,7 +693,7 @@ void DiFunc::differential(bool X)
 		{
 			for (size_t i = 0; i < cluster.count(); i++)
 			{
-				cluster[i]->differetial(0, 0, true);
+				cluster[i]->differetial(0, 0, false);
 			}
 		}
 		else
@@ -724,6 +724,8 @@ void DiFunc::differential(bool X)
 }
 void DiFunc::copy(const DiFunc& source)
 {
+	if (this == &source) return;
+	clear();
 	OutputFusion = source.OutputFusion;
 	OutputDim = source.OutputDim;
 	InputDim = source.InputDim;
@@ -738,7 +740,8 @@ void DiFunc::copy(const DiFunc& source)
 		cluster[i] = new Expres();
 		cluster[i]->copy(*(source[i]));
 	}
-	for (size_t i = 0; i < original.count(); i++)
+	original.recount(source.original.count());
+	for (size_t i = 0; i < source.original.count(); i++)
 	{
 		original[i] = new Expres();
 		original[i]->copy(*(source.original[i]));
@@ -811,6 +814,7 @@ void DiFunc::demo(FILE* fp) const
 }
 void DiFunc::build(Expres* source)
 {
+	clear();
 	configurations Config;
 	OutputDim = source->OutputAmount();
 	InputDim = source->InputCount();
@@ -834,7 +838,7 @@ void DiFunc::build(Expres* source)
 		{
 			original[i] = new Expres;
 			original[i]->copy(*source);
-			original[i]->differetial(0, i, true);
+			original[i]->ShrinkOutput(i);
 			original[i]->Simplify();
 		}
 	}
@@ -846,4 +850,3 @@ void DiFunc::build(Expres* source)
 		cluster[i] = dst;
 	}
 }
-

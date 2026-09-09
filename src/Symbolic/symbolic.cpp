@@ -11,6 +11,7 @@ using namespace Pikachu;
 void FuncConst::nan(void)
 {
     IfNan = true;
+    IfInt = false;
     RealConst = 0.0;
     IntConst = 0;
 }
@@ -27,21 +28,31 @@ void FuncConst::SetValue(long long int ele)
 }
 void FuncConst::SetValue(double ele)
 {
-    double temp;
-    long long int middle;
-    temp = ele;
-    middle = (long long int)temp;
-    temp -= (double)middle;
-    IfInt = (temp == 0.0);
     if (std::isnan(ele))
     {
         nan();
+        return;
+    }
+    if (!std::isfinite(ele))
+    {
+        IfNan = false;
+        IfInt = false;
+        RealConst = ele;
+        IntConst = 0;
+        return;
+    }
+    IfNan = false;
+    RealConst = ele;
+    const double integerLimit = std::ldexp(1.0, 63);
+    if (ele >= -integerLimit && ele < integerLimit && std::trunc(ele) == ele)
+    {
+        IfInt = true;
+        IntConst = (long long int)ele;
     }
     else
     {
-        IfNan = false;
-        RealConst = ele;
-        IntConst = (long long int)ele;
+        IfInt = false;
+        IntConst = 0;
     }
 }
 void FuncConst::SetValue(const FuncConst& ele)
@@ -159,11 +170,11 @@ FuncConst FuncConst::operator/(const FuncConst& right)
 
 bool FuncConst::isZero(void) const
 {
-    return IfInt ? (IntConst == (long long int)0) : (RealConst == 0.0);
+    return !IfNan && (IfInt ? (IntConst == (long long int)0) : (RealConst == 0.0));
 }
 bool FuncConst::isOne(void) const
 {
-    return IfInt ? (IntConst == (long long int)1) : (RealConst == 1.0);
+    return !IfNan && (IfInt ? (IntConst == (long long int)1) : (RealConst == 1.0));
 }
 
 void FuncConst::sin(void)
@@ -1911,5 +1922,3 @@ void ActivFunc::TestBackward(void)
     output[0] = base;
     formula[base->site()]->Output = true;
 }
-
-
