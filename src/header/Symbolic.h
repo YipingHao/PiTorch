@@ -95,6 +95,7 @@ namespace Pikachu
 	double ComputeFunction(double src1, function Fu);
 	double ComputeFunction2(double src1, double src2, function2 Fu2);
 
+	class SymbolicCppBackend;
 	class VISA1
 	{
 	public:
@@ -126,6 +127,7 @@ namespace Pikachu
 		void clear(void);
 		void compute(double* const* X, const double* para, double* output) const;
 	private:
+		friend class SymbolicCppBackend;
 		vector<instruct> program;
 		vector<FuncConst> constant;
 		//Reg0 is meanless
@@ -394,6 +396,32 @@ namespace Pikachu
 		// without Simplification
 	protected:
 
+	};
+
+	class SymbolicCppBackend
+	{
+	public:
+		enum Lowering
+		{
+			MiniOperations = 0,
+			MiniRegisters = 1,
+		};
+		enum Status
+		{
+			Success = 0,
+			InvalidArgument = 1,
+			InvalidFunctionName = 2,
+			OpenFailure = 3,
+			InvalidProgram = 4,
+			WriteFailure = 5,
+		};
+
+		int build(const Expres& expression, const char* outputPath,
+			const char* functionName, Lowering lowering = MiniOperations) const;
+		int build(const VISA1& program, const char* outputPath,
+			const char* functionName) const;
+		int print(const VISA1& program, FILE* output,
+			const char* functionName) const;
 	};
 
 	class activation : public expression

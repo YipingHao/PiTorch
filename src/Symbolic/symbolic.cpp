@@ -1,6 +1,7 @@
 #include"../header/Pikachu.h"
 using namespace Pikachu;
 #include<cmath>
+#include<limits>
 
 
 #ifndef _uintMax_
@@ -17,6 +18,7 @@ void FuncConst::nan(void)
 }
 double FuncConst::Rvalue(void) const
 {
+    if (IfNan) return std::numeric_limits<double>::quiet_NaN();
     return IfInt ? (double)IntConst : RealConst;
 }
 void FuncConst::SetValue(long long int ele)

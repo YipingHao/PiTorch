@@ -1,5 +1,6 @@
 ﻿#include"extern.h"
 #include<cmath>
+#include<limits>
 using namespace Pikachu;
 
 #include<cstring>
@@ -75,6 +76,7 @@ int static Test060(const hyperlex::dictionary& para);
 int static Test061(const hyperlex::dictionary& para);
 int static Test062(const hyperlex::dictionary& para);
 int static Test063(const hyperlex::dictionary& para);
+int static Test064(const hyperlex::dictionary& para);
 int test(hyperlex::dictionary& para)
 {
 	int item = para.search(1L, "TestItem::item");
@@ -404,6 +406,11 @@ int test(hyperlex::dictionary& para)
 	case 63:
 	{
 		error = Test063(para);
+		break;
+	}
+	case 64:
+	{
+		error = Test064(para);
 		break;
 	}
 
@@ -2215,6 +2222,38 @@ public:
 		Ele* cosine = NewNode(input, _cos_);
 		OutputAppend(NewNode(sine, cosine, _add_));
 	}
+
+	void BuildCppBackendFixture()
+	{
+		clear();
+		InputDim.append(2);
+		InputDim.append(1);
+		SetParameterCount(1);
+
+		Ele* x00 = NewNode(_LeafX_, 0, 0);
+		Ele* x01 = NewNode(_LeafX_, 0, 1);
+		Ele* x10 = NewNode(_LeafX_, 1, 0);
+		Ele* parameter = NewNode(_LeafPara_, 0, 0);
+		Ele* two = NewNode((long int)2);
+		Ele* four = NewNode((long int)4);
+
+		Ele* trigonometric = NewNode(NewNode(x00, _sin_), NewNode(x01, _cos_), _add_);
+		Ele* decay = NewNode(NewNode(x10, _minus_), _exp_);
+		OutputAppend(NewNode(trigonometric, decay, _mul_));
+
+		Ele* base = NewNode(x00, parameter, _add_);
+		Ele* square = NewNode(base, two, _pow_);
+		Ele* scale = NewNode(four, _sqrt_);
+		Ele* logarithm = NewNode(NewNode(parameter, two, _add_), _ln_);
+		OutputAppend(NewNode(NewNode(square, scale, _div_), logarithm, _sub_));
+
+		FuncConst notANumber;
+		notANumber.nan();
+		OutputAppend(NewNode(notANumber));
+		FuncConst infinity;
+		infinity.SetValue(std::numeric_limits<double>::infinity());
+		OutputAppend(NewNode(infinity));
+	}
 };
 
 class InspectableDiFunc : public DiFunc
@@ -2292,6 +2331,52 @@ int static Test063(const hyperlex::dictionary& para)
 	assert(std::fabs(miniReg - expected) < 1.0e-12);
 
 	std::cout << "Test063: symbolic differentiation regressions passed." << std::endl;
+	return 0;
+}
+
+int static Test064(const hyperlex::dictionary& para)
+{
+	const char* generatedSource = para.search(
+		"./output/symbolic_generated.cpp", "GeneratedSource");
+	const char* generatedSourceMiniOp = para.search(
+		"./output/symbolic_generated_miniop.cpp", "GeneratedSourceMiniOp");
+	SymbolicRegressionExpression expression;
+	expression.BuildCppBackendFixture();
+
+	VISA1 reference;
+	Pikachu::vector<size_t> freeRegisters;
+	expression.PrintForwardMiniReg(reference, freeRegisters);
+	double inputGroup0[2] = { 0.37, -0.21 };
+	double inputGroup1[1] = { 0.43 };
+	double* inputs[2] = { inputGroup0, inputGroup1 };
+	double parameters[1] = { 1.25 };
+	double outputs[4] = { 0.0, 0.0, 0.0, 0.0 };
+	reference.compute(inputs, parameters, outputs);
+	const double expected0 = (std::sin(inputGroup0[0]) + std::cos(inputGroup0[1])) *
+		std::exp(-inputGroup1[0]);
+	const double expected1 = std::pow(inputGroup0[0] + parameters[0], 2.0) /
+		std::sqrt(4.0) - std::log(parameters[0] + 2.0);
+	assert(std::fabs(outputs[0] - expected0) < 1.0e-12);
+	assert(std::fabs(outputs[1] - expected1) < 1.0e-12);
+	assert(std::isnan(outputs[2]));
+	assert(std::isinf(outputs[3]) && outputs[3] > 0.0);
+
+	SymbolicCppBackend backend;
+	assert(backend.build(reference, generatedSource, "pikachu_symbolic_kernel") ==
+		SymbolicCppBackend::Success);
+	assert(backend.build(expression, generatedSourceMiniOp,
+		"pikachu_symbolic_kernel_miniop", SymbolicCppBackend::MiniOperations) ==
+		SymbolicCppBackend::Success);
+	assert(backend.build(expression, generatedSource, "not-a-cpp-name",
+		SymbolicCppBackend::MiniOperations) == SymbolicCppBackend::InvalidFunctionName);
+	assert(backend.build(expression, generatedSource, "for",
+		SymbolicCppBackend::MiniOperations) == SymbolicCppBackend::InvalidFunctionName);
+	assert(backend.build(reference, "", "valid_name") ==
+		SymbolicCppBackend::InvalidArgument);
+	assert(backend.build(reference, generatedSource, "") ==
+		SymbolicCppBackend::InvalidFunctionName);
+	std::cout << "Test064: generated " << generatedSource << " and "
+		<< generatedSourceMiniOp << std::endl;
 	return 0;
 }
 
@@ -2588,8 +2673,3 @@ int enumL::GroupGet(int accept)
 	0, \
 	0, \
 	0 };
-
-
-
-
-

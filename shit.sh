@@ -12,6 +12,8 @@ fi
 # 执行带参数的 Git 提交
 git commit -a -m "$1"
 git push server
+git push origin
+git push hub2
 
 
 # 检查执行结果

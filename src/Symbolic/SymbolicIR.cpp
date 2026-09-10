@@ -1,6 +1,8 @@
 #include"../header/Pikachu.h"
 using namespace Pikachu;
 #include<cmath>
+#include<cstdio>
+#include<cstring>
 
 
 VISA1::VISA1()
@@ -15,7 +17,8 @@ VISA1::~VISA1()
 size_t VISA1::RegAllocate(vector<size_t>& FreeReg)
 {
     size_t reg_;
-    if (FreeReg.pop(reg_) != 0)  return reg_;
+    while (FreeReg.pop(reg_) != 0)
+        if (reg_ != 0) return reg_;
     RegCount += 1;
     return RegCount;
 }
@@ -154,5 +157,212 @@ void VISA1::Demo(FILE* fp) const
 
 }
 
+namespace
+{
+bool IsCppIdentifier(const char* name)
+{
+    if (name == NULL || name[0] == '\0') return false;
+    const char first = name[0];
+    if (!((first >= 'a' && first <= 'z') ||
+        (first >= 'A' && first <= 'Z') || first == '_')) return false;
+    for (size_t i = 1; name[i] != '\0'; ++i)
+    {
+        const char here = name[i];
+        if (!((here >= 'a' && here <= 'z') ||
+            (here >= 'A' && here <= 'Z') ||
+            (here >= '0' && here <= '9') || here == '_')) return false;
+    }
+    static const char* keywords[] = {
+        "alignas", "alignof", "and", "and_eq", "asm", "auto", "bitand",
+        "bitor", "bool", "break", "case", "catch", "char", "char16_t",
+        "char32_t", "class", "compl", "const", "constexpr", "const_cast",
+        "continue", "decltype", "default", "delete", "do", "double",
+        "dynamic_cast", "else", "enum", "explicit", "export", "extern",
+        "false", "float", "for", "friend", "goto", "if", "inline", "int",
+        "long", "main", "mutable", "namespace", "new", "noexcept", "not",
+        "not_eq", "nullptr", "operator", "or", "or_eq", "private",
+        "protected", "public", "register", "reinterpret_cast", "return",
+        "short", "signed", "sizeof", "static", "static_assert",
+        "static_cast", "struct", "switch", "template", "this",
+        "thread_local", "throw", "true", "try", "typedef", "typeid",
+        "typename", "union", "unsigned", "using", "virtual", "void",
+        "volatile", "wchar_t", "while", "xor", "xor_eq"
+    };
+    for (size_t i = 0; i < sizeof(keywords) / sizeof(keywords[0]); ++i)
+        if (strcmp(name, keywords[i]) == 0) return false;
+    return true;
+}
 
+void PrintCppConstant(FILE* output, const FuncConst& constant)
+{
+    if (constant.IfNan)
+    {
+        fprintf(output, "std::numeric_limits<double>::quiet_NaN()");
+    }
+    else if (std::isinf(constant.Rvalue()))
+    {
+        if (constant.Rvalue() < 0.0) fprintf(output, "-");
+        fprintf(output, "std::numeric_limits<double>::infinity()");
+    }
+    else
+    {
+        fprintf(output, "%.17g", constant.Rvalue());
+    }
+}
+}
 
+int SymbolicCppBackend::build(const Expres& expression, const char* outputPath,
+    const char* functionName, Lowering lowering) const
+{
+    if (outputPath == NULL || outputPath[0] == '\0' || functionName == NULL)
+        return InvalidArgument;
+    if (!IsCppIdentifier(functionName)) return InvalidFunctionName;
+    if (lowering != MiniOperations && lowering != MiniRegisters) return InvalidArgument;
+
+    VISA1 visa;
+    vector<size_t> freeRegisters;
+    if (lowering == MiniOperations)
+        expression.PrintForwardMiniOp(visa, freeRegisters);
+    else
+        expression.PrintForwardMiniReg(visa, freeRegisters);
+    return build(visa, outputPath, functionName);
+}
+
+int SymbolicCppBackend::build(const VISA1& visa, const char* outputPath,
+    const char* functionName) const
+{
+    if (outputPath == NULL || outputPath[0] == '\0' || functionName == NULL)
+        return InvalidArgument;
+    if (!IsCppIdentifier(functionName)) return InvalidFunctionName;
+
+    FILE* output = fopen(outputPath, "w");
+    if (output == NULL) return OpenFailure;
+    const int status = print(visa, output, functionName);
+    const int closeStatus = fclose(output);
+    if (status != Success) return status;
+    return closeStatus == 0 ? Success : WriteFailure;
+}
+
+int SymbolicCppBackend::print(const VISA1& visa, FILE* output,
+    const char* functionName) const
+{
+    if (output == NULL || functionName == NULL) return InvalidArgument;
+    if (!IsCppIdentifier(functionName)) return InvalidFunctionName;
+
+    for (size_t i = 0; i < visa.program.count(); ++i)
+    {
+        const VISA1::instruct& here = visa.program[i];
+        switch (here.Type)
+        {
+        case VISA1::_op_:
+            if (here.Op < (int)_add_ || here.Op > (int)_div_ ||
+                here.dst == 0 || here.dst > visa.RegCount ||
+                here.src1 == 0 || here.src1 > visa.RegCount ||
+                here.src2 == 0 || here.src2 > visa.RegCount)
+                return InvalidProgram;
+            break;
+        case VISA1::_func_:
+            if (here.Op < (int)_sin_ || here.Op > (int)_minus_ ||
+                here.dst == 0 || here.dst > visa.RegCount ||
+                here.src1 == 0 || here.src1 > visa.RegCount)
+                return InvalidProgram;
+            break;
+        case VISA1::_func2_:
+            if (here.Op != (int)_pow_ ||
+                here.dst == 0 || here.dst > visa.RegCount ||
+                here.src1 == 0 || here.src1 > visa.RegCount ||
+                here.src2 == 0 || here.src2 > visa.RegCount)
+                return InvalidProgram;
+            break;
+        case VISA1::_st_:
+            if (here.src1 == 0 || here.src1 > visa.RegCount)
+                return InvalidProgram;
+            break;
+        case VISA1::_ld_:
+            if (here.dst == 0 || here.dst > visa.RegCount)
+                return InvalidProgram;
+            if (here.Op == (int)_LeafConst_)
+            {
+                if (here.src1 >= visa.constant.count()) return InvalidProgram;
+            }
+            else if (here.Op != (int)_LeafX_ && here.Op != (int)_LeafPara_)
+            {
+                return InvalidProgram;
+            }
+            break;
+        default:
+            return InvalidProgram;
+        }
+    }
+
+    fprintf(output, "// Generated by Pikachu::SymbolicCppBackend.\n");
+    fprintf(output, "// VISA1 instructions: %zu, registers: %zu, constants: %zu.\n",
+        visa.program.count(), visa.RegCount, visa.constant.count());
+    fprintf(output, "#include <cmath>\n");
+    fprintf(output, "#include <limits>\n\n");
+    fprintf(output, "extern \"C\" void %s(const double* const* input, ", functionName);
+    fprintf(output, "const double* parameter, double* output)\n{\n");
+    fprintf(output, "    double reg[%zu] = {};\n", visa.RegCount + 1);
+
+    for (size_t i = 0; i < visa.program.count(); ++i)
+    {
+        const VISA1::instruct& here = visa.program[i];
+        switch (here.Type)
+        {
+        case VISA1::_op_:
+        {
+            const char* op = "+";
+            if ((operation)here.Op == _sub_) op = "-";
+            else if ((operation)here.Op == _mul_) op = "*";
+            else if ((operation)here.Op == _div_) op = "/";
+            fprintf(output, "    reg[%zu] = reg[%zu] %s reg[%zu];\n",
+                here.dst, here.src1, op, here.src2);
+            break;
+        }
+        case VISA1::_func_:
+            if ((function)here.Op == _minus_)
+            {
+                fprintf(output, "    reg[%zu] = -reg[%zu];\n", here.dst, here.src1);
+            }
+            else
+            {
+                const char* functionNameCpp = "sin";
+                if ((function)here.Op == _cos_) functionNameCpp = "cos";
+                else if ((function)here.Op == _exp_) functionNameCpp = "exp";
+                else if ((function)here.Op == _ln_) functionNameCpp = "log";
+                else if ((function)here.Op == _sqrt_) functionNameCpp = "sqrt";
+                fprintf(output, "    reg[%zu] = std::%s(reg[%zu]);\n",
+                    here.dst, functionNameCpp, here.src1);
+            }
+            break;
+        case VISA1::_func2_:
+            fprintf(output, "    reg[%zu] = std::pow(reg[%zu], reg[%zu]);\n",
+                here.dst, here.src1, here.src2);
+            break;
+        case VISA1::_st_:
+            fprintf(output, "    output[%zu] = reg[%zu];\n", here.dst, here.src1);
+            break;
+        case VISA1::_ld_:
+            if (here.Op == (int)_LeafX_)
+            {
+                fprintf(output, "    reg[%zu] = input[%zu][%zu];\n",
+                    here.dst, here.src1, here.src2);
+            }
+            else if (here.Op == (int)_LeafPara_)
+            {
+                fprintf(output, "    reg[%zu] = parameter[%zu];\n", here.dst, here.src2);
+            }
+            else
+            {
+                fprintf(output, "    reg[%zu] = ", here.dst);
+                PrintCppConstant(output, visa.constant[here.src1]);
+                fprintf(output, ";\n");
+            }
+            break;
+        default:
+            return InvalidProgram;
+        }
+    }
+    fprintf(output, "}\n");
+    return ferror(output) == 0 ? Success : WriteFailure;
+}

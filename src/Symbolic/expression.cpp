@@ -2900,6 +2900,9 @@ void Expres::PrintForwardMiniReg(VISA1& instru, vector<size_t>& FreeReg)const
         case _LeafX_:
         case _LeafPara_:
         case _LeafConst_:
+            if (here->Output)
+                label[now] = instru.append(here->Type, FreeReg, here->src1,
+                    here->src2, here->Fc, label[now]);
             break;
         case _Operation_:
         {
@@ -2956,7 +2959,7 @@ void Expres::PrintForwardMiniReg(VISA1& instru, vector<size_t>& FreeReg)const
                     instru.append(VISA1::_st_, 0, j, label[now], 0);
                 }
             }
-            if (output_[now] == 0) FreeReg.append(label[now]);
+            if (output_[now] == 0 || isLeaf(here->Type)) FreeReg.append(label[now]);
         }
 
     }
