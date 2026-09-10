@@ -143,7 +143,7 @@ bash ./run.sh
 Test063: symbolic differentiation regressions passed.
 ```
 
-生成并独立编译符号 C++ 后端的命令见[符号 C++ 后端说明](docs/符号C++后端.md)。
+生成并独立编译符号 C++ 后端的命令见[符号 C++ 后端说明](docs/symbolic-cpp-backend.md)。
 
 `install.sh` 的 `-o 0|1|2|3` 控制优化等级，`-g` 添加调试信息，`-c` 在构建前清理，`-C` 只清理。更多说明见下方文档。
 
@@ -151,11 +151,13 @@ Test063: symbolic differentiation regressions passed.
 
 | 文档 | 内容 |
 | --- | --- |
-| [重启说明](docs/重启说明.md) | 项目历史、价值判断、工程问题和重启边界 |
-| [符号微分中端设计说明](docs/符号微分中端设计说明.md) | 表达式 IR、前向/反向微分、优化 pass、VISA1 和验证建议 |
-| [符号 C++ 后端](docs/符号C++后端.md) | 代码生成接口、ABI、lowering 选择、验证方法和当前边界 |
-| [首轮修复记录](docs/log/2026-09-09-重启首轮修复.md) | 已修复问题、回归范围、验证结果和剩余风险 |
-| [符号 C++ 后端实现记录](docs/log/2026-09-10-符号C++后端.md) | 后端实现、测试中发现的 MiniReg bug 和独立编译结果 |
+| [重启说明](docs/restart-notes.md) | 项目历史、价值判断、工程问题和重启边界 |
+| [符号微分中端设计说明](docs/symbolic-differentiation.md) | 表达式 IR、前向/反向微分、优化 pass、VISA1 和验证建议 |
+| [符号 C++ 后端](docs/symbolic-cpp-backend.md) | 代码生成接口、ABI、lowering 选择、验证方法和当前边界 |
+| [首轮修复记录](docs/log/2026-09-09-restart-fixes.md) | 已修复问题、回归范围、验证结果和剩余风险 |
+| [符号 C++ 后端实现记录](docs/log/2026-09-10-symbolic-cpp-backend.md) | 后端实现、测试中发现的 MiniReg bug 和独立编译结果 |
+| [张量图 C++ 后端](docs/tensor-graph-cpp-backend.md) | 静态张量图 lowering、生成 ABI、支持节点和当前优化边界 |
+| [张量图 C++ 后端实现记录](docs/log/2026-09-10-tensor-graph-cpp-backend.md) | 完整张量后端、DSL 修复和数值验证结果 |
 | [网络与张量图](docs/network.md) | 网络节点、指标和计算图设计的旧版详细说明 |
 | [安装脚本](docs/install.md) | `install.sh` 参数 |
 | [运行脚本](docs/run.md) | `run.sh` 参数 |

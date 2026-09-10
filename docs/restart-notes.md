@@ -127,7 +127,7 @@ PIP 是最初的典型用例，但不是系统功能的定义。更准确的目�
 
 它应被视为“可执行语义规范”。一旦这个版本能产生正确结果，未来的 Python 前端、JAX 对照或 CUDA 后端都有明确的比较对象。
 
-当前进展：符号表达式到独立 C++11 函数这一部分已经完成；下一小步是用朴素循环连接外层 `MonoLinear/DiLinear` 和 `MonoNonlinear/DiNonlinear`，而不是重新设计符号核生成器。接口和限制见 `docs/符号C++后端.md`。
+当前进展：符号表达式到独立 C++11 函数这一部分已经完成；下一小步是用朴素循环连接外层 `MonoLinear/DiLinear` 和 `MonoNonlinear/DiNonlinear`，而不是重新设计符号核生成器。接口和限制见 `docs/symbolic-cpp-backend.md`。
 
 ### 阶段 2：只验证一条最关键的纵向链路
 

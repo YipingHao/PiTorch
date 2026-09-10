@@ -37,4 +37,4 @@ generated C++ backend matches the analytic reference.
 
 ## 当前边界
 
-本次完成的是 `Expres/VISA1` 符号核后端，不是整个 `NetWork` 的 CPU 后端。外层张量循环、缩并和临时张量调度仍是下一阶段；详细接口与使用方式见 `docs/符号C++后端.md`。
+本次完成的是 `Expres/VISA1` 符号核后端，不是整个 `NetWork` 的 CPU 后端。外层张量循环、缩并和临时张量调度仍是下一阶段；详细接口与使用方式见 `docs/symbolic-cpp-backend.md`。
