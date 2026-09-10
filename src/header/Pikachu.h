@@ -94,6 +94,7 @@ namespace Pikachu
 	class DiNonlinear;
 	class MonoLinear;
 	class MonoNonlinear;
+	class TensorCppBackend;
 	class Node : public vortex<Node>
 	{
 	public:
@@ -103,6 +104,7 @@ namespace Pikachu
 		friend class DiNonlinear;
 		friend class MonoLinear;
 		friend class MonoNonlinear;
+		friend class TensorCppBackend;
 		
 
 		Node();
@@ -207,6 +209,7 @@ namespace Pikachu
 	};
 	class LeafNode : public Node
 	{
+		friend class TensorCppBackend;
 	protected:
 		vector<FuncConst> value;
 		size_t Label;
@@ -229,6 +232,7 @@ namespace Pikachu
 	};
 	class MonoLinear : public Node
 	{
+		friend class TensorCppBackend;
 	public:
 		MonoLinear();
 		MonoLinear(Affiliation AA);
@@ -262,6 +266,7 @@ namespace Pikachu
 	};
 	class DiLinear : public Node
 	{
+		friend class TensorCppBackend;
 	public:
 		friend class NetWork;
 		friend class LeafNode;
@@ -300,6 +305,7 @@ namespace Pikachu
 	};
 	class MonoNonlinear : public Node
 	{
+		friend class TensorCppBackend;
 	protected:
 		Tensor funcTensor;
 		bool ScalarInput;
@@ -360,6 +366,7 @@ namespace Pikachu
 	};
 	class DiNonlinear : public Node
 	{
+		friend class TensorCppBackend;
 	public:
 		DiNonlinear();
 		DiNonlinear(Affiliation AA);
@@ -452,6 +459,7 @@ namespace Pikachu
 		friend class MonoNonlinear;
 
 		friend class BackEnd;
+		friend class TensorCppBackend;
 		Node* NewNodeLeaf(const dims_t& dims, Node::LeafType T);
 		Node* NewNodeMonoLinear(const dims_t&dims, Node* src, double factor_, indiceIS & indice);
 		Node* NewNodeDiLinear(const dims_t& dims, Node* srcL, Node* srcR, Node::OpType OT, indiceIS& indice);
@@ -510,6 +518,27 @@ namespace Pikachu
 
 	
 	
+
+	class TensorCppBackend
+	{
+	public:
+		enum Status
+		{
+			Success = 0,
+			InvalidArgument = 1,
+			InvalidFunctionName = 2,
+			OpenFailure = 3,
+			InvalidGraph = 4,
+			UnsupportedNode = 5,
+			SymbolicFailure = 6,
+			WriteFailure = 7,
+		};
+
+		int build(const NetWork& net, const char* outputPath,
+			const char* functionName = "pikachu_compute") const;
+		int print(const NetWork& net, FILE* output,
+			const char* functionName = "pikachu_compute") const;
+	};
 
 	class BackEnd
 	{

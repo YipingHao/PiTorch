@@ -2326,7 +2326,7 @@ int BuildInfor::buildTENSORsingleF(Node*& newNode, const vector<size_t>& dims, T
 	func* funcR = funR.GetAllFuncR(error, this, dst);
 	if (error != 0)return error;
 
-	if(funcR->ParaCount == 1)
+	if(funcR->ParaCount != 0)
 	{
 		errorCode = TooMuchPara;
 		errorInfor1 = line;
@@ -2380,7 +2380,7 @@ int BuildInfor::buildTENSORmultiF(Node*& newNode, const vector<size_t>& dims, Te
 {
 	NetG::rules RR = (NetG::rules)TENSORVALUE->root().site;
 	size_t line = TENSORVALUE->root().site;
-	if (RR != NetG::TENSORVALUE_singleF_)
+	if (RR != NetG::TENSORVALUE_multiF_)
 	{
 		errorCode = WrongEntrance;
 		errorInfor1 = line;
@@ -2396,7 +2396,7 @@ int BuildInfor::buildTENSORmultiF(Node*& newNode, const vector<size_t>& dims, Te
 	if (error != 0)return error;
 	func* funcR = funR.GetAllFuncR(error, this, dst);
 	if (error != 0)return error;
-	if (funcR->ParaCount != 1)
+	if (funcR->ParaCount == 0)
 	{
 		errorCode = TooLessPara;
 		errorInfor1 = line;

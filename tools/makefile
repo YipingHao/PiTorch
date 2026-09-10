@@ -10,7 +10,7 @@ TOOLS = $(BASE)tools/
 TEST = $(BASE)test/
 EXTERN = $(BASE)extern/lib/
 
-COFILE = $(ODIR)Pikachu.o $(ODIR)BackEnd.o $(ODIR)PikaType.o $(ODIR)Nodes.o $(ODIR)tensor.o 
+COFILE = $(ODIR)Pikachu.o $(ODIR)BackEnd.o $(ODIR)TensorCppBackend.o $(ODIR)PikaType.o $(ODIR)Nodes.o $(ODIR)tensor.o
 SOFILE = $(ODIR)symbolic.o $(ODIR)SymbolicIR.o $(ODIR)expression.o $(ODIR)manifold.o
 POFILE = $(ODIR)Pexp.o $(ODIR)LGsheet.o $(ODIR)parser.o $(ODIR)GUnit.o 
 HFILE = $(HEAD)PikaType.h $(HEAD)PikaTemplate.h $(HEAD)Pikachu.h $(HEAD)Symbolic.h $(HEAD)parser.h
@@ -32,6 +32,9 @@ $(ODIR)Pikachu.o:$(CODE)network/Pikachu.cpp $(HFILE)
 
 $(ODIR)BackEnd.o:$(CODE)network/BackEnd.cpp $(HFILE)
 	$(CC) -o $(ODIR)BackEnd.o -c $(Option) $(CODE)network/BackEnd.cpp
+
+$(ODIR)TensorCppBackend.o:$(CODE)network/TensorCppBackend.cpp $(HFILE)
+	$(CC) -o $(ODIR)TensorCppBackend.o -c $(Option) $(CODE)network/TensorCppBackend.cpp
 
 $(ODIR)PikaType.o:$(CODE)tensors/PikaType.cpp $(HFILE)
 	$(CC) -o $(ODIR)PikaType.o -c $(Option) $(CODE)tensors/PikaType.cpp
@@ -84,8 +87,6 @@ clean:
 	rm $(TEST)*.o
 	rm $(BASE)extern/obj/*.o
 	rm $(BASE)extern/lib/*.a
-
-
 
 
 

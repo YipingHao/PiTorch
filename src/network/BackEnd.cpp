@@ -48,12 +48,15 @@ int BackEnd::build(const char* machine, NetWork* net, const char* output)
 		throw error;
 	}
 	BackEndType type = BackEndGet(machine);
+	int status = 0;
 	switch (type)
 	{
 	case CPU:
-		return CPUbackEnd(net, fp);
+		status = CPUbackEnd(net, fp);
+		break;
 	case CUDA:
-		return CUDAbackEnd(net, fp);
+		status = CUDAbackEnd(net, fp);
+		break;
 	default:
 	{
 		hyperlex::dictionary* error;
@@ -64,7 +67,8 @@ int BackEnd::build(const char* machine, NetWork* net, const char* output)
 		throw error;
 	}
 	}
-	return 0;
+	if (fclose(fp) != 0 && status == 0) return TensorCppBackend::WriteFailure;
+	return status;
 }
 
 void static AppendFile(FILE* fpSrc, FILE* fpDst)
@@ -110,12 +114,9 @@ static void PrintConstant(NetWork* net, FILE* fp);
 
 int BackEnd::CPUbackEnd(NetWork* net, FILE* fp)
 {
-	AppendFile("BackEnd::CPUbackEnd", "../data/material/all.cpp", fp);
-	PrintConstant(net, fp);
-	
-
-	AppendFile("BackEnd::CPUbackEnd", "../data/material/CPUcode.cpp", fp);
-	return 0;
+	if (net == NULL || fp == NULL) return TensorCppBackend::InvalidArgument;
+	TensorCppBackend backend;
+	return backend.print(*net, fp, "pikachu_compute");
 }
 int BackEnd::CUDAbackEnd(NetWork* net, FILE* fp)
 {

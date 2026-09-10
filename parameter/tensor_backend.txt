@@ -1,0 +1,9 @@
+{
+    item = "test";
+    DataFilePath = "./test";
+    DataFileName = "tensor_backend_di.pika";
+    TestItem =
+    {
+        item = 4;
+    };
+}

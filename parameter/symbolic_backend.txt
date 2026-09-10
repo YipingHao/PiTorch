@@ -1,0 +1,12 @@
+{
+	item = "test";
+	OutputFileName = "L.txt";
+	OutputFileName2 = "G.txt";
+	OutputFileName3 = "G2.txt";
+	GeneratedSource = "./output/symbolic_generated.cpp";
+	GeneratedSourceMiniOp = "./output/symbolic_generated_miniop.cpp";
+	TestItem =
+	{
+		item = 64;
+	};
+}
