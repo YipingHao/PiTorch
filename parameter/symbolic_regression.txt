@@ -1,0 +1,10 @@
+{
+	item = "test";
+	OutputFileName = "L.txt";
+	OutputFileName2 = "G.txt";
+	OutputFileName3 = "G2.txt";
+	TestItem =
+	{
+		item = 63;
+	};
+}
